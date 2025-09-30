@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мое мини-приложение</title>
+    <title>Управление лояльностью</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,7 +14,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, hsl(59, 100%, 85%) 0%, hwb(0 41% 4%) 100%);
             color: white;
             min-height: 100vh;
             padding: 20px;
@@ -23,10 +23,10 @@
         .container {
             max-width: 400px;
             margin: 0 auto;
-            text-align: center;
         }
         
         .header {
+            text-align: center;
             margin-bottom: 30px;
         }
         
@@ -35,17 +35,37 @@
             margin-bottom: 10px;
         }
         
+        .menu-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
         .button {
             background: white;
-            color: #667eea;
+            color: #ff9100;
             border: none;
-            padding: 15px 25px;
-            margin: 10px 0;
-            border-radius: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            width: 100%;
+            text-align: center;
             transition: transform 0.2s;
         }
         
@@ -53,68 +73,140 @@
             transform: translateY(-2px);
         }
         
-        .feature {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
+        .button-full {
+            grid-column: 1 / -1;
+        }
+        
+        .close-btn {
+            background: #ff4757;
+            color: white;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎮 Мое приложение</h1>
-            <p>Добро пожаловать в мини-приложение!</p>
+            <h1>📊 Управление лояльностью</h1>
+            <p>Выберите нужный раздел</p>
         </div>
-        
-        <div class="feature">
-            <p>Это тестовое приложение для Telegram бота</p>
+
+        <!-- Точки продаж -->
+        <div class="menu-section">
+            <div class="section-title">🏪 Точки продаж</div>
+            <div class="buttons-grid">
+                <button class="button" onclick="registerStore()">➕ Новая точка</button>
+                <button class="button" onclick="getStores()">📋 Список точек</button>
+            </div>
         </div>
-        
-        <button class="button" onclick="sendAction('buy')">🛒 Купить товар</button>
-        <button class="button" onclick="sendAction('info')">ℹ️ Получить информацию</button>
-        <button class="button" onclick="sendAction('help')">❓ Помощь</button>
-        <button class="button" onclick="sendAction('close')">❌ Закрыть</button>
-        
-        <div class="feature" style="margin-top: 20px;">
-            <p>ID пользователя: <span id="user-id">...</span></p>
+
+        <!-- Сотрудники -->
+        <div class="menu-section">
+            <div class="section-title">👥 Сотрудники</div>
+            <div class="buttons-grid">
+                <button class="button" onclick="registerEmployee()">➕ Новый сотрудник</button>
+                <button class="button" onclick="getEmployees()">📋 Список сотрудников</button>
+            </div>
         </div>
+
+        <!-- Подарки -->
+        <div class="menu-section">
+            <div class="section-title">🎁 Подарки</div>
+            <div class="buttons-grid">
+                <button class="button" onclick="registerGift()">🎁 Зарегистрировать подарок</button>
+                <button class="button" onclick="getGifts()">📋 Список подарков</button>
+            </div>
+        </div>
+
+        <!-- Друзья -->
+        <div class="menu-section">
+            <div class="section-title">👫 Друзья</div>
+            <div class="buttons-grid">
+                <button class="button" onclick="registerFriend()">👫 Добавить друга</button>
+                <button class="button" onclick="getFriends()">📋 Список друзей</button>
+            </div>
+        </div>
+
+        <button class="button button-full close-btn" onclick="closeApp()">❌ Закрыть приложение</button>
     </div>
 
     <script>
         // Инициализация Telegram Web App
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
-        
-        // Показываем информацию о пользователе
-        const user = Telegram.WebApp.initDataUnsafe.user;
-        if (user) {
-            document.getElementById('user-id').textContent = user.id;
-        }
-        
-        function sendAction(action) {
-            const data = {
-                action: action,
-                userId: user?.id || 'unknown',
-                timestamp: new Date().toISOString(),
-                platform: 'web_app'
-            };
-            
-            if (action === 'close') {
-                Telegram.WebApp.close();
-            } else {
-                // Отправляем данные в бот
-                Telegram.WebApp.sendData(JSON.stringify(data));
-                
-                // Показываем подтверждение
-                alert(`Действие "${action}" отправлено боту!`);
-            }
-        }
-        
-        // Меняем цвет фона Web App
         Telegram.WebApp.setHeaderColor('#667eea');
         Telegram.WebApp.setBackgroundColor('#667eea');
+
+        // Функции для точек продаж
+        function registerStore() {
+            showForm('store', '🏪 Регистрация новой точки продаж');
+        }
+
+        function getStores() {
+            showList('stores', '🏪 Список точек продаж');
+        }
+
+        // Функции для сотрудников
+        function registerEmployee() {
+            showForm('employee', '👥 Регистрация нового сотрудника');
+        }
+
+        function getEmployees() {
+            showList('employees', '👥 Список сотрудников');
+        }
+
+        // Функции для подарков
+        function registerGift() {
+            showForm('gift', '🎁 Регистрация подарка');
+        }
+
+        function getGifts() {
+            showList('gifts', '🎁 Список подарков');
+        }
+
+        // Функции для друзей
+        function registerFriend() {
+            showForm('friend', '👫 Добавление друга');
+        }
+
+        function getFriends() {
+            showList('friends', '👫 Список друзей');
+        }
+
+        // Общие функции
+        function showForm(type, title) {
+            const data = {
+                action: `register_${type}`,
+                title: title,
+                timestamp: new Date().toISOString()
+            };
+            Telegram.WebApp.showAlert(`Открыта форма: ${title}`);
+            // Здесь будет ваша форма для ввода данных
+        }
+
+        function showList(type, title) {
+            const data = {
+                action: `get_${type}`,
+                title: title,
+                timestamp: new Date().toISOString()
+            };
+            Telegram.WebApp.showAlert(`Загружается: ${title}`);
+            // Здесь будет загрузка и отображение списка
+        }
+
+        function closeApp() {
+            Telegram.WebApp.close();
+        }
+
+        // Отправка данных в бота
+        function sendDataToBot(action, data) {
+            const message = {
+                action: action,
+                data: data,
+                timestamp: new Date().toISOString()
+            };
+            Telegram.WebApp.sendData(JSON.stringify(message));
+        }
     </script>
 </body>
 </html>
