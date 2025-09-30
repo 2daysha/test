@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление лояльностью</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -13,11 +19,12 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, hsl(59, 100%, 85%) 0%, hwb(0 41% 4%) 100%);
-            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+            color: #3E2723;
             min-height: 100vh;
             padding: 20px;
+            line-height: 1.6;
         }
         
         .container {
@@ -28,49 +35,69 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
         }
         
         .header h1 {
             font-size: 24px;
+            font-weight: 700;
             margin-bottom: 10px;
+            color: #5D4037;
+        }
+        
+        .header p {
+            font-size: 16px;
+            font-weight: 500;
+            color: #6D4C41;
         }
         
         .menu-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 15px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 20px;
             margin-bottom: 15px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .section-title {
             font-size: 18px;
+            font-weight: 600;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #5D4037;
         }
         
         .buttons-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
         
         .button {
-            background: white;
-            color: #ff9100;
-            border: none;
-            padding: 12px 15px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #E65100;
+            border: 2px solid #FFB300;
+            padding: 14px 12px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             text-align: center;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .button:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: white;
         }
         
         .button-full {
@@ -78,9 +105,16 @@
         }
         
         .close-btn {
-            background: #ff4757;
+            background: linear-gradient(135deg, #FF5252 0%, #FF7676 100%);
             color: white;
+            border: none;
             margin-top: 20px;
+            font-weight: 600;
+            padding: 16px;
+        }
+        
+        .close-btn:hover {
+            background: linear-gradient(135deg, #FF3D3D 0%, #FF6B6B 100%);
         }
     </style>
 </head>
@@ -129,21 +163,24 @@
 
         <button class="button button-full close-btn" onclick="closeApp()">❌ Закрыть приложение</button>
     </div>
+    
 
     <script>
-        // Инициализация Telegram Web App
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
-        Telegram.WebApp.setHeaderColor('#667eea');
-        Telegram.WebApp.setBackgroundColor('#667eea');
+        Telegram.WebApp.setHeaderColor('#FFA000');
+        Telegram.WebApp.setBackgroundColor('#FFD700');
+
+        function closeApp() {
+            Telegram.WebApp.close();
+        }
 
         // Функции для точек продаж
         function registerStore() {
-            showForm('store', '🏪 Регистрация новой точки продаж');
+            Telegram.WebApp.showAlert("🏪 Регистрация новой точки продаж");
         }
-
         function getStores() {
-            showList('stores', '🏪 Список точек продаж');
+            Telegram.WebApp.showAlert("📋 Список точек продаж");
         }
 
         // Функции для сотрудников
