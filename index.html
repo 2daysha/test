@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление лояльностью</title>
+    <title>Бонусная программа</title>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,10 +34,11 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.2);
+            padding: 25px 20px;
+            background: rgba(255, 255, 255, 0.25);
             border-radius: 20px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
         .header h1 {
@@ -52,6 +52,23 @@
             font-size: 16px;
             font-weight: 500;
             color: #6D4C41;
+            margin-bottom: 5px;
+        }
+        
+        .bonus-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bonus-points {
+            font-size: 32px;
+            font-weight: 700;
+            color: #E65100;
+            margin: 10px 0;
         }
         
         .menu-section {
@@ -75,7 +92,6 @@
         
         .buttons-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
         
@@ -83,15 +99,19 @@
             background: rgba(255, 255, 255, 0.95);
             color: #E65100;
             border: 2px solid #FFB300;
-            padding: 14px 12px;
+            padding: 16px;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 600;
             text-align: center;
             transition: all 0.3s ease;
             font-family: inherit;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .button:hover {
@@ -100,8 +120,16 @@
             background: white;
         }
         
-        .button-full {
-            grid-column: 1 / -1;
+        .button-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+        }
+        
+        .button-secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            border: none;
         }
         
         .close-btn {
@@ -121,49 +149,55 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Управление лояльностью</h1>
-            <p>Выберите нужный раздел</p>
-        </div>
-
-        <!-- Точки продаж -->
-        <div class="menu-section">
-            <div class="section-title">🏪 Точки продаж</div>
-            <div class="buttons-grid">
-                <button class="button" onclick="registerStore()">➕ Новая точка</button>
-                <button class="button" onclick="getStores()">📋 Список точек</button>
-            </div>
-        </div>
-
-        <!-- Сотрудники -->
-        <div class="menu-section">
-            <div class="section-title">👥 Сотрудники</div>
-            <div class="buttons-grid">
-                <button class="button" onclick="registerEmployee()">➕ Новый сотрудник</button>
-                <button class="button" onclick="getEmployees()">📋 Список сотрудников</button>
+            <h1>🎁 Бонусная программа</h1>
+            <p>Ваша карта лояльности</p>
+            <div class="bonus-card">
+                <div>Бонусные баллы</div>
+                <div class="bonus-points">1 250</div>
+                <div>доступно для списания</div>
             </div>
         </div>
 
         <!-- Подарки -->
         <div class="menu-section">
-            <div class="section-title">🎁 Подарки</div>
+            <div class="section-title">🎁 Управление подарками</div>
             <div class="buttons-grid">
-                <button class="button" onclick="registerGift()">🎁 Зарегистрировать подарок</button>
-                <button class="button" onclick="getGifts()">📋 Список подарков</button>
+                <button class="button button-primary" onclick="registerGift()">
+                    🎁 Зарегистрировать подарок
+                </button>
+                <button class="button button-secondary" onclick="getGifts()">
+                    📋 Мои подарки
+                </button>
             </div>
         </div>
 
         <!-- Друзья -->
         <div class="menu-section">
-            <div class="section-title">👫 Друзья</div>
+            <div class="section-title">👫 Пригласить друзей</div>
             <div class="buttons-grid">
-                <button class="button" onclick="registerFriend()">👫 Добавить друга</button>
-                <button class="button" onclick="getFriends()">📋 Список друзей</button>
+                <button class="button button-primary" onclick="registerFriend()">
+                    👫 Пригласить друга
+                </button>
+                <button class="button button-secondary" onclick="getFriends()">
+                    📋 Мои друзья
+                </button>
             </div>
         </div>
 
-        <button class="button button-full close-btn" onclick="closeApp()">❌ Закрыть приложение</button>
+        <!-- История -->
+        <div class="menu-section">
+            <div class="section-title">📊 История операций</div>
+            <div class="buttons-grid">
+                <button class="button" onclick="showHistory()">
+                    📈 Посмотреть историю
+                </button>
+            </div>
+        </div>
+
+        <button class="button button-full close-btn" onclick="closeApp()">
+            ❌ Закрыть приложение
+        </button>
     </div>
-    
 
     <script>
         Telegram.WebApp.ready();
@@ -175,74 +209,53 @@
             Telegram.WebApp.close();
         }
 
-        // Функции для точек продаж
-        function registerStore() {
-            Telegram.WebApp.showAlert("🏪 Регистрация новой точки продаж");
-        }
-        function getStores() {
-            Telegram.WebApp.showAlert("📋 Список точек продаж");
-        }
-
-        // Функции для сотрудников
-        function registerEmployee() {
-            showForm('employee', '👥 Регистрация нового сотрудника');
-        }
-
-        function getEmployees() {
-            showList('employees', '👥 Список сотрудников');
-        }
-
         // Функции для подарков
         function registerGift() {
-            showForm('gift', '🎁 Регистрация подарка');
+            const giftData = {
+                action: 'register_gift',
+                type: 'card_gift',
+                timestamp: new Date().toISOString()
+            };
+            Telegram.WebApp.sendData(JSON.stringify(giftData));
+            Telegram.WebApp.showAlert("🎁 Выберите подарок для регистрации");
         }
 
         function getGifts() {
-            showList('gifts', '🎁 Список подарков');
+            const giftData = {
+                action: 'get_gifts',
+                timestamp: new Date().toISOString()
+            };
+            Telegram.WebApp.sendData(JSON.stringify(giftData));
+            Telegram.WebApp.showAlert("📋 Загружаем список ваших подарков...");
         }
 
         // Функции для друзей
         function registerFriend() {
-            showForm('friend', '👫 Добавление друга');
+            const friendData = {
+                action: 'register_friend',
+                timestamp: new Date().toISOString()
+            };
+            Telegram.WebApp.sendData(JSON.stringify(friendData));
+            Telegram.WebApp.showAlert("👫 Введите данные друга для приглашения");
         }
 
         function getFriends() {
-            showList('friends', '👫 Список друзей');
-        }
-
-        // Общие функции
-        function showForm(type, title) {
-            const data = {
-                action: `register_${type}`,
-                title: title,
+            const friendData = {
+                action: 'get_friends',
                 timestamp: new Date().toISOString()
             };
-            Telegram.WebApp.showAlert(`Открыта форма: ${title}`);
-            // Здесь будет ваша форма для ввода данных
+            Telegram.WebApp.sendData(JSON.stringify(friendData));
+            Telegram.WebApp.showAlert("📋 Загружаем список ваших друзей...");
         }
 
-        function showList(type, title) {
-            const data = {
-                action: `get_${type}`,
-                title: title,
+        // Дополнительные функции
+        function showHistory() {
+            const historyData = {
+                action: 'get_history',
                 timestamp: new Date().toISOString()
             };
-            Telegram.WebApp.showAlert(`Загружается: ${title}`);
-            // Здесь будет загрузка и отображение списка
-        }
-
-        function closeApp() {
-            Telegram.WebApp.close();
-        }
-
-        // Отправка данных в бота
-        function sendDataToBot(action, data) {
-            const message = {
-                action: action,
-                data: data,
-                timestamp: new Date().toISOString()
-            };
-            Telegram.WebApp.sendData(JSON.stringify(message));
+            Telegram.WebApp.sendData(JSON.stringify(historyData));
+            Telegram.WebApp.showAlert("📈 Загружаем историю операций...");
         }
     </script>
 </body>
