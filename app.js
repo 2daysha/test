@@ -96,126 +96,219 @@ class LoyaltyProApp {
     }
 
     loadPrivileges() {
-        const container = document.getElementById('page-home');
-        if (!container) return;
+    const container = document.getElementById('page-home');
+    if (!container) return;
 
-        // Имитация данных привилегий (в реальном приложении - API запрос)
-        const privileges = [
-            {
-                id: 1,
-                name: "Премиум подписка",
-                description: "Доступ ко всем функциям на 1 месяц",
-                price: "299 ₽"
-            },
-            {
-                id: 2,
-                name: "Золотая карта",
-                description: "Скидка 15% на все покупки",
-                price: "499 ₽"
-            },
-            {
-                id: 3,
-                name: "VIP статус",
-                description: "Персональный менеджер и приоритетная поддержка",
-                price: "999 ₽"
-            },
-            {
-                id: 4,
-                name: "Базовый пакет",
-                description: "Основные функции лояльности",
-                price: "149 ₽"
-            }
-        ];
+    // Серьезные товары для программы лояльности
+    const products = [
+        {
+            id: 1,
+            name: "Кофеварка автоматическая",
+            description: "Приготовление кофе с таймером",
+            price: "2500 бонусов",
+            category: "Бытовая техника"
+        },
+        {
+            id: 2,
+            name: "Набор кухонных ножей",
+            description: "6 предметов, керамическое покрытие",
+            price: "1800 бонусов",
+            category: "Кухонные принадлежности"
+        },
+        {
+            id: 3,
+            name: "Bluetooth колонка",
+            description: "Водонепроницаемая, 10W",
+            price: "3200 бонусов",
+            category: "Электроника"
+        },
+        {
+            id: 4,
+            name: "Подарочная карта в магазин",
+            description: "Номинал 1000 рублей",
+            price: "1000 бонусов",
+            category: "Подарочные карты"
+        },
+        {
+            id: 5,
+            name: "Чемодан на колесах",
+            description: "55л, 4 колеса, черный",
+            price: "4500 бонусов",
+            category: "Путешествия"
+        },
+        {
+            id: 6,
+            name: "Фитнес-браслет",
+            description: "Мониторинг сна и активности",
+            price: "2800 бонусов",
+            category: "Здоровье"
+        },
+        {
+            id: 7,
+            name: "Беспроводные наушники",
+            description: "Зарядка от case, 20ч работы",
+            price: "3500 бонусов",
+            category: "Аксессуары"
+        },
+        {
+            id: 8,
+            name: "Сертификат на ужин",
+            description: "Ресторан на 2 персоны",
+            price: "2000 бонусов",
+            category: "Рестораны"
+        }
+    ];
 
-        container.innerHTML = privileges.map(privilege => `
-            <div class="privilege-card" onclick="app.addToCart(${privilege.id})">
-                <h3>${privilege.name}</h3>
-                <p>${privilege.description}</p>
-                <div class="privilege-price">${privilege.price}</div>
-            </div>
-        `).join('');
+    container.innerHTML = products.map(product => `
+        <div class="privilege-card" onclick="app.addToCart(${product.id})">
+            <div class="product-category">${product.category}</div>
+            <h3>${product.name}</h3>
+            <p>${product.description}</p>
+            <div class="privilege-price">${product.price}</div>
+        </div>
+    `).join('');
     }
 
-    addToCart(privilegeId) {
-        // Имитация данных привилегий
-        const privileges = {
-            1: { name: "Премиум подписка", price: "299 ₽", numericPrice: 299 },
-            2: { name: "Золотая карта", price: "499 ₽", numericPrice: 499 },
-            3: { name: "VIP статус", price: "999 ₽", numericPrice: 999 },
-            4: { name: "Базовый пакет", price: "149 ₽", numericPrice: 149 }
-        };
+    addToCart(productId) {
+    // Различные товары и услуги которые можно приобрести за бонусы
+    const products = {
+        1: { 
+            name: "Кофеварка автоматическая", 
+            description: "Приготовление кофе с таймером",
+            price: "2500 бонусов", 
+            numericPrice: 2500,
+            category: "Бытовая техника"
+        },
+        2: { 
+            name: "Набор кухонных ножей", 
+            description: "6 предметов, керамическое покрытие",
+            price: "1800 бонусов", 
+            numericPrice: 1800,
+            category: "Кухонные принадлежности"
+        },
+        3: { 
+            name: "Bluetooth колонка", 
+            description: "Водонепроницаемая, 10W",
+            price: "3200 бонусов", 
+            numericPrice: 3200,
+            category: "Электроника"
+        },
+        4: { 
+            name: "Подарочная карта в магазин", 
+            description: "Номинал 1000 рублей",
+            price: "1000 бонусов", 
+            numericPrice: 1000,
+            category: "Подарочные карты"
+        },
+        5: { 
+            name: "Чемодан на колесах", 
+            description: "55л, 4 колеса, черный",
+            price: "4500 бонусов", 
+            numericPrice: 4500,
+            category: "Путешествия"
+        },
+        6: { 
+            name: "Фитнес-браслет", 
+            description: "Мониторинг сна и активности",
+            price: "2800 бонусов", 
+            numericPrice: 2800,
+            category: "Здоровье"
+        },
+        7: { 
+            name: "Беспроводные наушники", 
+            description: "Зарядка от case, 20ч работы",
+            price: "3500 бонусов", 
+            numericPrice: 3500,
+            category: "Аксессуары"
+        },
+        8: { 
+            name: "Сертификат на ужин", 
+            description: "Ресторан на 2 персоны",
+            price: "2000 бонусов", 
+            numericPrice: 2000,
+            category: "Рестораны"
+        }
+    };
 
-        const privilege = privileges[privilegeId];
-        if (!privilege) return;
+    const product = products[productId];
+    if (!product) return;
 
-        // Добавляем в корзину
-        this.cart.push({
-            id: Date.now(), // уникальный ID
-            privilegeId: privilegeId,
-            name: privilege.name,
-            price: privilege.price,
-            numericPrice: privilege.numericPrice
-        });
+    // Добавляем в корзину
+    this.cart.push({
+        id: Date.now(), // уникальный ID
+        productId: productId,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        numericPrice: product.numericPrice,
+        category: product.category
+    });
 
-        // Показываем уведомление
-        tg.showPopup({
-            title: 'Добавлено в корзину',
-            message: `${privilege.name} добавлен в корзину`,
-            buttons: [{ type: 'ok' }]
-        });
+    // Показываем уведомление
+    tg.showPopup({
+        title: 'Добавлено в корзину',
+        message: `${product.name} добавлен в корзину`,
+        buttons: [{ type: 'ok' }]
+    });
 
-        console.log('Товар добавлен в корзину:', privilege);
-        console.log('Корзина:', this.cart);
+    console.log('Товар добавлен в корзину:', product);
+    console.log('Корзина:', this.cart);
     }
 
     loadCart() {
-        const container = document.getElementById('page-catalog');
-        if (!container) return;
+    const container = document.getElementById('page-catalog');
+    if (!container) return;
 
-        if (this.cart.length === 0) {
-            container.innerHTML = `
-                <div class="loading">Корзина пуста</div>
-            `;
-            return;
-        }
-
-        const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
-
+    if (this.cart.length === 0) {
         container.innerHTML = `
-            ${this.cart.map(item => `
-                <div class="cart-item">
-                    <div class="cart-item-info">
-                        <h3>${item.name}</h3>
-                        <div class="cart-item-price">${item.price}</div>
-                    </div>
-                    <button onclick="app.removeFromCart(${item.id})" style="
-                        background: var(--tg-theme-destructive-text-color, #ff3b30);
-                        color: white;
-                        border: none;
-                        border-radius: 8px;
-                        padding: 8px 12px;
-                        font-size: 12px;
-                        cursor: pointer;
-                    ">Удалить</button>
-                </div>
-            `).join('')}
-            <div class="cart-total">
-                <h3>Общая сумма</h3>
-                <div class="cart-total-price">${total} ₽</div>
-                <button onclick="app.checkout()" style="
-                    background: var(--tg-theme-button-color, #50a8eb);
-                    color: var(--tg-theme-button-text-color, #ffffff);
-                    border: none;
-                    border-radius: 12px;
-                    padding: 12px 24px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    margin-top: 16px;
-                    width: 100%;
-                    cursor: pointer;
-                ">Оформить заказ</button>
+            <div class="loading" style="text-align: center; padding: 40px 20px; color: var(--tg-theme-hint-color, #999999);">
+                Корзина пуста
             </div>
         `;
+        return;
+    }
+
+    const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
+
+    container.innerHTML = `
+        ${this.cart.map(item => `
+            <div class="cart-item">
+                <div class="cart-item-info">
+                    <span class="cart-item-category">${item.category}</span>
+                    <h3>${item.name}</h3>
+                    <p>${item.description}</p>
+                    <div class="cart-item-price">${item.price}</div>
+                </div>
+                <button onclick="app.removeFromCart(${item.id})" style="
+                    background: var(--tg-theme-destructive-text-color, #ff3b30);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    margin-top: 8px;
+                    width: 100%;
+                ">Удалить из корзины</button>
+            </div>
+        `).join('')}
+        <div class="cart-total">
+            <h3>Общая сумма</h3>
+            <div class="cart-total-price">${total} бонусов</div>
+            <button onclick="app.checkout()" style="
+                background: var(--tg-theme-button-color, #50a8eb);
+                color: var(--tg-theme-button-text-color, #ffffff);
+                border: none;
+                border-radius: 12px;
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: 600;
+                margin-top: 16px;
+                width: 100%;
+                cursor: pointer;
+            ">Оформить заказ</button>
+        </div>
+    `;
     }
 
     removeFromCart(itemId) {
