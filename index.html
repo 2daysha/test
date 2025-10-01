@@ -3,256 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бонусная программа</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <title>LoyaltyPro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f7efc5 0%, #ffd88f 100%);
-            color: #3E2723;
-            min-height: 100vh;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 25px 20px;
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #5D4037;
-        }
-        
-        .header p {
-            font-size: 16px;
-            font-weight: 500;
-            color: #6D4C41;
-            margin-bottom: 5px;
-        }
-        
-        .bonus-card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .bonus-points {
-            font-size: 32px;
-            font-weight: 700;
-            color: #E65100;
-            margin: 10px 0;
-        }
-        
-        .menu-section {
-            background: rgba(255, 255, 255, 0.25);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #5D4037;
-        }
-        
-        .buttons-grid {
-            display: grid;
-            gap: 12px;
-        }
-        
-        .button {
-            background: rgba(255, 255, 255, 0.95);
-            color: #e9d313;
-            border: 2px solid #704309;
-            padding: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            text-align: center;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            background: white;
-        }
-        
-        .button-primary {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            border: none;
-        }
-        
-        .button-secondary {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-            color: white;
-            border: none;
-        }
-        
-        .close-btn {
-            background: linear-gradient(135deg, #FF5252 0%, #FF7676 100%);
-            color: white;
-            border: none;
-            margin-top: 20px;
-            font-weight: 600;
-            padding: 16px;
-        }
-        
-        .close-btn:hover {
-            background: linear-gradient(135deg, #FF3D3D 0%, #FF6B6B 100%);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎁 Бонусная программа</h1>
-            <p>Ваша карта лояльности</p>
-            <div class="bonus-card">
-                <div>Бонусные баллы</div>
-                <div class="bonus-points">1 250</div>
-                <div>доступно для списания</div>
+    <div class="app">
+        <header class="header">
+            <h1>loyalty pro</h1>
+        </header>
+        <main class="main">
+            <!-- Страница Привилегии -->
+            <div id="page-home" class="page active">
+                <!-- Контент загружается через JavaScript -->
+                <div class="loading">Загрузка привилегий...</div>
             </div>
-        </div>
-
-        <!-- Подарки -->
-        <div class="menu-section">
-            <div class="section-title"> Управление подарками</div>
-            <div class="buttons-grid">
-                <button class="button button-primary" onclick="registerGift()">
-                    🎁 Получить подарок
-                </button>
-                <button class="button button-secondary" onclick="getGifts()">
-                    📋 Мои подарки
-                </button>
+            
+            <!-- Страница Корзина -->
+            <div id="page-catalog" class="page">
+                <div class="loading">Загрузка корзины...</div>
             </div>
-        </div>
-
-        <!-- Друзья -->
-        <div class="menu-section">
-            <div class="section-title"> Пригласить друзей</div>
-            <div class="buttons-grid">
-                <button class="button button-primary" onclick="registerFriend()">
-                    👫 Пригласить друга
+            
+            <!-- Страница Профиль -->
+            <div id="page-cart" class="page">
+                <div class="loading">Загрузка профиля...</div>
+            </div>
+        </main>
+        <nav class="bottom-nav">
+            <div class="nav-container">
+                <button class="nav-item active" data-page="home">
+                    <span class="nav-label">Привилегии</span>
                 </button>
-                <button class="button button-secondary" onclick="getFriends()">
-                    📋 Мои друзья
+                <button class="nav-item" data-page="catalog">
+                    <span class="nav-label">Корзина</span>
+                </button>
+                <button class="nav-item" data-page="cart">
+                    <span class="nav-label">Профиль</span>
                 </button>
             </div>
-        </div>
-
-        <!-- История -->
-        <div class="menu-section">
-            <div class="section-title">📊 История операций</div>
-            <div class="buttons-grid">
-                <button class="button" onclick="showHistory()">
-                     Посмотреть историю 👀
-                </button>
-            </div>
-        </div>
+        </nav>
     </div>
-
-    <script>
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-        Telegram.WebApp.setHeaderColor('#FFA000');
-        Telegram.WebApp.setBackgroundColor('#FFD700');
-
-        function closeApp() {
-            Telegram.WebApp.close();
-        }
-
-        // Функции для подарков
-        function registerGift() {
-            const giftData = {
-                action: 'register_gift',
-                type: 'card_gift',
-                timestamp: new Date().toISOString()
-            };
-            Telegram.WebApp.sendData(JSON.stringify(giftData));
-            Telegram.WebApp.showAlert("🎁 Выберите подарок для регистрации");
-        }
-
-        function getGifts() {
-            const giftData = {
-                action: 'get_gifts',
-                timestamp: new Date().toISOString()
-            };
-            Telegram.WebApp.sendData(JSON.stringify(giftData));
-            Telegram.WebApp.showAlert("📋 Загружаем список ваших подарков...");
-        }
-
-        // Функции для друзей
-        function registerFriend() {
-            const friendData = {
-                action: 'register_friend',
-                timestamp: new Date().toISOString()
-            };
-            Telegram.WebApp.sendData(JSON.stringify(friendData));
-            Telegram.WebApp.showAlert("👫 Введите данные друга для приглашения");
-        }
-
-        function getFriends() {
-            const friendData = {
-                action: 'get_friends',
-                timestamp: new Date().toISOString()
-            };
-            Telegram.WebApp.sendData(JSON.stringify(friendData));
-            Telegram.WebApp.showAlert("📋 Загружаем список ваших друзей...");
-        }
-
-        // Дополнительные функции
-        function showHistory() {
-            const historyData = {
-                action: 'get_history',
-                timestamp: new Date().toISOString()
-            };
-            Telegram.WebApp.sendData(JSON.stringify(historyData));
-            Telegram.WebApp.showAlert("📈 Загружаем историю операций...");
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>

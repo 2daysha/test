@@ -1,0 +1,288 @@
+/* Общие стили с учетом темы Telegram */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--tg-theme-bg-color, #ffffff);
+    color: var(--tg-theme-text-color, #000000);
+    line-height: 1.4;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Шапка */
+.header {
+    background: var(--tg-theme-bg-color, #ffffff);
+    border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+    padding: 16px;
+    padding-top: calc(16px + var(--tg-safe-area-inset-top, 0px));
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tg-theme-text-color, #000000);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Основной контент */
+.main {
+    flex: 1;
+    padding: 16px;
+    padding-bottom: 80px; /* Отступ для нижней навигации */
+}
+
+/* Страницы */
+.page {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Стили для страницы Привилегии */
+#page-home {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.privilege-card {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.privilege-card:active {
+    transform: scale(0.98);
+}
+
+.privilege-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--tg-theme-text-color, #000000);
+}
+
+.privilege-card p {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, #999999);
+    margin-bottom: 12px;
+}
+
+.privilege-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--tg-theme-button-color, #50a8eb);
+}
+
+/* Стили для страницы Корзины */
+#page-catalog {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.cart-item {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-item-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.cart-item-price {
+    font-size: 14px;
+    color: var(--tg-theme-button-color, #50a8eb);
+    font-weight: 600;
+}
+
+.cart-total {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.cart-total h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.cart-total-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--tg-theme-button-color, #50a8eb);
+}
+
+/* Стили для страницы Профиля */
+#page-cart {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.profile-info {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.profile-info p {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.profile-info strong {
+    color: var(--tg-theme-button-color, #50a8eb);
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--tg-theme-button-color, #50a8eb);
+    display: block;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--tg-theme-hint-color, #999999);
+    margin-top: 4px;
+}
+
+/* Нижняя навигация */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--tg-theme-bg-color, #ffffff);
+    border-top: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+    padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 60px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.nav-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    flex: 1;
+    height: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--tg-theme-hint-color, #999999);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.nav-item.active {
+    color: var(--tg-theme-button-color, #50a8eb);
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 3px;
+    background: var(--tg-theme-button-color, #50a8eb);
+    border-radius: 0 0 2px 2px;
+    transition: width 0.3s ease;
+}
+
+.nav-item.active::before {
+    width: 40px;
+}
+
+.nav-label {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Анимация при нажатии */
+.nav-item:active {
+    transform: scale(0.95);
+    opacity: 0.7;
+}
+
+/* Состояние загрузки */
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--tg-theme-hint-color, #999999);
+}
+
+.loading::after {
+    content: '...';
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0%, 33% { content: '.'; }
+    34%, 66% { content: '..'; }
+    67%, 100% { content: '...'; }
+}
