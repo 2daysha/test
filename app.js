@@ -99,76 +99,140 @@ class LoyaltyProApp {
     const container = document.getElementById('page-home');
     if (!container) return;
 
-    // Серьезные товары для программы лояльности
+    // Категории товаров
+    const categories = [
+        { id: 'all', name: 'Все' },
+        { id: 'electronics', name: 'Электроника' },
+        { id: 'home', name: 'Для дома' },
+        { id: 'lifestyle', name: 'Образ жизни' }
+    ];
+
+    // Товары с категориями
     const products = [
         {
             id: 1,
             name: "Кофеварка автоматическая",
             description: "Приготовление кофе с таймером",
             price: "2500 бонусов",
-            category: "Бытовая техника"
+            numericPrice: 2500,
+            category: "home"
         },
         {
             id: 2,
             name: "Набор кухонных ножей",
             description: "6 предметов, керамическое покрытие",
             price: "1800 бонусов",
-            category: "Кухонные принадлежности"
+            numericPrice: 1800,
+            category: "home"
         },
         {
             id: 3,
             name: "Bluetooth колонка",
             description: "Водонепроницаемая, 10W",
             price: "3200 бонусов",
-            category: "Электроника"
+            numericPrice: 3200,
+            category: "electronics"
         },
         {
             id: 4,
             name: "Подарочная карта в магазин",
             description: "Номинал 1000 рублей",
             price: "1000 бонусов",
-            category: "Подарочные карты"
+            numericPrice: 1000,
+            category: "lifestyle"
         },
         {
             id: 5,
             name: "Чемодан на колесах",
             description: "55л, 4 колеса, черный",
             price: "4500 бонусов",
-            category: "Путешествия"
+            numericPrice: 4500,
+            category: "lifestyle"
         },
         {
             id: 6,
             name: "Фитнес-браслет",
             description: "Мониторинг сна и активности",
             price: "2800 бонусов",
-            category: "Здоровье"
+            numericPrice: 2800,
+            category: "electronics"
         },
         {
             id: 7,
             name: "Беспроводные наушники",
             description: "Зарядка от case, 20ч работы",
             price: "3500 бонусов",
-            category: "Аксессуары"
+            numericPrice: 3500,
+            category: "electronics"
         },
         {
             id: 8,
             name: "Сертификат на ужин",
             description: "Ресторан на 2 персоны",
             price: "2000 бонусов",
-            category: "Рестораны"
+            numericPrice: 2000,
+            category: "lifestyle"
         }
     ];
 
-    container.innerHTML = products.map(product => `
-        <div class="privilege-card" onclick="app.addToCart(${product.id})">
-            <div class="product-category">${product.category}</div>
+    const categoryNames = {
+        electronics: "Электроника",
+        home: "Для дома", 
+        lifestyle: "Образ жизни"
+    };
+
+    container.innerHTML = `
+        <div class="categories">
+            ${categories.map(cat => `
+                <button class="category-btn ${cat.id === 'all' ? 'active' : ''}" 
+                        data-category="${cat.id}">
+                    ${cat.name}
+                </button>
+            `).join('')}
+        </div>
+        <div class="products-grid" id="products-grid">
+            ${products.map(product => `
+                <div class="product-card" onclick="app.addToCart(${product.id})">
+                    <span class="product-category">${categoryNames[product.category]}</span>
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <div class="product-price">${product.price}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+
+    // Добавляем обработчики для категорий
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const category = e.target.dataset.category;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Фильтруем товары
+            this.filterProducts(category, products, categoryNames);
+        });
+    });
+}
+
+filterProducts(category, products, categoryNames) {
+    const grid = document.getElementById('products-grid');
+    
+    const filteredProducts = category === 'all' 
+        ? products 
+        : products.filter(product => product.category === category);
+    
+    grid.innerHTML = filteredProducts.map(product => `
+        <div class="product-card" onclick="app.addToCart(${product.id})">
+            <span class="product-category">${categoryNames[product.category]}</span>
             <h3>${product.name}</h3>
             <p>${product.description}</p>
-            <div class="privilege-price">${product.price}</div>
+            <div class="product-price">${product.price}</div>
         </div>
     `).join('');
     }
-
     addToCart(productId) {
     // Различные товары и услуги которые можно приобрести за бонусы
     const products = {

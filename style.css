@@ -6,7 +6,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background-color: var(--tg-theme-bg-color, #ffffff);
     color: var(--tg-theme-text-color, #000000);
     line-height: 1.4;
@@ -62,28 +62,64 @@ body {
 
 /* Стили для страницы Привилегии */
 #page-home {
-    max-width: 400px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
-.privilege-card {
-    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
+/* Категории */
+.categories {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 0 4px;
+    flex-wrap: wrap;
 }
 
-.privilege-card:active {
+.category-btn {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tg-theme-text-color, #000000);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.category-btn.active {
+    background: #3F75FB;
+    color: white;
+    border-color: #3F75FB;
+}
+
+/* Сетка товаров */
+.products-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.product-card {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:active {
     transform: scale(0.98);
 }
 
 .product-category {
     font-size: 10px;
-    color: var(--tg-theme-link-color, #3390ec);
-    background: var(--tg-theme-bg-color, #ffffff);
+    color: #3F75FB;
+    background: rgba(63, 117, 251, 0.1);
     padding: 4px 8px;
     border-radius: 12px;
     display: inline-block;
@@ -91,37 +127,41 @@ body {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    align-self: flex-start;
 }
 
-.privilege-card h3 {
-    font-size: 16px;
+.product-card h3 {
+    font-size: 15px;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     color: var(--tg-theme-text-color, #000000);
+    line-height: 1.3;
 }
 
-.privilege-card p {
-    font-size: 14px;
+.product-card p {
+    font-size: 13px;
     color: var(--tg-theme-hint-color, #999999);
     margin-bottom: 12px;
     line-height: 1.4;
+    flex: 1;
 }
 
-.privilege-price {
-    font-size: 18px;
+.product-price {
+    font-size: 16px;
     font-weight: 700;
-    color: var(--tg-theme-button-color, #50a8eb);
+    color: #3F75FB;
+    margin-top: auto;
 }
 
 /* Стили для страницы Корзины */
 #page-catalog {
-    max-width: 400px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
 .cart-item {
     background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 16px;
     margin-bottom: 12px;
     border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
@@ -154,8 +194,8 @@ body {
 
 .cart-item-category {
     font-size: 10px;
-    color: var(--tg-theme-link-color, #3390ec);
-    background: var(--tg-theme-bg-color, #ffffff);
+    color: #3F75FB;
+    background: rgba(63, 117, 251, 0.1);
     padding: 2px 6px;
     border-radius: 8px;
     display: inline-block;
@@ -164,7 +204,7 @@ body {
 
 .cart-item-price {
     font-size: 16px;
-    color: var(--tg-theme-button-color, #50a8eb);
+    color: #3F75FB;
     font-weight: 600;
     text-align: right;
     min-width: 120px;
@@ -197,7 +237,7 @@ body {
 
 .cart-total {
     background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 20px;
     margin-top: 20px;
     text-align: center;
@@ -214,13 +254,13 @@ body {
 .cart-total-price {
     font-size: 24px;
     font-weight: 700;
-    color: var(--tg-theme-button-color, #50a8eb);
+    color: #3F75FB;
     margin-bottom: 16px;
 }
 
 .checkout-btn {
-    background: var(--tg-theme-button-color, #50a8eb);
-    color: var(--tg-theme-button-text-color, #ffffff);
+    background: #3F75FB;
+    color: white;
     border: none;
     border-radius: 12px;
     padding: 12px 24px;
@@ -237,13 +277,13 @@ body {
 
 /* Стили для страницы Профиля */
 #page-cart {
-    max-width: 400px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
 .profile-info {
     background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 20px;
     margin-bottom: 16px;
     border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
@@ -255,7 +295,7 @@ body {
 }
 
 .profile-info strong {
-    color: var(--tg-theme-button-color, #50a8eb);
+    color: #3F75FB;
 }
 
 .profile-stats {
@@ -267,7 +307,7 @@ body {
 
 .stat-card {
     background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 16px;
     text-align: center;
     border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
@@ -276,7 +316,7 @@ body {
 .stat-value {
     font-size: 24px;
     font-weight: 700;
-    color: var(--tg-theme-button-color, #50a8eb);
+    color: #3F75FB;
     display: block;
 }
 
@@ -287,8 +327,8 @@ body {
 }
 
 .support-btn {
-    background: var(--tg-theme-button-color, #50a8eb);
-    color: var(--tg-theme-button-text-color, #ffffff);
+    background: #3F75FB;
+    color: white;
     border: none;
     border-radius: 12px;
     padding: 16px;
@@ -346,7 +386,7 @@ body {
 }
 
 .nav-item.active {
-    color: var(--tg-theme-button-color, #50a8eb);
+    color: #3F75FB;
 }
 
 .nav-item::before {
@@ -357,7 +397,7 @@ body {
     transform: translateX(-50%);
     width: 0;
     height: 3px;
-    background: var(--tg-theme-button-color, #50a8eb);
+    background: #3F75FB;
     border-radius: 0 0 2px 2px;
     transition: width 0.3s ease;
 }
@@ -401,9 +441,21 @@ body {
         padding-bottom: 70px;
     }
     
-    .privilege-card,
-    .cart-item {
+    .products-grid {
+        gap: 10px;
+    }
+    
+    .product-card {
         padding: 12px;
+    }
+    
+    .categories {
+        gap: 6px;
+    }
+    
+    .category-btn {
+        padding: 6px 12px;
+        font-size: 13px;
     }
     
     .nav-label {
