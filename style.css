@@ -79,19 +79,32 @@ body {
     background: var(--tg-theme-secondary-bg-color, #f8f8f8);
     border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5);
     border-radius: 20px;
-    padding: 8px 16px;
+    padding: 10px 16px;
     font-size: 14px;
     font-weight: 500;
     color: var(--tg-theme-text-color, #000000);
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .category-btn.active {
     background: #3F75FB;
     color: white;
     border-color: #3F75FB;
+}
+
+.category-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+}
+
+.category-btn.active .category-icon {
+    opacity: 1;
 }
 
 /* Сетка товаров */
@@ -349,8 +362,8 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--tg-theme-bg-color, #ffffff);
-    border-top: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+    background: #3F75FB; /* Синий фон по умолчанию */
+    border-top: 1px solid #3F75FB;
     padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
     z-index: 1000;
     backdrop-filter: blur(10px);
@@ -360,7 +373,7 @@ body {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: 60px;
+    height: 70px;
     max-width: 500px;
     margin: 0 auto;
 }
@@ -373,42 +386,38 @@ body {
     justify-content: center;
     background: none;
     border: none;
-    padding: 8px 16px;
+    padding: 8px 12px;
     flex: 1;
     height: 100%;
     cursor: pointer;
-    transition: all 0.2s ease;
-    color: var(--tg-theme-hint-color, #999999);
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    color: white; /* Белый текст по умолчанию */
+    gap: 4px;
 }
 
 .nav-item.active {
-    color: #3F75FB;
+    color: #3F75FB; /* Синий текст для активной кнопки */
+    background: white; /* Белый фон для активной кнопки */
+    border-radius: 16px 16px 0 0;
+    margin: 0 4px;
 }
 
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 3px;
-    background: #3F75FB;
-    border-radius: 0 0 2px 2px;
-    transition: width 0.3s ease;
+.nav-icon {
+    width: 22px;
+    height: 22px;
+    transition: all 0.3s ease;
+    fill: currentColor; /* Наследует цвет текста */
 }
 
-.nav-item.active::before {
-    width: 40px;
+.nav-item.active .nav-icon {
+    transform: translateY(-2px);
 }
 
 .nav-label {
     font-size: 11px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .nav-item:active {
@@ -416,6 +425,29 @@ body {
     opacity: 0.7;
 }
 
+/* Анимация для плавного перехода */
+.nav-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: -1;
+}
+
+.nav-item.active::before {
+    transform: translateY(0);
+}
 /* Состояние загрузки */
 .loading {
     text-align: center;
@@ -461,4 +493,132 @@ body {
     .nav-label {
         font-size: 10px;
     }
+}
+/* Уведомления для ПК версии */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--tg-theme-bg-color, #ffffff);
+    border: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    max-width: 300px;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.notification-success .notification-icon {
+    color: #4CAF50;
+}
+
+.notification-error .notification-icon {
+    color: #f44336;
+}
+
+.notification-warning .notification-icon {
+    color: #FF9800;
+}
+
+.notification-info .notification-icon {
+    color: #3F75FB;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--tg-theme-text-color, #000000);
+}
+
+.notification-message {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, #666666);
+    line-height: 1.4;
+}
+
+/* Конфирм диалог для ПК */
+.confirm-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.confirm-dialog.show {
+    display: flex;
+}
+
+.confirm-content {
+    background: var(--tg-theme-bg-color, #ffffff);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 320px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--tg-theme-text-color, #000000);
+}
+
+.confirm-message {
+    margin-bottom: 20px;
+    color: var(--tg-theme-hint-color, #666666);
+    line-height: 1.4;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.confirm-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirm-btn.primary {
+    background: #3F75FB;
+    color: white;
+}
+
+.confirm-btn.secondary {
+    background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+    color: var(--tg-theme-text-color, #000000);
+}
+
+.confirm-btn:active {
+    transform: scale(0.95);
 }
