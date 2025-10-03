@@ -80,40 +80,65 @@ class LoyaltyProApp {
     }
 
     loadUserData() {
-        // Получаем данные пользователя из Telegram
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            this.userData = {
-                firstName: user.first_name || 'Пользователь',
-                lastName: user.last_name || '',
-                username: user.username ? `@${user.username}` : 'Не указан',
-                id: user.id
-            };
-            console.log('Данные пользователя:', this.userData);
-        } else {
-            this.userData = {
-                firstName: 'Пользователь',
-                lastName: '',
-                username: 'Не указан',
-                id: 'unknown'
-            };
-        }
-
-        // Проверяем, есть ли номер телефона в initData
-        this.checkPhoneNumber();
+    // Получаем данные пользователя из Telegram
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+        this.userData = {
+            firstName: user.first_name || 'Пользователь',
+            lastName: user.last_name || '',
+            username: user.username ? `@${user.username}` : 'Не указан',
+            id: user.id
+        };
+        console.log('Данные пользователя:', this.userData);
+    } else {
+        this.userData = {
+            firstName: 'Пользователь',
+            lastName: '',
+            username: 'Не указан',
+            id: 'unknown'
+        };
     }
 
-    checkPhoneNumber() {
-        // Проверяем, есть ли номер телефона в initDataUnsafe
-        const initData = tg.initDataUnsafe;
-        if (initData && initData.user && initData.user.phone_number) {
-            this.userPhone = initData.user.phone_number;
-            console.log('Номер телефона из initData:', this.userPhone);
-        } else {
-            this.userPhone = null;
-            console.log('Номер телефона не найден в initData');
-        }
+    // Проверяем, есть ли номер телефона в initData
+    this.checkPhoneNumber();
+}
+
+checkPhoneNumber() {
+    // Проверяем, есть ли номер телефона в initDataUnsafe
+    const initData = tg.initDataUnsafe;
+    if (initData && initData.user && initData.user.phone_number) {
+        this.userPhone = initData.user.phone_number;
+        console.log('Номер телефона из initData:', this.userPhone);
+        // Сохраняем данные пользователя при получении номера
+        this.saveUserData();
+    } else {
+        this.userPhone = null;
+        console.log('Номер телефона не найден в initData');
     }
+}
+
+// Функция для проверки наличия номера телефона перед действием
+async checkPhoneBeforeAction(actionName, actionCallback) {
+    if (!this.userPhone) {
+        // Если номера нет, запрашиваем его
+        const wantsToContinue = await this.showConfirm(
+            'Требуется номер телефона',
+            `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
+        );
+        
+        if (wantsToContinue) {
+            this.requestPhoneNumber().then(() => {
+                // После получения номера выполняем действие
+                if (this.userPhone) {
+                    actionCallback();
+                }
+            });
+        }
+    } else {
+        // Если номер уже есть, сразу выполняем действие
+        actionCallback();
+    }
+}
 
     // Универсальная функция показа уведомлений
     showNotification(title, message, type = 'info') {
@@ -302,6 +327,7 @@ class LoyaltyProApp {
     }
 
     addToCart(productId) {
+    this.checkPhoneBeforeAction('добавления товара в корзину', () => {
         // Различные товары и услуги которые можно приобрести за бонусы
         const products = {
             1: { 
@@ -385,35 +411,41 @@ class LoyaltyProApp {
 
         console.log('Товар добавлен в корзину:', product);
         console.log('Корзина:', this.cart);
+    });
+}
+
+// Обновленная функция checkout с проверкой номера
+async checkout() {
+    this.checkPhoneBeforeAction('оформления заказа', () => {
+        this.processCheckout();
+    });
+}
+
+async processCheckout() {
+    if (this.cart.length === 0) {
+        this.showNotification('Ошибка', 'Корзина пуста', 'error');
+        return;
     }
 
-    // Обновленная функция checkout с подтверждением
-    async checkout() {
-        if (this.cart.length === 0) {
-            this.showNotification('Ошибка', 'Корзина пуста', 'error');
-            return;
-        }
+    const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
+    
+    const confirmed = await this.showConfirm(
+        'Подтверждение заказа',
+        `Вы уверены, что хотите оформить заказ на сумму ${total} бонусов?`
+    );
 
-        const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
+    if (confirmed) {
+        // Оформляем заказ
+        this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
+        this.cart = []; // Очищаем корзину
+        this.loadCart(); // Обновляем вид корзины
         
-        const confirmed = await this.showConfirm(
-            'Подтверждение заказа',
-            `Вы уверены, что хотите оформить заказ на сумму ${total} бонусов?`
-        );
-
-        if (confirmed) {
-            // Оформляем заказ
-            this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
-            this.cart = []; // Очищаем корзину
-            this.loadCart(); // Обновляем вид корзины
-            
-            // В реальном приложении здесь был бы вызов API
-            console.log('Заказ оформлен:', this.cart);
-        } else {
-            this.showNotification('Отменено', 'Заказ отменен', 'warning');
-        }
+        // В реальном приложении здесь был бы вызов API
+        console.log('Заказ оформлен:', this.cart);
+    } else {
+        this.showNotification('Отменено', 'Заказ отменен', 'warning');
     }
-
+}
     requestPhoneNumber() {
         if (this.isTelegram) {
             // Запрашиваем номер телефона через Telegram Web App
