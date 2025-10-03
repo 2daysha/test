@@ -153,149 +153,136 @@ class LoyaltyProApp {
     }
 
     loadPrivileges() {
-        const container = document.getElementById('page-home');
-        if (!container) return;
+    const container = document.getElementById('page-home');
+    if (!container) return;
 
-        // Категории товаров с иконками
-        const categories = [
-            { 
-                id: 'all', 
-                name: 'Все',
-                icon: `<svg class="category-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 13h1v7c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-7h1c.55 0 1-.45 1-1s-.45-1-1-1h-1V4c0-1.1-.9-2-2-2H6C4.9 2 4 2.9 4 4v7H3c-.55 0-1 .45-1 1s.45 1 1 1zm6-8h6v5H9V5zm-2 8h2v7H7v-7zm4 0h2v7h-2v-7zm4 0h2v7h-2v-7z"/>
-                      </svg>`
-            },
-            { 
-                id: 'electronics', 
-                name: 'Электроника',
-                icon: `<svg class="category-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 7h2v10H3V7zm4 0h2v10H7V7zm4 0h2v10h-2V7zm4 0h6v10h-6V7z"/>
-                      </svg>`
-            },
-            { 
-                id: 'home', 
-                name: 'Для дома',
-                icon: `<svg class="category-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z"/>
-                      </svg>`
-            },
-            { 
-                id: 'lifestyle', 
-                name: 'Образ жизни',
-                icon: `<svg class="category-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11 24h2v-2h-2v2zm-4 0h2v-2H7v2zm8 0h2v-2h-2v2zm2.71-18.29L12 0h-1v7.59L6.41 3 5 4.41 10.59 10 5 15.59 6.41 17 11 12.41V20h1l5.71-5.71-4.3-4.29 4.3-4.29z"/>
-                      </svg>`
-            }
-        ];
+    // Категории товаров без иконок
+    const categories = [
+        { 
+            id: 'all', 
+            name: 'Все'
+        },
+        { 
+            id: 'electronics', 
+            name: 'Электроника'
+        },
+        { 
+            id: 'home', 
+            name: 'Для дома'
+        },
+        { 
+            id: 'lifestyle', 
+            name: 'Образ жизни'
+        }
+    ];
 
-        // Товары с категориями
-        const products = [
-            {
-                id: 1,
-                name: "Кофеварка автоматическая",
-                description: "Приготовление кофе с таймером",
-                price: "2500 бонусов",
-                numericPrice: 2500,
-                category: "home"
-            },
-            {
-                id: 2,
-                name: "Набор кухонных ножей",
-                description: "6 предметов, керамическое покрытие",
-                price: "1800 бонусов",
-                numericPrice: 1800,
-                category: "home"
-            },
-            {
-                id: 3,
-                name: "Bluetooth колонка",
-                description: "Водонепроницаемая, 10W",
-                price: "3200 бонусов",
-                numericPrice: 3200,
-                category: "electronics"
-            },
-            {
-                id: 4,
-                name: "Подарочная карта в магазин",
-                description: "Номинал 1000 рублей",
-                price: "1000 бонусов",
-                numericPrice: 1000,
-                category: "lifestyle"
-            },
-            {
-                id: 5,
-                name: "Чемодан на колесах",
-                description: "55л, 4 колеса, черный",
-                price: "4500 бонусов",
-                numericPrice: 4500,
-                category: "lifestyle"
-            },
-            {
-                id: 6,
-                name: "Фитнес-браслет",
-                description: "Мониторинг сна и активности",
-                price: "2800 бонусов",
-                numericPrice: 2800,
-                category: "electronics"
-            },
-            {
-                id: 7,
-                name: "Беспроводные наушники",
-                description: "Зарядка от case, 20ч работы",
-                price: "3500 бонусов",
-                numericPrice: 3500,
-                category: "electronics"
-            },
-            {
-                id: 8,
-                name: "Сертификат на ужин",
-                description: "Ресторан на 2 персоны",
-                price: "2000 бонусов",
-                numericPrice: 2000,
-                category: "lifestyle"
-            }
-        ];
+    // Товары с категориями
+    const products = [
+        {
+            id: 1,
+            name: "Кофеварка автоматическая",
+            description: "Приготовление кофе с таймером",
+            price: "2500 бонусов",
+            numericPrice: 2500,
+            category: "home"
+        },
+        {
+            id: 2,
+            name: "Набор кухонных ножей",
+            description: "6 предметов, керамическое покрытие",
+            price: "1800 бонусов",
+            numericPrice: 1800,
+            category: "home"
+        },
+        {
+            id: 3,
+            name: "Bluetooth колонка",
+            description: "Водонепроницаемая, 10W",
+            price: "3200 бонусов",
+            numericPrice: 3200,
+            category: "electronics"
+        },
+        {
+            id: 4,
+            name: "Подарочная карта в магазин",
+            description: "Номинал 1000 рублей",
+            price: "1000 бонусов",
+            numericPrice: 1000,
+            category: "lifestyle"
+        },
+        {
+            id: 5,
+            name: "Чемодан на колесах",
+            description: "55л, 4 колеса, черный",
+            price: "4500 бонусов",
+            numericPrice: 4500,
+            category: "lifestyle"
+        },
+        {
+            id: 6,
+            name: "Фитнес-браслет",
+            description: "Мониторинг сна и активности",
+            price: "2800 бонусов",
+            numericPrice: 2800,
+            category: "electronics"
+        },
+        {
+            id: 7,
+            name: "Беспроводные наушники",
+            description: "Зарядка от case, 20ч работы",
+            price: "3500 бонусов",
+            numericPrice: 3500,
+            category: "electronics"
+        },
+        {
+            id: 8,
+            name: "Сертификат на ужин",
+            description: "Ресторан на 2 персоны",
+            price: "2000 бонусов",
+            numericPrice: 2000,
+            category: "lifestyle"
+        }
+    ];
 
-        const categoryNames = {
-            electronics: "Электроника",
-            home: "Для дома", 
-            lifestyle: "Образ жизни"
-        };
+    const categoryNames = {
+        electronics: "Электроника",
+        home: "Для дома", 
+        lifestyle: "Образ жизни"
+    };
 
-        container.innerHTML = `
-            <div class="categories">
-                ${categories.map(cat => `
-                    <button class="category-btn ${cat.id === 'all' ? 'active' : ''}" 
-                            data-category="${cat.id}">
-                        ${cat.icon}
-                        ${cat.name}
-                    </button>
-                `).join('')}
-            </div>
-            <div class="products-grid" id="products-grid">
-                ${products.map(product => `
-                    <div class="product-card" onclick="app.addToCart(${product.id})">
-                        <span class="product-category">${categoryNames[product.category]}</span>
-                        <h3>${product.name}</h3>
-                        <p>${product.description}</p>
-                        <div class="product-price">${product.price}</div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+    container.innerHTML = `
+        <div class="categories">
+            ${categories.map(cat => `
+                <button class="category-btn ${cat.id === 'all' ? 'active' : ''}" 
+                        data-category="${cat.id}">
+                    ${cat.name}
+                </button>
+            `).join('')}
+        </div>
+        <div class="products-grid" id="products-grid">
+            ${products.map(product => `
+                <div class="product-card" onclick="app.addToCart(${product.id})">
+                    <span class="product-category">${categoryNames[product.category]}</span>
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <div class="product-price">${product.price}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
 
-        // Добавляем обработчики для категорий
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const category = e.currentTarget.dataset.category;
-                
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                
-                this.filterProducts(category, products, categoryNames);
-            });
+    // Добавляем обработчики для категорий
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const category = e.currentTarget.dataset.category;
+            
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            
+            this.filterProducts(category, products, categoryNames);
         });
-    }
+    });
+}
 
     filterProducts(category, products, categoryNames) {
         const grid = document.getElementById('products-grid');
