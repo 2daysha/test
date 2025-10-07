@@ -423,39 +423,19 @@ class LoyaltyProApp {
     async requestPhoneNumber() {
     return new Promise((resolve) => {
         if (this.isTelegram) {
-            tg.showPopup({
-                title: 'Предоставьте номер телефона',
-                message: 'Для продолжения необходимо предоставить номер телефона',
-                buttons: [
-                    {
-                        type: 'default',
-                        text: 'Предоставить номер',
-                        id: 'share_phone'
-                    },
-                    {
-                        type: 'cancel',
-                        text: 'Отмена'
+            // Прямой запрос номера телефона через Telegram
+            tg.requestContact((contact) => {
+                if (contact && contact.phone_number) {
+                    this.userPhone = contact.phone_number;
+                    console.log('Получен номер телефона:', this.userPhone);
+                    this.saveUserData();
+                    if (this.currentPage === 'cart') {
+                        this.loadProfile();
                     }
-                ]
-            }, (buttonId) => {
-                if (buttonId === 'share_phone') {
-                    // Запрашиваем контакт
-                    tg.requestContact((contact) => {
-                        if (contact && contact.phone_number) {
-                            this.userPhone = contact.phone_number;
-                            console.log('Получен номер телефона:', this.userPhone);
-                            this.saveUserData();
-                            if (this.currentPage === 'cart') {
-                                this.loadProfile();
-                            }
-                            this.showNotification('Успех', 'Номер телефона получен', 'success');
-                            resolve(true);
-                        } else {
-                            this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
-                            resolve(false);
-                        }
-                    });
+                    this.showNotification('Успех', 'Номер телефона получен', 'success');
+                    resolve(true);
                 } else {
+                    console.log('Пользователь не предоставил номер телефона');
                     this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
                     resolve(false);
                 }
@@ -471,19 +451,25 @@ class LoyaltyProApp {
             resolve(true);
         }
     });
-}
+    }
 
  
     // Функция для проверки наличия номера телефона перед действием
     async checkPhoneBeforeAction(actionName, actionCallback) {
+    console.log('checkPhoneBeforeAction: userPhone =', this.userPhone);
+    
     if (!this.userPhone) {
         const wantsToContinue = await this.showConfirm(
             'Требуется номер телефона',
             `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
         );
         
+        console.log('Пользователь хочет продолжить:', wantsToContinue);
+        
         if (wantsToContinue) {
-            await this.requestPhoneNumber();
+            const phoneResult = await this.requestPhoneNumber();
+            console.log('Результат запроса номера:', phoneResult, 'userPhone:', this.userPhone);
+            
             if (this.userPhone) {
                 actionCallback();
             } else {
@@ -491,6 +477,7 @@ class LoyaltyProApp {
             }
         }
     } else {
+        console.log('Номер уже есть, выполняем действие');
         actionCallback();
     }
 }
