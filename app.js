@@ -26,7 +26,7 @@ class LoyaltyProApp {
             });
         });
 
-        this.loadUserData();
+        this.loadSavedUserData();
         this.loadPrivileges();
         
         this.showPage('home');
@@ -364,6 +364,30 @@ class LoyaltyProApp {
         console.log('Корзина:', this.cart);
     });
 }
+    saveUserData() {
+    const userData = {
+        userData: this.userData,
+        userPhone: this.userPhone
+    };
+    localStorage.setItem('loyaltyProUserData', JSON.stringify(userData));
+    console.log('Данные пользователя сохранены');   
+    }
+
+    loadSavedUserData() {
+    // Загружаем сохраненные данные пользователя
+    const saved = localStorage.getItem('loyaltyProUserData');
+    if (saved) {
+        try {
+            const userData = JSON.parse(saved);
+            this.userData = userData.userData || this.userData;
+            this.userPhone = userData.userPhone || this.userPhone;
+            console.log('Данные пользователя загружены из localStorage');
+        } catch (e) {
+            console.error('Ошибка загрузки данных:', e);
+        }
+    }
+    }
+
     checkPhoneNumber() {
     const initData = tg.initDataUnsafe;
     if (initData && initData.user && initData.user.phone_number) {
@@ -397,22 +421,45 @@ class LoyaltyProApp {
     async requestPhoneNumber() {
     return new Promise((resolve) => {
         if (this.isTelegram) {
-            tg.requestContact((contact) => {
-                if (contact && contact.phone_number) {
-                    this.userPhone = contact.phone_number;
-                    console.log('Получен номер телефона:', this.userPhone);
-                    this.saveUserData();
-                    if (this.currentPage === 'cart') {
-                        this.loadProfile();
+            tg.showPopup({
+                title: 'Предоставьте номер телефона',
+                message: 'Для продолжения необходимо предоставить номер телефона',
+                buttons: [
+                    {
+                        type: 'default',
+                        text: 'Предоставить номер',
+                        id: 'share_phone'
+                    },
+                    {
+                        type: 'cancel',
+                        text: 'Отмена'
                     }
-                    this.showNotification('Успех', 'Номер телефона получен', 'success');
-                    resolve(true);
+                ]
+            }, (buttonId) => {
+                if (buttonId === 'share_phone') {
+                    // Запрашиваем контакт
+                    tg.requestContact((contact) => {
+                        if (contact && contact.phone_number) {
+                            this.userPhone = contact.phone_number;
+                            console.log('Получен номер телефона:', this.userPhone);
+                            this.saveUserData();
+                            if (this.currentPage === 'cart') {
+                                this.loadProfile();
+                            }
+                            this.showNotification('Успех', 'Номер телефона получен', 'success');
+                            resolve(true);
+                        } else {
+                            this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
+                            resolve(false);
+                        }
+                    });
                 } else {
                     this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
                     resolve(false);
                 }
             });
         } else {
+            // Для ПК версии
             this.userPhone = '+79991234567';
             this.saveUserData();
             if (this.currentPage === 'cart') {
@@ -422,7 +469,7 @@ class LoyaltyProApp {
             resolve(true);
         }
     });
-    }
+}
 
  
     // Функция для проверки наличия номера телефона перед действием
