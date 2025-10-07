@@ -414,7 +414,7 @@ async checkPhoneBeforeAction(actionName, actionCallback) {
     });
 }
 
-// Обновленная функция checkout с проверкой номера
+// checkout с проверкой номера
 async checkout() {
     this.checkPhoneBeforeAction('оформления заказа', () => {
         this.processCheckout();
@@ -435,17 +435,42 @@ async processCheckout() {
     );
 
     if (confirmed) {
-        // Оформляем заказ
         this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
-        this.cart = []; // Очищаем корзину
-        this.loadCart(); // Обновляем вид корзины
+        this.cart = []; 
+        this.loadCart(); 
         
-        // В реальном приложении здесь был бы вызов API
         console.log('Заказ оформлен:', this.cart);
     } else {
         this.showNotification('Отменено', 'Заказ отменен', 'warning');
     }
 }
+ 
+formatPhoneNumber(phone) {
+    if (!phone) return 'Не указан';
+    
+    // Если номер приходит в формате "79991234567"
+    const cleaned = phone.replace(/\D/g, '');
+    
+    if (cleaned.length === 11) {
+        return `+${cleaned[0]} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;
+    } else if (cleaned.length === 10) {
+        return `+7 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8)}`;
+    }
+    
+    return phone;
+}
+
+    checkPhoneNumber() {
+    const initData = tg.initDataUnsafe;
+    if (initData && initData.user && initData.user.phone_number) {
+        this.userPhone = String(initData.user.phone_number);
+        console.log('Номер телефона из initData:', this.userPhone);
+        this.saveUserData();
+    } else {
+        this.userPhone = null;
+        console.log('Номер телефона не найден в initData');
+    }
+    }
     requestPhoneNumber() {
         if (this.isTelegram) {
             // Запрашиваем номер телефона через Telegram Web App
@@ -599,8 +624,8 @@ async processCheckout() {
     const stats = {
         totalOrders: this.cart.length,
         totalSpent: this.cart.reduce((sum, item) => sum + item.numericPrice, 0),
-        availableBonuses: 5000, // Пример доступных бонусов
-        rate: "Premium" // Пример уровня
+        availableBonuses: 5000,
+        rate: "Premium"
     };
 
     container.innerHTML = `
@@ -616,7 +641,7 @@ async processCheckout() {
             </div>
             <p><strong>Username:</strong> ${this.userData.username}</p>
             <p><strong>ID:</strong> ${this.userData.id}</p>
-            <p><strong>Телефон:</strong> ${this.userPhone ? this.userPhone : 
+            <p><strong>Телефон:</strong> ${this.userPhone ? this.formatPhoneNumber(this.userPhone) : 
                 '<button onclick="app.requestPhoneNumber()" style="background: #3F75FB; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">Получить номер</button>'}</p>
         </div>
         
@@ -638,6 +663,8 @@ async processCheckout() {
         </div>
         
         <button class="tariff-btn" onclick="app.selectTariff()" style="width: 100%; padding: 12px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 3.5C14.8 3.4 14.6 3.4 14.4 3.5L8.4 7L3 4V9C3 9.6 3.4 10 4 10H9V20C9 20.6 9.4 21 10 21H14C14.6 21 15 20.6 15 20V10H20C20.6 10 21 9.6 21 9Z"/>
             </svg>
             Выбрать тариф
         </button>
