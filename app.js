@@ -10,27 +10,28 @@ class LoyaltyProApp {
         this.init();
     }
 
-    init() {
-        if (this.isTelegram) {
-            tg.expand();
-            tg.enableClosingConfirmation();
-            console.log('Telegram Web App инициализирован:', tg.initDataUnsafe);
-        } else {
-            console.log('Запуск в браузере');
-        }
-
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const targetPage = e.currentTarget.dataset.page;
-                this.navigateTo(targetPage);
-            });
-        });
-
-        this.loadSavedUserData();
-        this.loadPrivileges();
-        
-        this.showPage('home');
+        init() {
+    if (this.isTelegram) {
+        tg.expand();
+        tg.enableClosingConfirmation();
+        console.log('Telegram Web App инициализирован:', tg.initDataUnsafe);
+    } else {
+        console.log('Запуск в браузере');
     }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const targetPage = e.currentTarget.dataset.page;
+            this.navigateTo(targetPage);
+        });
+    });
+
+    this.loadSavedUserData();
+    this.loadUserData();
+    this.loadPrivileges();
+    
+    this.showPage('home');
+}
 
     navigateTo(page) {
         this.showPage(page);
@@ -109,24 +110,25 @@ class LoyaltyProApp {
         }
     }
 
-    // Универсальная функция подтверждения
+  
     showConfirm(title, message) {
-        return new Promise((resolve) => {
-            if (this.isTelegram) {
-                tg.showPopup({
-                    title: title,
-                    message: message,
-                    buttons: [
-                        { type: 'ok', text: 'Оформить' },
-                        { type: 'cancel', text: 'Отмена' }
-                    ]
-                });
-                resolve(true);
-            } else {
-                this.showCustomConfirm(title, message).then(resolve);
-            }
-        });
-    }
+    return new Promise((resolve) => {
+        if (this.isTelegram) {
+            tg.showPopup({
+                title: title,
+                message: message,
+                buttons: [
+                    { type: 'ok', text: 'Да', id: 'confirm_ok' },
+                    { type: 'cancel', text: 'Отмена', id: 'confirm_cancel' }
+                ]
+            }, (buttonId) => {
+                resolve(buttonId === 'confirm_ok');
+            });
+        } else {
+            this.showCustomConfirm(title, message).then(resolve);
+        }
+    });
+}
 
     loadPrivileges() {
     const container = document.getElementById('page-home');
@@ -694,6 +696,13 @@ class LoyaltyProApp {
         </button>
     `;
 }
+    selectTariff() {
+    this.showNotification('Выбор тарифа', 'Функция выбора тарифа в разработке', 'info');
+    }
+
+    showSupport() {
+    this.showNotification('Поддержка', 'Связь с поддержкой в разработке', 'info');
+    }
 }
 
 const app = new LoyaltyProApp();
