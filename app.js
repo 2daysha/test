@@ -394,29 +394,34 @@ class LoyaltyProApp {
     return phone;
     }
 
-    requestPhoneNumber() {
-    if (this.isTelegram) {
-        tg.requestContact((contact) => {
-            if (contact && contact.phone_number) {
-                this.userPhone = contact.phone_number;
-                console.log('Получен номер телефона:', this.userPhone);
-                this.saveUserData();
-                if (this.currentPage === 'cart') {
-                    this.loadProfile();
+    async requestPhoneNumber() {
+    return new Promise((resolve) => {
+        if (this.isTelegram) {
+            tg.requestContact((contact) => {
+                if (contact && contact.phone_number) {
+                    this.userPhone = contact.phone_number;
+                    console.log('Получен номер телефона:', this.userPhone);
+                    this.saveUserData();
+                    if (this.currentPage === 'cart') {
+                        this.loadProfile();
+                    }
+                    this.showNotification('Успех', 'Номер телефона получен', 'success');
+                    resolve(true);
+                } else {
+                    this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
+                    resolve(false);
                 }
-                this.showNotification('Успех', 'Номер телефона получен', 'success');
-            } else {
-                this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
+            });
+        } else {
+            this.userPhone = '+79991234567';
+            this.saveUserData();
+            if (this.currentPage === 'cart') {
+                this.loadProfile();
             }
-        });
-    } else {
-        this.userPhone = '+79991234567';
-        this.saveUserData();
-        if (this.currentPage === 'cart') {
-            this.loadProfile();
+            this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
+            resolve(true);
         }
-        this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
-    }
+    });
     }
 
  
@@ -429,18 +434,18 @@ class LoyaltyProApp {
         );
         
         if (wantsToContinue) {
-            this.requestPhoneNumber().then(() => {
-                if (this.userPhone) {
-                    actionCallback();
-                }
-            });
+            await this.requestPhoneNumber();
+            if (this.userPhone) {
+                actionCallback();
+            } else {
+                this.showNotification('Отменено', 'Действие отменено - номер телефона не предоставлен', 'warning');
+            }
         }
     } else {
         actionCallback();
     }
-    }
+}
 
-    // checkout с проверкой номера
     async checkout() {
     this.checkPhoneBeforeAction('оформления заказа', () => {
         this.processCheckout();
