@@ -593,66 +593,63 @@ async processCheckout() {
     }
 
     loadProfile() {
-        const container = document.getElementById('page-cart');
-        if (!container) return;
+    const container = document.getElementById('page-cart');
+    if (!container) return;
 
-        const stats = {
-            totalOrders: this.cart.length,
-            totalSpent: this.cart.reduce((sum, item) => sum + item.numericPrice, 0),
-            availableBonuses: 5000, // Пример доступных бонусов
-            level: "Gold" // Пример уровня
-        };
+    const stats = {
+        totalOrders: this.cart.length,
+        totalSpent: this.cart.reduce((sum, item) => sum + item.numericPrice, 0),
+        availableBonuses: 5000, // Пример доступных бонусов
+        rate: "Premium" // Пример уровня
+    };
 
-        container.innerHTML = `
-            <div class="profile-info">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="#3F75FB">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                    </svg>
-                    <div>
-                        <h3 style="margin: 0; font-size: 18px;">${this.userData.firstName}</h3>
-                        <p style="margin: 0; color: var(--tg-theme-hint-color, #999999); font-size: 14px;">Уровень: ${stats.level}</p>
-                    </div>
-                </div>
-                <p><strong>Username:</strong> ${this.userData.username}</p>
-                <p><strong>ID:</strong> ${this.userData.id}</p>
-                <p><strong>Телефон:</strong> ${this.userPhone ? this.userPhone : 
-                    '<button onclick="app.requestPhoneNumber()" style="background: #3F75FB; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">Получить номер</button>'}</p>
-            </div>
-            
-            <div class="profile-stats">
-                <div class="stat-card">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB" style="margin-bottom: 8px;">
-                        <path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-                    </svg>
-                    <span class="stat-value">${stats.availableBonuses}</span>
-                    <span class="stat-label">Доступно бонусов</span>
-                </div>
-                <div class="stat-card">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB" style="margin-bottom: 8px;">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-                    </svg>
-                    <span class="stat-value">${stats.totalOrders}</span>
-                    <span class="stat-label">Заказов</span>
-                </div>
-            </div>
-            
-            <button class="support-btn" onclick="app.showSupport()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+    container.innerHTML = `
+        <div class="profile-info">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="#3F75FB">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
                 </svg>
-                Связаться с поддержкой
-            </button>
-        `;
-    }
-
-    showSupport() {
-        if (this.isTelegram) {
-            tg.openTelegramLink('https://t.me/todaysha');
-        } else {
-            window.open('https://t.me/todaysha', '_blank');
-        }
-    }
+                <div>
+                    <h3 style="margin: 0; font-size: 18px;">${this.userData.firstName}</h3>
+                    <p style="margin: 0; color: var(--tg-theme-hint-color, #999999); font-size: 14px;">Тариф: ${stats.rate}</p>
+                </div>
+            </div>
+            <p><strong>Username:</strong> ${this.userData.username}</p>
+            <p><strong>ID:</strong> ${this.userData.id}</p>
+            <p><strong>Телефон:</strong> ${this.userPhone ? this.userPhone : 
+                '<button onclick="app.requestPhoneNumber()" style="background: #3F75FB; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">Получить номер</button>'}</p>
+        </div>
+        
+        <div class="profile-stats">
+            <div class="stat-card">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB" style="margin-bottom: 8px;">
+                    <path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                </svg>
+                <span class="stat-value">${stats.availableBonuses}</span>
+                <span class="stat-label">Доступно бонусов</span>
+            </div>
+            <div class="stat-card">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB" style="margin-bottom: 8px;">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                <span class="stat-value">${stats.totalOrders}</span>
+                <span class="stat-label">Заказов</span>
+            </div>
+        </div>
+        
+        <button class="tariff-btn" onclick="app.selectTariff()" style="width: 100%; padding: 12px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
+            </svg>
+            Выбрать тариф
+        </button>
+        
+        <button class="support-btn" onclick="app.showSupport()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+            </svg>
+            Связаться с поддержкой
+        </button>
+    `;
+}
 }
 
 // Создаем глобальный экземпляр приложения
