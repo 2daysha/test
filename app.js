@@ -6,12 +6,11 @@ class LoyaltyProApp {
         this.cart = [];
         this.userData = null;
         this.userPhone = null;
-        this.isTelegram = !!tg.initData; // Проверяем, в Telegram ли мы
+        this.isTelegram = !!tg.initData;
         this.init();
     }
 
     init() {
-        // Инициализация Telegram Web App только если в Telegram
         if (this.isTelegram) {
             tg.expand();
             tg.enableClosingConfirmation();
@@ -20,7 +19,6 @@ class LoyaltyProApp {
             console.log('Запуск в браузере');
         }
 
-        // Назначаем обработчики для кнопок навигации
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const targetPage = e.currentTarget.dataset.page;
@@ -28,11 +26,9 @@ class LoyaltyProApp {
             });
         });
 
-        // Загружаем начальные данные
         this.loadUserData();
         this.loadPrivileges();
         
-        // Показываем начальную страницу
         this.showPage('home');
     }
 
@@ -41,19 +37,15 @@ class LoyaltyProApp {
     }
 
     showPage(page) {
-        // Скрываем все страницы
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         
-        // Убираем активный класс у всех кнопок навигации
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
         
-        // Показываем выбранную страницу
         const pageElement = document.getElementById(`page-${page}`);
         if (pageElement) {
             pageElement.classList.add('active');
         }
         
-        // Активируем соответствующую кнопку навигации
         const navItem = document.querySelector(`[data-page="${page}"]`);
         if (navItem) {
             navItem.classList.add('active');
@@ -103,54 +95,16 @@ class LoyaltyProApp {
     this.checkPhoneNumber();
 }
 
-checkPhoneNumber() {
-    // Проверяем, есть ли номер телефона в initDataUnsafe
-    const initData = tg.initDataUnsafe;
-    if (initData && initData.user && initData.user.phone_number) {
-        this.userPhone = initData.user.phone_number;
-        console.log('Номер телефона из initData:', this.userPhone);
-        // Сохраняем данные пользователя при получении номера
-        this.saveUserData();
-    } else {
-        this.userPhone = null;
-        console.log('Номер телефона не найден в initData');
-    }
-}
-
-// Функция для проверки наличия номера телефона перед действием
-async checkPhoneBeforeAction(actionName, actionCallback) {
-    if (!this.userPhone) {
-        // Если номера нет, запрашиваем его
-        const wantsToContinue = await this.showConfirm(
-            'Требуется номер телефона',
-            `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
-        );
-        
-        if (wantsToContinue) {
-            this.requestPhoneNumber().then(() => {
-                // После получения номера выполняем действие
-                if (this.userPhone) {
-                    actionCallback();
-                }
-            });
-        }
-    } else {
-        // Если номер уже есть, сразу выполняем действие
-        actionCallback();
-    }
-}
 
     // Универсальная функция показа уведомлений
     showNotification(title, message, type = 'info') {
         if (this.isTelegram) {
-            // Используем нативные popup Telegram
             tg.showPopup({
                 title: title,
                 message: message,
                 buttons: [{ type: 'ok' }]
             });
         } else {
-            // Показываем кастомное уведомление для ПК
             this.showCustomNotification(title, message, type);
         }
     }
@@ -159,7 +113,6 @@ async checkPhoneBeforeAction(actionName, actionCallback) {
     showConfirm(title, message) {
         return new Promise((resolve) => {
             if (this.isTelegram) {
-                // Используем нативный confirm Telegram
                 tg.showPopup({
                     title: title,
                     message: message,
@@ -168,10 +121,8 @@ async checkPhoneBeforeAction(actionName, actionCallback) {
                         { type: 'cancel', text: 'Отмена' }
                     ]
                 });
-                // В Telegram нам нужно слушать события, но для простоты вернем true
                 resolve(true);
             } else {
-                // Показываем кастомный диалог для ПК
                 this.showCustomConfirm(title, message).then(resolve);
             }
         });
@@ -413,15 +364,90 @@ async checkPhoneBeforeAction(actionName, actionCallback) {
         console.log('Корзина:', this.cart);
     });
 }
+    checkPhoneNumber() {
+    const initData = tg.initDataUnsafe;
+    if (initData && initData.user && initData.user.phone_number) {
+        this.userPhone = initData.user.phone_number;
+        console.log('Номер телефона из initData:', this.userPhone);
+        this.saveUserData();
+    } else {
+        this.userPhone = null;
+        console.log('Номер телефона не найден в initData');
+    }
+    }
 
-// checkout с проверкой номера
-async checkout() {
+    formatPhoneNumber(phone) {
+    if (!phone) return 'Не указан';
+    
+    const cleaned = phone.replace(/\D/g, '');
+    
+    if (cleaned.length === 11 && (cleaned.startsWith('7') || cleaned.startsWith('8'))) {
+        return `+7 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;
+    } 
+    else if (cleaned.length === 10) {
+        return `+7 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8)}`;
+    }
+    else if (cleaned.length === 12 && cleaned.startsWith('7')) {
+        return `+7 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;
+    }
+    
+    return phone;
+    }
+
+    requestPhoneNumber() {
+    if (this.isTelegram) {
+        tg.requestContact((contact) => {
+            if (contact && contact.phone_number) {
+                this.userPhone = contact.phone_number;
+                console.log('Получен номер телефона:', this.userPhone);
+                this.saveUserData();
+                if (this.currentPage === 'cart') {
+                    this.loadProfile();
+                }
+                this.showNotification('Успех', 'Номер телефона получен', 'success');
+            } else {
+                this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
+            }
+        });
+    } else {
+        this.userPhone = '+79991234567';
+        this.saveUserData();
+        if (this.currentPage === 'cart') {
+            this.loadProfile();
+        }
+        this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
+    }
+    }
+
+ 
+    // Функция для проверки наличия номера телефона перед действием
+    async checkPhoneBeforeAction(actionName, actionCallback) {
+    if (!this.userPhone) {
+        const wantsToContinue = await this.showConfirm(
+            'Требуется номер телефона',
+            `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
+        );
+        
+        if (wantsToContinue) {
+            this.requestPhoneNumber().then(() => {
+                if (this.userPhone) {
+                    actionCallback();
+                }
+            });
+        }
+    } else {
+        actionCallback();
+    }
+    }
+
+    // checkout с проверкой номера
+    async checkout() {
     this.checkPhoneBeforeAction('оформления заказа', () => {
         this.processCheckout();
     });
-}
+    }
 
-async processCheckout() {
+    async processCheckout() {
     if (this.cart.length === 0) {
         this.showNotification('Ошибка', 'Корзина пуста', 'error');
         return;
@@ -438,62 +464,10 @@ async processCheckout() {
         this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
         this.cart = []; 
         this.loadCart(); 
-        
         console.log('Заказ оформлен:', this.cart);
     } else {
         this.showNotification('Отменено', 'Заказ отменен', 'warning');
     }
-}
- 
-formatPhoneNumber(phone) {
-    if (!phone) return 'Не указан';
-    
-    // Если номер приходит в формате "79991234567"
-    const cleaned = phone.replace(/\D/g, '');
-    
-    if (cleaned.length === 11) {
-        return `+${cleaned[0]} (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;
-    } else if (cleaned.length === 10) {
-        return `+7 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8)}`;
-    }
-    
-    return phone;
-}
-
-    checkPhoneNumber() {
-    const initData = tg.initDataUnsafe;
-    if (initData && initData.user && initData.user.phone_number) {
-        this.userPhone = String(initData.user.phone_number);
-        console.log('Номер телефона из initData:', this.userPhone);
-        this.saveUserData();
-    } else {
-        this.userPhone = null;
-        console.log('Номер телефона не найден в initData');
-    }
-    }
-    requestPhoneNumber() {
-        if (this.isTelegram) {
-            // Запрашиваем номер телефона через Telegram Web App
-            tg.requestContact((phone) => {
-                if (phone) {
-                    this.userPhone = phone;
-                    console.log('Получен номер телефона:', this.userPhone);
-                    if (this.currentPage === 'cart') {
-                        this.loadProfile();
-                    }
-                    this.showNotification('Успех', 'Номер телефона получен', 'success');
-                } else {
-                    this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
-                }
-            });
-        } else {
-            // Для ПК версии - имитируем получение номера
-            this.userPhone = '+7 (999) 123-45-67'; // Тестовый номер
-            if (this.currentPage === 'cart') {
-                this.loadProfile();
-            }
-            this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
-        }
     }
 
     // Кастомное уведомление для ПК
@@ -503,14 +477,11 @@ formatPhoneNumber(phone) {
         const messageEl = document.getElementById('notification-message');
         const icon = notification.querySelector('.notification-icon');
 
-        // Устанавливаем содержимое
         titleEl.textContent = title;
         messageEl.textContent = message;
 
-        // Устанавливаем тип и иконку
         notification.className = `notification notification-${type}`;
         
-        // Меняем иконку в зависимости от типа
         switch(type) {
             case 'success':
                 icon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
@@ -525,16 +496,13 @@ formatPhoneNumber(phone) {
                 icon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>';
         }
 
-        // Показываем уведомление
         notification.classList.add('show');
 
-        // Автоматически скрываем через 3 секунды
         setTimeout(() => {
             notification.classList.remove('show');
         }, 3000);
     }
 
-    // Кастомный диалог подтверждения для ПК
     showCustomConfirm(title, message) {
         return new Promise((resolve) => {
             const dialog = document.getElementById('confirm-dialog');
@@ -543,14 +511,11 @@ formatPhoneNumber(phone) {
             const okBtn = document.getElementById('confirm-ok');
             const cancelBtn = document.getElementById('confirm-cancel');
 
-            // Устанавливаем содержимое
             titleEl.textContent = title;
             messageEl.textContent = message;
 
-            // Показываем диалог
             dialog.classList.add('show');
 
-            // Обработчики кнопок
             const handleOk = () => {
                 cleanup();
                 resolve(true);
@@ -613,7 +578,7 @@ formatPhoneNumber(phone) {
 
     removeFromCart(itemId) {
         this.cart = this.cart.filter(item => item.id !== itemId);
-        this.loadCart(); // Перезагружаем вид корзины
+        this.loadCart();
         this.showNotification('Удалено', 'Товар удален из корзины', 'info');
     }
 
@@ -679,10 +644,8 @@ formatPhoneNumber(phone) {
 }
 }
 
-// Создаем глобальный экземпляр приложения
 const app = new LoyaltyProApp();
 
-// Инициализация когда DOM загружен
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Loyalty Pro App запущен!');
 });
