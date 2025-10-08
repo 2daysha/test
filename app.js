@@ -139,24 +139,20 @@ class LoyaltyProApp {
     }
 
     requestPhoneInTelegram() {
-        console.log('Запрос номера в Telegram...');
+    console.log('Запрос номера в Telegram...');
         
-        // ИСПРАВЛЕННЫЙ КОД - используем правильные методы Telegram Mini Apps
-        if (tg.MainButton) {
-            tg.MainButton.setText("Поделиться номером");
-            tg.MainButton.show();
-            
-            // Обработчик клика по MainButton
-            tg.MainButton.onClick(() => {
-                this.requestPhoneAccess();
-            });
-        } else {
-            // Если MainButton не доступен, используем прямой вызов
-            this.requestPhoneAccess();
-        }
+        miniApp.requestPhoneAccess()
+        .then(() => miniApp.requestContact())
+        .then(contactData => {
+            const phoneNumber = contactData.contact.phoneNumber;
+            console.log('Номер телефона пользователя:', phoneNumber);
+        })
+    .catch((error) => {
+    console.error('Ошибка при получении номера телефона:', error);
+    });
     }
 
-    // НОВЫЙ МЕТОД для запроса доступа к номеру
+ 
     requestPhoneAccess() {
         console.log('Запрашиваем доступ к номеру...');
         
@@ -176,12 +172,32 @@ class LoyaltyProApp {
           });
     }
 
-    requestManualPhone() {
-        const phone = prompt('Введите номер телефона (формат: +79991234567):');
-        if (phone && this.validatePhone(phone)) {
-            this.handleAuthSuccess(phone, { first_name: 'Пользователь' });
-        } else if (phone) {
-            this.handleAuthError('Неверный формат номера');
+    requestContact() {
+        console.log('Вызываем requestContact...');
+        
+        // Проверяем доступен ли метод requestContact
+        if (typeof tg.requestContact === 'function') {
+            tg.requestContact()
+                .then(contactData => {
+                    console.log('Контакт получен:', contactData);
+                    
+                    if (contactData && contactData.contact && contactData.contact.phoneNumber) {
+                        const phoneNumber = contactData.contact.phoneNumber;
+                        console.log('Номер телефона:', phoneNumber);
+                        
+                        // Обрабатываем успешное получение номера
+                        this.handleAuthSuccess(phoneNumber, contactData.contact);
+                    } else {
+                        this.handleAuthError('Номер телефона не найден в данных контакта');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка requestContact:', error);
+                    this.handleAuthError('Не удалось получить контакт: ' + error.message);
+                });
+        } else {
+            console.error('Метод requestContact не доступен в Telegram Web App');
+            this.handleAuthError('Функция запроса контакта не доступна');
         }
     }
 
