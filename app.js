@@ -156,10 +156,11 @@ class LoyaltyProApp {
         }
     }
 
+    // НОВЫЙ МЕТОД для запроса доступа к номеру
     requestPhoneAccess() {
         console.log('Запрашиваем доступ к номеру...');
         
-        // ВАШ КОД - правильный способ запроса номера в Telegram Mini Apps
+        // ПРАВИЛЬНЫЙ способ запроса номера в Telegram Mini Apps
         tg.requestPhoneAccess()
           .then(() => tg.requestContact())
           .then(contactData => {
@@ -175,35 +176,13 @@ class LoyaltyProApp {
           });
     }
 
-    handleAuthSuccess(phone, contact) {
-        console.log('✅ Успешная авторизация:', phone);
-        
-        this.userPhone = phone;
-        this.isAuthenticated = true;
-        
-        // Сохраняем номер
-        localStorage.setItem('userPhone', phone);
-        
-        // Обновляем данные пользователя
-        if (contact && (contact.firstName || contact.lastName)) {
-            this.userData = {
-                firstName: contact.firstName || 'Пользователь',
-                lastName: contact.lastName || '',
-                username: 'Не указан',
-                id: 'from_contact'
-            };
+    requestManualPhone() {
+        const phone = prompt('Введите номер телефона (формат: +79991234567):');
+        if (phone && this.validatePhone(phone)) {
+            this.handleAuthSuccess(phone, { first_name: 'Пользователь' });
+        } else if (phone) {
+            this.handleAuthError('Неверный формат номера');
         }
-        if (this.isTelegram && tg.MainButton) {
-            tg.MainButton.hide();
-        }
-        
-        // Показываем уведомление об успехе
-        this.showSimpleNotification('Успех!', `Номер ${phone} подтвержден`);
-        
-        // Переходим в приложение
-        setTimeout(() => {
-            this.showMainApp();
-        }, 1000);
     }
 
     requestPhoneInBrowser() {
@@ -236,10 +215,10 @@ class LoyaltyProApp {
         localStorage.setItem('userPhone', phone);
         
         // Обновляем данные пользователя
-        if (contact.first_name || contact.last_name) {
+        if (contact && (contact.firstName || contact.lastName || contact.first_name || contact.last_name)) {
             this.userData = {
-                firstName: contact.first_name || 'Пользователь',
-                lastName: contact.last_name || '',
+                firstName: contact.firstName || contact.first_name || 'Пользователь',
+                lastName: contact.lastName || contact.last_name || '',
                 username: 'Не указан',
                 id: 'from_contact'
             };
@@ -656,25 +635,6 @@ class LoyaltyProApp {
 
 // Инициализация приложения
 const app = new LoyaltyProApp();
-
-// Обработчик событий Telegram Web App для получения контакта
-if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    
-    // Обработчик события, когда пользователь предоставляет контакт через MainButton
-    tg.onEvent('contactReceived', (contact) => {
-        console.log('Contact received from Telegram:', contact);
-        if (contact && contact.phone_number) {
-            app.handleAuthSuccess(contact.phone_number, contact);
-        }
-    });
-    
-    // Альтернативный способ - слушаем клик по MainButton
-    tg.onEvent('mainButtonClicked', () => {
-        console.log('MainButton clicked - Telegram should request contact');
-        // Telegram автоматически покажет диалог запроса номера
-    });
-}
 
 // Глобальный доступ
 window.app = app;
