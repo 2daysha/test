@@ -80,7 +80,7 @@ class LoyaltyProApp {
         this.updateAuthInfo();
     }
 
-     updateAuthInfo() {
+    updateAuthInfo() {
         const authInfo = document.getElementById('auth-info');
         if (authInfo) {
             if (this.isTelegram) {
@@ -106,7 +106,8 @@ class LoyaltyProApp {
         document.getElementById('page-auth').classList.remove('active');
         
         // Показываем навигацию
-        document.querySelector('.bottom-nav').style.display = 'flex';
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.style.display = 'flex';
         
         // Назначаем обработчики для кнопок навигации
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -132,7 +133,7 @@ class LoyaltyProApp {
         }
     }
 
-     requestPhoneTelegram() {
+    requestPhoneTelegram() {
         console.log('Запрос номера в Telegram...');
         
         // Используем современный метод Telegram Web Apps
@@ -307,7 +308,7 @@ class LoyaltyProApp {
         }
     }
 
-    ogout() {
+    logout() {
         this.userPhone = null;
         this.isAuthenticated = false;
         localStorage.removeItem('userPhone');
@@ -319,6 +320,7 @@ class LoyaltyProApp {
         this.showNotification('Выход', 'Вы вышли из системы', 'info');
     }
 
+    // Остальные методы остаются без изменений...
     navigateTo(page) {
         if (!this.isAuthenticated) {
             this.showAuthPage();
@@ -390,9 +392,6 @@ class LoyaltyProApp {
                 id: 'unknown'
             };
         }
-
-        // Проверяем, есть ли номер телефона в initData
-        this.checkPhoneNumber();
     }
 
     checkPhoneNumber() {
