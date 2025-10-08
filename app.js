@@ -130,46 +130,21 @@ class LoyaltyProApp {
         });
     }
 
-    requestPhoneNumber() {
-        if (this.isTelegram) {
-            this.requestPhoneInTelegram();
-        } else {
-            this.requestPhoneInBrowser();
-        }
-    }
-
-    requestPhoneInTelegram() {
-    console.log('Запрос номера в Telegram...');
+     requestPhoneInTelegram() {
+        console.log('Запрос номера в Telegram...');
         
-        miniApp.requestPhoneAccess()
-        .then(() => miniApp.requestContact())
+        tg.requestPhoneAccess()
+        .then(() => tg.requestContact())
         .then(contactData => {
             const phoneNumber = contactData.contact.phoneNumber;
             console.log('Номер телефона пользователя:', phoneNumber);
+            
+            this.handleAuthSuccess(phoneNumber, contactData.contact);
         })
-    .catch((error) => {
-    console.error('Ошибка при получении номера телефона:', error);
-    });
-    }
-
-    requestPhoneInBrowser() {
-        console.log('Запрос номера в браузере...');
-        
-        const phone = prompt('Введите номер телефона для тестирования (формат: +79991234567):', '+79991234567');
-        if (phone && this.validatePhone(phone)) {
-            this.handleAuthSuccess(phone, {
-                first_name: 'Тестовый',
-                last_name: 'Пользователь'
-            });
-        } else if (phone) {
-            this.handleAuthError('Неверный формат номера');
-        } else {
-            this.handleAuthError('Номер не введен');
-        }
-    }
-
-    validatePhone(phone) {
-        return /^\+7\d{10}$/.test(phone);
+        .catch((error) => {
+            console.error('Ошибка при получении номера телефона:', error);
+            this.handleAuthError('Не удалось получить номер телефона: ' + error.message);
+        });
     }
 
     handleAuthSuccess(phone, contact) {
@@ -182,18 +157,13 @@ class LoyaltyProApp {
         localStorage.setItem('userPhone', phone);
         
         // Обновляем данные пользователя
-        if (contact && (contact.firstName || contact.lastName || contact.first_name || contact.last_name)) {
+        if (contact && (contact.firstName || contact.first_name)) {
             this.userData = {
                 firstName: contact.firstName || contact.first_name || 'Пользователь',
                 lastName: contact.lastName || contact.last_name || '',
                 username: 'Не указан',
                 id: 'from_contact'
             };
-        }
-        
-        // Скрываем MainButton если он был показан
-        if (this.isTelegram && tg.MainButton) {
-            tg.MainButton.hide();
         }
         
         // Показываем уведомление об успехе
@@ -208,6 +178,11 @@ class LoyaltyProApp {
     handleAuthError(message) {
         console.log('❌ Ошибка авторизации:', message);
         this.showSimpleNotification('Ошибка', message);
+        
+        // Показываем альтернативный способ ввода
+        setTimeout(() => {
+            this.requestManualPhone();
+        }, 2000);
     }
 
     showMainApp() {
