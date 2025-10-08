@@ -12,40 +12,49 @@ class LoyaltyProApp {
     }
 
     init() {
-        // Инициализация Telegram Web App только если в Telegram
+        console.log('=== Loyalty Pro App Инициализация ===');
+        
         if (this.isTelegram) {
             tg.expand();
             tg.enableClosingConfirmation();
-            console.log('Telegram Web App инициализирован:', tg.initDataUnsafe);
+            console.log('Telegram Web App:', tg.initDataUnsafe);
             
-            // Проверяем, есть ли номер в данных Telegram
-            this.checkTelegramPhone();
+            // Автоматически получаем данные пользователя из Telegram
+            this.loadTelegramUserData();
         } else {
             console.log('Запуск в браузере');
         }
 
-        // Загружаем сохраненные данные
+        // Проверяем сохраненные данные
         this.loadSavedData();
 
-        // Проверяем аутентификацию
-        if (this.userPhone) {
-            this.isAuthenticated = true;
+        // Показываем соответствующий интерфейс
+        if (this.isAuthenticated) {
             this.showMainApp();
         } else {
             this.showAuthPage();
         }
     }
 
-    checkTelegramPhone() {
-        // Проверяем номер телефона в данных Telegram
-        const initData = tg.initDataUnsafe;
-        if (initData && initData.user && initData.user.phone_number) {
-            this.userPhone = initData.user.phone_number;
-            this.isAuthenticated = true;
-            console.log('Найден номер в Telegram данных:', this.userPhone);
+    loadTelegramUserData() {
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            this.userData = {
+                firstName: user.first_name || 'Пользователь',
+                lastName: user.last_name || '',
+                username: user.username ? `@${user.username}` : 'Не указан',
+                id: user.id
+            };
             
-            // Сохраняем для будущих сессий
-            localStorage.setItem('userPhone', this.userPhone);
+            // Если в Telegram есть номер - используем его
+            if (user.phone_number) {
+                this.userPhone = user.phone_number;
+                this.isAuthenticated = true;
+                localStorage.setItem('userPhone', this.userPhone);
+                console.log('Номер из Telegram:', this.userPhone);
+            }
+            
+            console.log('Данные пользователя:', this.userData);
         }
     }
 
@@ -53,224 +62,140 @@ class LoyaltyProApp {
         const savedPhone = localStorage.getItem('userPhone');
         if (savedPhone) {
             this.userPhone = savedPhone;
+            this.isAuthenticated = true;
             console.log('Загружен сохраненный номер:', this.userPhone);
         }
     }
 
     showAuthPage() {
-        // Показываем страницу аутентификации
-        document.getElementById('page-auth').classList.add('active');
-        document.querySelectorAll('.page').forEach(p => {
-            if (p.id !== 'page-auth') p.classList.remove('active');
+        console.log('Показываем страницу авторизации');
+        
+        // Скрываем все страницы кроме auth
+        document.querySelectorAll('.page').forEach(page => {
+            if (page.id === 'page-auth') {
+                page.classList.add('active');
+            } else {
+                page.classList.remove('active');
+            }
         });
         
         // Скрываем навигацию
         const bottomNav = document.querySelector('.bottom-nav');
         if (bottomNav) bottomNav.style.display = 'none';
         
-        // Назначаем обработчик для кнопки запроса номера
-        const requestBtn = document.getElementById('request-phone-btn');
-        if (requestBtn) {
-            requestBtn.onclick = () => {
-                this.requestPhoneNumber();
-            };
-        }
-
-        // Показываем информацию о способе авторизации
-        this.updateAuthInfo();
+        // Создаем контент страницы авторизации
+        this.createAuthPageContent();
     }
 
-    updateAuthInfo() {
-        const authInfo = document.getElementById('auth-info');
-        if (authInfo) {
-            if (this.isTelegram) {
-                authInfo.innerHTML = `
-                    <div style="text-align: center; color: var(--tg-theme-text-color, #000000); margin-bottom: 16px;">
-                        <h3>Добро пожаловать! 👋</h3>
-                        <p>Для использования приложения необходимо предоставить номер телефона</p>
-                    </div>
-                `;
-            } else {
-                authInfo.innerHTML = `
-                    <div style="text-align: center; color: var(--tg-theme-text-color, #000000); margin-bottom: 16px;">
-                        <h3>Тестовый режим 🖥️</h3>
-                        <p>Вы используете браузерную версию приложения</p>
-                    </div>
-                `;
-            }
-        }
-    }
+    createAuthPageContent() {
+        const authPage = document.getElementById('page-auth');
+        if (!authPage) return;
 
-    showMainApp() {
-        // Скрываем страницу аутентификации
-        document.getElementById('page-auth').classList.remove('active');
-        
-        // Показываем навигацию
-        const bottomNav = document.querySelector('.bottom-nav');
-        if (bottomNav) bottomNav.style.display = 'flex';
-        
-        // Назначаем обработчики для кнопок навигации
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const targetPage = e.currentTarget.dataset.page;
-                this.navigateTo(targetPage);
-            });
+        authPage.innerHTML = `
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>Loyalty Pro</h1>
+                    <p>Программа лояльности</p>
+                </div>
+                
+                <div class="auth-content">
+                    <div class="auth-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="#3F75FB">
+                            <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM12 3v10l3-3h6V3h-9z"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="auth-info">
+                        <h2>Добро пожаловать! 👋</h2>
+                        <p>Для доступа к программе лояльности необходимо предоставить номер телефона</p>
+                    </div>
+                    
+                    <button id="auth-button" class="auth-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                        </svg>
+                        Предоставить номер телефона
+                    </button>
+                    
+                    <div class="auth-note">
+                        <p>Мы запросим только номер телефона для идентификации в программе лояльности</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Назначаем обработчик кнопки
+        document.getElementById('auth-button').addEventListener('click', () => {
+            this.requestPhoneNumber();
         });
-
-        // Загружаем начальные данные
-        this.loadUserData();
-        this.loadPrivileges();
-        
-        // Показываем начальную страницу
-        this.showPage('home');
     }
 
     requestPhoneNumber() {
         if (this.isTelegram) {
-            this.requestPhoneTelegram();
+            this.requestPhoneInTelegram();
         } else {
-            this.requestPhoneBrowser();
+            this.requestPhoneInBrowser();
         }
     }
 
-    requestPhoneTelegram() {
+    requestPhoneInTelegram() {
         console.log('Запрос номера в Telegram...');
         
-        // Используем современный метод Telegram Web Apps
-        // Создаем кнопку для запроса номера
+        // ПРОСТОЙ И ПРЯМОЙ СПОСОБ - используем MainButton
         if (tg.MainButton) {
-            // Сохраняем оригинальный текст кнопки
-            const originalText = tg.MainButton.text;
-            
-            // Настраиваем кнопку для запроса контакта
             tg.MainButton.setText("Поделиться номером");
             tg.MainButton.show();
             
-            // Обработчик клика по кнопке
+            // Обработчик клика по MainButton
             tg.MainButton.onClick(() => {
-                this.sharePhoneNumber();
+                console.log('MainButton clicked - Telegram should request contact');
+                // Telegram автоматически запросит контакт при нажатии на MainButton
             });
-            
-            // Показываем инструкцию
-            this.showNotification(
-                "Предоставьте номер", 
-                "Нажмите на кнопку внизу экрана, чтобы поделиться номером телефона", 
-                "info"
-            );
         } else {
-            // Альтернативный способ для старых версий
-            this.sharePhoneNumber();
+            // Если MainButton не доступен, используем ручной ввод
+            this.requestManualPhone();
         }
     }
 
-    sharePhoneNumber() {
-        // Метод для прямого запроса номера через Telegram
-        if (tg.showPopup) {
-            tg.showPopup({
-                title: 'Предоставьте номер телефона',
-                message: 'Для продолжения работы приложения необходимо предоставить номер телефона',
-                buttons: [
-                    {
-                        type: 'default',
-                        text: 'Поделиться номером',
-                        id: 'share_phone'
-                    },
-                    {
-                        type: 'cancel',
-                        text: 'Отмена'
-                    }
-                ]
-            }, (buttonId) => {
-                if (buttonId === 'share_phone') {
-                    // Используем метод shareContact если доступен
-                    if (tg.shareContact) {
-                        tg.shareContact({
-                            phone_number: 'request',
-                        }, (result) => {
-                            if (result && result.phone_number) {
-                                this.handlePhoneSuccess(result.phone_number, result);
-                            } else {
-                                this.handlePhoneError('Номер не предоставлен');
-                            }
-                        });
-                    } else {
-                        // Альтернатива - используем глубокую ссылку
-                        this.useDeepLinkForPhone();
-                    }
-                }
-            });
-        } else {
-            // Фолбэк метод
-            this.useDeepLinkForPhone();
+    requestManualPhone() {
+        const phone = prompt('Введите номер телефона (формат: +79991234567):');
+        if (phone && this.validatePhone(phone)) {
+            this.handleAuthSuccess(phone, { first_name: 'Пользователь' });
+        } else if (phone) {
+            this.handleAuthError('Неверный формат номера');
         }
     }
 
-    useDeepLinkForPhone() {
-        // Создаем глубокую ссылку для запроса номера
-        const phoneRequestUrl = `https://t.me/share/phone?url=${encodeURIComponent(window.location.href)}`;
+    requestPhoneInBrowser() {
+        console.log('Запрос номера в браузере...');
         
-        this.showNotification(
-            "Открывается запрос номера",
-            "Для предоставления номера будет открыт диалог Telegram",
-            "info"
-        );
-        
-        // Открываем в новом окне или редиректим
-        setTimeout(() => {
-            window.open(phoneRequestUrl, '_blank');
-            
-            // Предлагаем ручной ввод как запасной вариант
-            setTimeout(() => {
-                this.showManualPhoneInput();
-            }, 3000);
-        }, 1000);
-    }
-
-    showManualPhoneInput() {
-        const manualPhone = prompt("Если автоматический запрос не сработал, введите номер телефона вручную (формат: +79991234567):");
-        if (manualPhone && this.validatePhone(manualPhone)) {
-            this.handlePhoneSuccess(manualPhone, { first_name: 'Пользователь' });
-        } else if (manualPhone) {
-            this.handlePhoneError('Неверный формат номера');
+        const phone = prompt('Введите номер телефона для тестирования (формат: +79991234567):', '+79991234567');
+        if (phone && this.validatePhone(phone)) {
+            this.handleAuthSuccess(phone, {
+                first_name: 'Тестовый',
+                last_name: 'Пользователь'
+            });
+        } else if (phone) {
+            this.handleAuthError('Неверный формат номера');
+        } else {
+            this.handleAuthError('Номер не введен');
         }
     }
 
     validatePhone(phone) {
-        const phoneRegex = /^\+7\d{10}$/;
-        return phoneRegex.test(phone);
+        return /^\+7\d{10}$/.test(phone);
     }
 
-    requestPhoneBrowser() {
-        console.log('Запрос номера в браузере...');
-        
-        // Для браузера используем тестовый номер или ручной ввод
-        const testPhone = prompt("Введите номер телефона для тестирования (формат: +79991234567):", "+79991234567");
-        
-        if (testPhone && this.validatePhone(testPhone)) {
-            const testContact = {
-                first_name: 'Тестовый',
-                last_name: 'Пользователь'
-            };
-            
-            this.handlePhoneSuccess(testPhone, testContact);
-        } else if (testPhone) {
-            this.handlePhoneError('Неверный формат номера. Используйте формат: +79991234567');
-        } else {
-            this.handlePhoneError('Номер не введен');
-        }
-    }
-
-    handlePhoneSuccess(phone, contact) {
-        console.log('✅ Номер получен:', phone);
-        console.log('📋 Данные контакта:', contact);
+    handleAuthSuccess(phone, contact) {
+        console.log('✅ Успешная авторизация:', phone);
         
         this.userPhone = phone;
         this.isAuthenticated = true;
         
-        // Сохраняем в localStorage
+        // Сохраняем номер
         localStorage.setItem('userPhone', phone);
         
-        // Обновляем данные пользователя если есть контакт
+        // Обновляем данные пользователя
         if (contact.first_name || contact.last_name) {
             this.userData = {
                 firstName: contact.first_name || 'Пользователь',
@@ -280,47 +205,55 @@ class LoyaltyProApp {
             };
         }
         
-        // Скрываем кнопку MainButton если она была показана
+        // Скрываем MainButton если он был показан
         if (this.isTelegram && tg.MainButton) {
             tg.MainButton.hide();
         }
         
-        // Показываем уведомление
-        this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
+        // Показываем уведомление об успехе
+        this.showSimpleNotification('Успех!', `Номер ${phone} подтвержден`);
         
-        // Переходим на главное приложение
+        // Переходим в приложение
         setTimeout(() => {
             this.showMainApp();
-        }, 1500);
+        }, 1000);
     }
 
-    handlePhoneError(message) {
-        console.log('❌ Ошибка:', message);
-        this.showNotification('Ошибка', message, 'error');
-        
-        // Предлагаем альтернативные способы
-        if (this.isTelegram) {
-            setTimeout(() => {
-                if (confirm('Не удалось получить номер автоматически. Хотите ввести номер вручную?')) {
-                    this.showManualPhoneInput();
-                }
-            }, 2000);
-        }
+    handleAuthError(message) {
+        console.log('❌ Ошибка авторизации:', message);
+        this.showSimpleNotification('Ошибка', message);
     }
 
-    logout() {
-        this.userPhone = null;
-        this.isAuthenticated = false;
-        localStorage.removeItem('userPhone');
+    showMainApp() {
+        console.log('Показываем основное приложение');
         
-        // Показываем страницу аутентификации
-        this.showAuthPage();
+        // Скрываем страницу авторизации
+        document.getElementById('page-auth').classList.remove('active');
         
-        console.log('Пользователь вышел');
-        this.showNotification('Выход', 'Вы вышли из системы', 'info');
+        // Показываем навигацию
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.style.display = 'flex';
+        
+        // Инициализируем навигацию
+        this.initNavigation();
+        
+        // Загружаем данные
+        this.loadUserData();
+        this.loadPrivileges();
+        
+        // Показываем домашнюю страницу
+        this.showPage('home');
     }
 
-    // Остальные методы остаются без изменений...
+    initNavigation() {
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const targetPage = e.currentTarget.dataset.page;
+                this.navigateTo(targetPage);
+            });
+        });
+    }
+
     navigateTo(page) {
         if (!this.isAuthenticated) {
             this.showAuthPage();
@@ -338,7 +271,7 @@ class LoyaltyProApp {
         // Скрываем все страницы
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         
-        // Убираем активный класс у всех кнопок навигации
+        // Снимаем активность с кнопок навигации
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
         
         // Показываем выбранную страницу
@@ -347,7 +280,7 @@ class LoyaltyProApp {
             pageElement.classList.add('active');
         }
         
-        // Активируем соответствующую кнопку навигации
+        // Активируем кнопку навигации
         const navItem = document.querySelector(`[data-page="${page}"]`);
         if (navItem) {
             navItem.classList.add('active');
@@ -358,7 +291,7 @@ class LoyaltyProApp {
     }
 
     onPageChange(page) {
-        console.log(`Перешли на страницу: ${page}`);
+        console.log(`Переход на страницу: ${page}`);
         
         switch(page) {
             case 'home':
@@ -374,17 +307,8 @@ class LoyaltyProApp {
     }
 
     loadUserData() {
-        // Получаем данные пользователя из Telegram
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            this.userData = {
-                firstName: user.first_name || 'Пользователь',
-                lastName: user.last_name || '',
-                username: user.username ? `@${user.username}` : 'Не указан',
-                id: user.id
-            };
-            console.log('Данные пользователя:', this.userData);
-        } else {
+        // Если данных еще нет, создаем базовые
+        if (!this.userData) {
             this.userData = {
                 firstName: 'Пользователь',
                 lastName: '',
@@ -394,167 +318,41 @@ class LoyaltyProApp {
         }
     }
 
-    checkPhoneNumber() {
-        // Проверяем, есть ли номер телефона в initDataUnsafe
-        const initData = tg.initDataUnsafe;
-        if (initData && initData.user && initData.user.phone_number) {
-            this.userPhone = initData.user.phone_number;
-            this.isAuthenticated = true;
-            console.log('Номер телефона из initData:', this.userPhone);
-            // Сохраняем данные пользователя при получении номера
-            this.saveUserData();
-        }
-    }
-
-    // Функция для проверки наличия номера телефона перед действием
-    async checkPhoneBeforeAction(actionName, actionCallback) {
-        if (!this.userPhone) {
-            // Если номера нет, запрашиваем его
-            const wantsToContinue = await this.showConfirm(
-                'Требуется номер телефона',
-                `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
-            );
-            
-            if (wantsToContinue) {
-                this.requestPhoneNumber().then(() => {
-                    // После получения номера выполняем действие
-                    if (this.userPhone) {
-                        actionCallback();
-                    }
-                });
-            }
-        } else {
-            // Если номер уже есть, сразу выполняем действие
-            actionCallback();
-        }
-    }
-
-    // Универсальная функция показа уведомлений
-    showNotification(title, message, type = 'info') {
-        if (this.isTelegram) {
-            // Используем нативные popup Telegram
-            tg.showPopup({
-                title: title,
-                message: message,
-                buttons: [{ type: 'ok' }]
-            });
-        } else {
-            // Показываем кастомное уведомление для ПК
-            this.showCustomNotification(title, message, type);
-        }
-    }
-
-    // Универсальная функция подтверждения
-    showConfirm(title, message) {
-        return new Promise((resolve) => {
-            if (this.isTelegram) {
-                // Используем нативный confirm Telegram
-                tg.showPopup({
-                    title: title,
-                    message: message,
-                    buttons: [
-                        { type: 'ok', text: 'Продолжить' },
-                        { type: 'cancel', text: 'Отмена' }
-                    ]
-                });
-                // В Telegram нам нужно слушать события, но для простоты вернем true
-                resolve(true);
-            } else {
-                // Показываем кастомный диалог для ПК
-                this.showCustomConfirm(title, message).then(resolve);
-            }
-        });
-    }
-
     loadPrivileges() {
         const container = document.getElementById('page-home');
         if (!container) return;
 
-        // Категории товаров без иконок
         const categories = [
-            { 
-                id: 'all', 
-                name: 'Все'
-            },
-            { 
-                id: 'electronics', 
-                name: 'Электроника'
-            },
-            { 
-                id: 'home', 
-                name: 'Для дома'
-            },
-            { 
-                id: 'lifestyle', 
-                name: 'Образ жизни'
-            }
+            { id: 'all', name: 'Все' },
+            { id: 'electronics', name: 'Электроника' },
+            { id: 'home', name: 'Для дома' },
+            { id: 'lifestyle', name: 'Образ жизни' }
         ];
 
-        // Товары с категориями
         const products = [
             {
-                id: 1,
-                name: "Кофеварка автоматическая",
-                description: "Приготовление кофе с таймером",
-                price: "2500 бонусов",
-                numericPrice: 2500,
-                category: "home"
+                id: 1, name: "Кофеварка автоматическая", description: "Приготовление кофе с таймером",
+                price: "2500 бонусов", numericPrice: 2500, category: "home"
             },
             {
-                id: 2,
-                name: "Набор кухонных ножей",
-                description: "6 предметов, керамическое покрытие",
-                price: "1800 бонусов",
-                numericPrice: 1800,
-                category: "home"
+                id: 2, name: "Набор кухонных ножей", description: "6 предметов, керамическое покрытие",
+                price: "1800 бонусов", numericPrice: 1800, category: "home"
             },
             {
-                id: 3,
-                name: "Bluetooth колонка",
-                description: "Водонепроницаемая, 10W",
-                price: "3200 бонусов",
-                numericPrice: 3200,
-                category: "electronics"
+                id: 3, name: "Bluetooth колонка", description: "Водонепроницаемая, 10W",
+                price: "3200 бонусов", numericPrice: 3200, category: "electronics"
             },
             {
-                id: 4,
-                name: "Подарочная карта в магазин",
-                description: "Номинал 1000 рублей",
-                price: "1000 бонусов",
-                numericPrice: 1000,
-                category: "lifestyle"
+                id: 4, name: "Подарочная карта в магазин", description: "Номинал 1000 рублей",
+                price: "1000 бонусов", numericPrice: 1000, category: "lifestyle"
             },
             {
-                id: 5,
-                name: "Чемодан на колесах",
-                description: "55л, 4 колеса, черный",
-                price: "4500 бонусов",
-                numericPrice: 4500,
-                category: "lifestyle"
+                id: 5, name: "Чемодан на колесах", description: "55л, 4 колеса, черный",
+                price: "4500 бонусов", numericPrice: 4500, category: "lifestyle"
             },
             {
-                id: 6,
-                name: "Фитнес-браслет",
-                description: "Мониторинг сна и активности",
-                price: "2800 бонусов",
-                numericPrice: 2800,
-                category: "electronics"
-            },
-            {
-                id: 7,
-                name: "Беспроводные наушники",
-                description: "Зарядка от case, 20ч работы",
-                price: "3500 бонусов",
-                numericPrice: 3500,
-                category: "electronics"
-            },
-            {
-                id: 8,
-                name: "Сертификат на ужин",
-                description: "Ресторан на 2 персоны",
-                price: "2000 бонусов",
-                numericPrice: 2000,
-                category: "lifestyle"
+                id: 6, name: "Фитнес-браслет", description: "Мониторинг сна и активности",
+                price: "2800 бонусов", numericPrice: 2800, category: "electronics"
             }
         ];
 
@@ -567,8 +365,7 @@ class LoyaltyProApp {
         container.innerHTML = `
             <div class="categories">
                 ${categories.map(cat => `
-                    <button class="category-btn ${cat.id === 'all' ? 'active' : ''}" 
-                            data-category="${cat.id}">
+                    <button class="category-btn ${cat.id === 'all' ? 'active' : ''}" data-category="${cat.id}">
                         ${cat.name}
                     </button>
                 `).join('')}
@@ -585,14 +382,12 @@ class LoyaltyProApp {
             </div>
         `;
 
-        // Добавляем обработчики для категорий
+        // Обработчики категорий
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const category = e.currentTarget.dataset.category;
-                
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
-                
                 this.filterProducts(category, products, categoryNames);
             });
         });
@@ -600,10 +395,7 @@ class LoyaltyProApp {
 
     filterProducts(category, products, categoryNames) {
         const grid = document.getElementById('products-grid');
-        
-        const filteredProducts = category === 'all' 
-            ? products 
-            : products.filter(product => product.category === category);
+        const filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
         
         grid.innerHTML = filteredProducts.map(product => `
             <div class="product-card" onclick="app.addToCart(${product.id})">
@@ -616,200 +408,34 @@ class LoyaltyProApp {
     }
 
     addToCart(productId) {
-        this.checkPhoneBeforeAction('добавления товара в корзину', () => {
-            // Различные товары и услуги которые можно приобрести за бонусы
-            const products = {
-                1: { 
-                    name: "Кофеварка автоматическая", 
-                    description: "Приготовление кофе с таймером",
-                    price: "2500 бонусов", 
-                    numericPrice: 2500,
-                    category: "Бытовая техника"
-                },
-                2: { 
-                    name: "Набор кухонных ножей", 
-                    description: "6 предметов, керамическое покрытие",
-                    price: "1800 бонусов", 
-                    numericPrice: 1800,
-                    category: "Кухонные принадлежности"
-                },
-                3: { 
-                    name: "Bluetooth колонка", 
-                    description: "Водонепроницаемая, 10W",
-                    price: "3200 бонусов", 
-                    numericPrice: 3200,
-                    category: "Электроника"
-                },
-                4: { 
-                    name: "Подарочная карта в магазин", 
-                    description: "Номинал 1000 рублей",
-                    price: "1000 бонусов", 
-                    numericPrice: 1000,
-                    category: "Подарочные карты"
-                },
-                5: { 
-                    name: "Чемодан на колесах", 
-                    description: "55л, 4 колеса, черный",
-                    price: "4500 бонусов", 
-                    numericPrice: 4500,
-                    category: "Путешествия"
-                },
-                6: { 
-                    name: "Фитнес-браслет", 
-                    description: "Мониторинг сна и активности",
-                    price: "2800 бонусов", 
-                    numericPrice: 2800,
-                    category: "Здоровье"
-                },
-                7: { 
-                    name: "Беспроводные наушники", 
-                    description: "Зарядка от case, 20ч работы",
-                    price: "3500 бонусов", 
-                    numericPrice: 3500,
-                    category: "Аксессуары"
-                },
-                8: { 
-                    name: "Сертификат на ужин", 
-                    description: "Ресторан на 2 персоны",
-                    price: "2000 бонусов", 
-                    numericPrice: 2000,
-                    category: "Рестораны"
-                }
-            };
-
-            const product = products[productId];
-            if (!product) return;
-
-            // Добавляем в корзину
-            this.cart.push({
-                id: Date.now(),
-                productId: productId,
-                name: product.name,
-                description: product.description,
-                price: product.price,
-                numericPrice: product.numericPrice,
-                category: product.category
-            });
-
-            // Показываем уведомление
-            this.showNotification(
-                'Добавлено в корзину', 
-                `${product.name} добавлен в корзину`,
-                'success'
-            );
-
-            console.log('Товар добавлен в корзину:', product);
-            console.log('Корзина:', this.cart);
-        });
-    }
-
-    // Обновленная функция checkout с проверкой номера
-    async checkout() {
-        this.checkPhoneBeforeAction('оформления заказа', () => {
-            this.processCheckout();
-        });
-    }
-
-    async processCheckout() {
-        if (this.cart.length === 0) {
-            this.showNotification('Ошибка', 'Корзина пуста', 'error');
+        if (!this.isAuthenticated) {
+            this.showAuthRequired('добавления товара в корзину');
             return;
         }
 
-        const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
-        
-        const confirmed = await this.showConfirm(
-            'Подтверждение заказа',
-            `Вы уверены, что хотите оформить заказ на сумму ${total} бонусов?`
-        );
+        const products = {
+            1: { name: "Кофеварка автоматическая", price: "2500 бонусов", numericPrice: 2500, category: "Бытовая техника" },
+            2: { name: "Набор кухонных ножей", price: "1800 бонусов", numericPrice: 1800, category: "Кухонные принадлежности" },
+            3: { name: "Bluetooth колонка", price: "3200 бонусов", numericPrice: 3200, category: "Электроника" },
+            4: { name: "Подарочная карта в магазин", price: "1000 бонусов", numericPrice: 1000, category: "Подарочные карты" },
+            5: { name: "Чемодан на колесах", price: "4500 бонусов", numericPrice: 4500, category: "Путешествия" },
+            6: { name: "Фитнес-браслет", price: "2800 бонусов", numericPrice: 2800, category: "Здоровье" }
+        };
 
-        if (confirmed) {
-            // Оформляем заказ
-            this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
-            this.cart = []; // Очищаем корзину
-            this.loadCart(); // Обновляем вид корзины
-            
-            // В реальном приложении здесь был бы вызов API
-            console.log('Заказ оформлен:', this.cart);
-        } else {
-            this.showNotification('Отменено', 'Заказ отменен', 'warning');
-        }
-    }
+        const product = products[productId];
+        if (!product) return;
 
-    // Кастомное уведомление для ПК
-    showCustomNotification(title, message, type = 'info') {
-        const notification = document.getElementById('notification');
-        const titleEl = document.getElementById('notification-title');
-        const messageEl = document.getElementById('notification-message');
-        const icon = notification.querySelector('.notification-icon');
-
-        // Устанавливаем содержимое
-        titleEl.textContent = title;
-        messageEl.textContent = message;
-
-        // Устанавливаем тип и иконку
-        notification.className = `notification notification-${type}`;
-        
-        // Меняем иконку в зависимости от типа
-        switch(type) {
-            case 'success':
-                icon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
-                break;
-            case 'error':
-                icon.innerHTML = '<path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>';
-                break;
-            case 'warning':
-                icon.innerHTML = '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>';
-                break;
-            default:
-                icon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>';
-        }
-
-        // Показываем уведомление
-        notification.classList.add('show');
-
-        // Автоматически скрываем через 3 секунды
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
-    }
-
-    // Кастомный диалог подтверждения для ПК
-    showCustomConfirm(title, message) {
-        return new Promise((resolve) => {
-            const dialog = document.getElementById('confirm-dialog');
-            const titleEl = document.getElementById('confirm-title');
-            const messageEl = document.getElementById('confirm-message');
-            const okBtn = document.getElementById('confirm-ok');
-            const cancelBtn = document.getElementById('confirm-cancel');
-
-            // Устанавливаем содержимое
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-
-            // Показываем диалог
-            dialog.classList.add('show');
-
-            // Обработчики кнопок
-            const handleOk = () => {
-                cleanup();
-                resolve(true);
-            };
-
-            const handleCancel = () => {
-                cleanup();
-                resolve(false);
-            };
-
-            const cleanup = () => {
-                dialog.classList.remove('show');
-                okBtn.removeEventListener('click', handleOk);
-                cancelBtn.removeEventListener('click', handleCancel);
-            };
-
-            okBtn.addEventListener('click', handleOk);
-            cancelBtn.addEventListener('click', handleCancel);
+        this.cart.push({
+            id: Date.now(),
+            productId: productId,
+            name: product.name,
+            price: product.price,
+            numericPrice: product.numericPrice,
+            category: product.category
         });
+
+        this.showSimpleNotification('Добавлено в корзину', `${product.name} добавлен в корзину`);
+        console.log('Корзина:', this.cart);
     }
 
     loadCart() {
@@ -818,8 +444,9 @@ class LoyaltyProApp {
 
         if (this.cart.length === 0) {
             container.innerHTML = `
-                <div class="loading" style="text-align: center; padding: 40px 20px; color: var(--tg-theme-hint-color, #999999);">
-                    Корзина пуста
+                <div style="text-align: center; padding: 40px 20px; color: #999;">
+                    <h3>Корзина пуста</h3>
+                    <p>Добавьте товары из каталога</p>
                 </div>
             `;
             return;
@@ -833,11 +460,10 @@ class LoyaltyProApp {
                     <div class="cart-item-info">
                         <span class="cart-item-category">${item.category}</span>
                         <h3>${item.name}</h3>
-                        <p>${item.description}</p>
                         <div class="cart-item-price">${item.price}</div>
                     </div>
                     <button onclick="app.removeFromCart(${item.id})" class="delete-btn">
-                        Удалить из корзины
+                        Удалить
                     </button>
                 </div>
             `).join('')}
@@ -853,8 +479,29 @@ class LoyaltyProApp {
 
     removeFromCart(itemId) {
         this.cart = this.cart.filter(item => item.id !== itemId);
-        this.loadCart(); // Перезагружаем вид корзины
-        this.showNotification('Удалено', 'Товар удален из корзины', 'info');
+        this.loadCart();
+        this.showSimpleNotification('Удалено', 'Товар удален из корзины');
+    }
+
+    async checkout() {
+        if (!this.isAuthenticated) {
+            this.showAuthRequired('оформления заказа');
+            return;
+        }
+
+        if (this.cart.length === 0) {
+            this.showSimpleNotification('Ошибка', 'Корзина пуста');
+            return;
+        }
+
+        const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
+        const confirmed = await this.showConfirm('Подтверждение заказа', `Оформить заказ на ${total} бонусов?`);
+
+        if (confirmed) {
+            this.showSimpleNotification('Успех', 'Заказ успешно оформлен!');
+            this.cart = [];
+            this.loadCart();
+        }
     }
 
     loadProfile() {
@@ -862,10 +509,10 @@ class LoyaltyProApp {
         if (!container) return;
 
         const stats = {
+            availableBonuses: 5000,
             totalOrders: this.cart.length,
             totalSpent: this.cart.reduce((sum, item) => sum + item.numericPrice, 0),
-            availableBonuses: 5000, // Пример доступных бонусов
-            rate: "Premium" // Пример уровня
+            rate: "Premium"
         };
 
         container.innerHTML = `
@@ -875,29 +522,29 @@ class LoyaltyProApp {
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
                     </svg>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px;">${this.userData?.firstName || 'Пользователь'}</h3>
-                        <p style="margin: 0; color: var(--tg-theme-hint-color, #999999); font-size: 14px;">Тариф: ${stats.rate}</p>
+                        <h3 style="margin: 0; font-size: 18px;">${this.userData.firstName}</h3>
+                        <p style="margin: 0; color: #999; font-size: 14px;">Тариф: ${stats.rate}</p>
                     </div>
                 </div>
-                <p><strong>Username:</strong> ${this.userData?.username || 'Не указан'}</p>
-                <p><strong>ID:</strong> ${this.userData?.id || 'unknown'}</p>
-                <p><strong>Телефон:</strong> ${this.userPhone ? this.userPhone : 
-                    '<button onclick="app.requestPhoneNumber()" style="background: #3F75FB; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">Получить номер</button>'}</p>
-                <button onclick="app.logout()" style="background: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-top: 12px; width: 100%;">
-                    Выйти
+                <p><strong>Username:</strong> ${this.userData.username}</p>
+                <p><strong>ID:</strong> ${this.userData.id}</p>
+                <p><strong>Телефон:</strong> ${this.userPhone}</p>
+                
+                <button onclick="app.logout()" class="logout-btn">
+                    Выйти из аккаунта
                 </button>
             </div>
             
             <div class="profile-stats">
                 <div class="stat-card">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB" style="margin-bottom: 8px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB">
                         <path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
                     </svg>
                     <span class="stat-value">${stats.availableBonuses}</span>
                     <span class="stat-label">Доступно бонусов</span>
                 </div>
                 <div class="stat-card">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB" style="margin-bottom: 8px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB">
                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
                     </svg>
                     <span class="stat-value">${stats.totalOrders}</span>
@@ -905,12 +552,8 @@ class LoyaltyProApp {
                 </div>
             </div>
             
-            <button class="tariff-btn" onclick="app.selectTariff()" style="width: 100%; padding: 12px 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center;">
-                Выбрать тариф
-            </button>
-            
-            <button class="support-btn" onclick="app.showSupport()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+            <button onclick="app.showSupport()" class="support-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                 </svg>
                 Связаться с поддержкой
@@ -918,27 +561,80 @@ class LoyaltyProApp {
         `;
     }
 
-    selectTariff() {
-        this.showNotification('Выбор тарифа', 'Функция выбора тарифа в разработке', 'info');
+    logout() {
+        this.userPhone = null;
+        this.isAuthenticated = false;
+        localStorage.removeItem('userPhone');
+        this.cart = [];
+        
+        this.showSimpleNotification('Выход', 'Вы вышли из системы');
+        this.showAuthPage();
+    }
+
+    showAuthRequired(action) {
+        this.showSimpleNotification('Требуется авторизация', `Для ${action} необходимо предоставить номер телефона`);
+        setTimeout(() => {
+            this.showAuthPage();
+        }, 1500);
+    }
+
+    showSimpleNotification(title, message) {
+        if (this.isTelegram && tg.showPopup) {
+            tg.showPopup({
+                title: title,
+                message: message,
+                buttons: [{ type: 'ok' }]
+            });
+        } else {
+            alert(`${title}\n${message}`);
+        }
+    }
+
+    showConfirm(title, message) {
+        return new Promise((resolve) => {
+            if (this.isTelegram && tg.showPopup) {
+                tg.showPopup({
+                    title: title,
+                    message: message,
+                    buttons: [
+                        { type: 'ok', text: 'Да' },
+                        { type: 'cancel', text: 'Нет' }
+                    ]
+                }, (buttonId) => {
+                    resolve(buttonId === 'ok');
+                });
+            } else {
+                resolve(confirm(`${title}\n${message}`));
+            }
+        });
     }
 
     showSupport() {
-        this.showNotification('Поддержка', 'Функция связи с поддержкой в разработке', 'info');
-    }
-
-    saveUserData() {
-        // Сохраняем данные пользователя если нужно
-        console.log('Сохранение данных пользователя');
+        this.showSimpleNotification('Поддержка', 'По всем вопросам обращайтесь к администратору программы лояльности');
     }
 }
 
-// Создаем глобальный экземпляр приложения
+// Инициализация приложения
 const app = new LoyaltyProApp();
 
-// Инициализация когда DOM загружен
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Loyalty Pro App запущен!');
-});
+// Обработчик событий Telegram Web App для получения контакта
+if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    
+    // Обработчик события, когда пользователь предоставляет контакт через MainButton
+    tg.onEvent('contactReceived', (contact) => {
+        console.log('Contact received from Telegram:', contact);
+        if (contact && contact.phone_number) {
+            app.handleAuthSuccess(contact.phone_number, contact);
+        }
+    });
+    
+    // Альтернативный способ - слушаем клик по MainButton
+    tg.onEvent('mainButtonClicked', () => {
+        console.log('MainButton clicked - Telegram should request contact');
+        // Telegram автоматически покажет диалог запроса номера
+    });
+}
 
-// Глобальный доступ для отладки
+// Глобальный доступ
 window.app = app;
