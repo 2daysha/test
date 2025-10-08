@@ -17,6 +17,9 @@ class LoyaltyProApp {
             tg.expand();
             tg.enableClosingConfirmation();
             console.log('Telegram Web App инициализирован:', tg.initDataUnsafe);
+            
+            // Проверяем, есть ли номер в данных Telegram
+            this.checkTelegramPhone();
         } else {
             console.log('Запуск в браузере');
         }
@@ -30,6 +33,19 @@ class LoyaltyProApp {
             this.showMainApp();
         } else {
             this.showAuthPage();
+        }
+    }
+
+    checkTelegramPhone() {
+        // Проверяем номер телефона в данных Telegram
+        const initData = tg.initDataUnsafe;
+        if (initData && initData.user && initData.user.phone_number) {
+            this.userPhone = initData.user.phone_number;
+            this.isAuthenticated = true;
+            console.log('Найден номер в Telegram данных:', this.userPhone);
+            
+            // Сохраняем для будущих сессий
+            localStorage.setItem('userPhone', this.userPhone);
         }
     }
 
@@ -49,12 +65,40 @@ class LoyaltyProApp {
         });
         
         // Скрываем навигацию
-        document.querySelector('.bottom-nav').style.display = 'none';
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) bottomNav.style.display = 'none';
         
         // Назначаем обработчик для кнопки запроса номера
-        document.getElementById('request-phone-btn').addEventListener('click', () => {
-            this.requestPhoneNumber();
-        });
+        const requestBtn = document.getElementById('request-phone-btn');
+        if (requestBtn) {
+            requestBtn.onclick = () => {
+                this.requestPhoneNumber();
+            };
+        }
+
+        // Показываем информацию о способе авторизации
+        this.updateAuthInfo();
+    }
+
+     updateAuthInfo() {
+        const authInfo = document.getElementById('auth-info');
+        if (authInfo) {
+            if (this.isTelegram) {
+                authInfo.innerHTML = `
+                    <div style="text-align: center; color: var(--tg-theme-text-color, #000000); margin-bottom: 16px;">
+                        <h3>Добро пожаловать! 👋</h3>
+                        <p>Для использования приложения необходимо предоставить номер телефона</p>
+                    </div>
+                `;
+            } else {
+                authInfo.innerHTML = `
+                    <div style="text-align: center; color: var(--tg-theme-text-color, #000000); margin-bottom: 16px;">
+                        <h3>Тестовый режим 🖥️</h3>
+                        <p>Вы используете браузерную версию приложения</p>
+                    </div>
+                `;
+            }
+        }
     }
 
     showMainApp() {
@@ -88,31 +132,131 @@ class LoyaltyProApp {
         }
     }
 
-    requestPhoneTelegram() {
+     requestPhoneTelegram() {
         console.log('Запрос номера в Telegram...');
         
-        tg.requestContact((contact) => {
-            console.log('Ответ от Telegram:', contact);
+        // Используем современный метод Telegram Web Apps
+        // Создаем кнопку для запроса номера
+        if (tg.MainButton) {
+            // Сохраняем оригинальный текст кнопки
+            const originalText = tg.MainButton.text;
             
-            if (contact && contact.phone_number) {
-                this.handlePhoneSuccess(contact.phone_number, contact);
-            } else {
-                this.handlePhoneError('Номер не предоставлен');
-            }
-        });
+            // Настраиваем кнопку для запроса контакта
+            tg.MainButton.setText("Поделиться номером");
+            tg.MainButton.show();
+            
+            // Обработчик клика по кнопке
+            tg.MainButton.onClick(() => {
+                this.sharePhoneNumber();
+            });
+            
+            // Показываем инструкцию
+            this.showNotification(
+                "Предоставьте номер", 
+                "Нажмите на кнопку внизу экрана, чтобы поделиться номером телефона", 
+                "info"
+            );
+        } else {
+            // Альтернативный способ для старых версий
+            this.sharePhoneNumber();
+        }
+    }
+
+    sharePhoneNumber() {
+        // Метод для прямого запроса номера через Telegram
+        if (tg.showPopup) {
+            tg.showPopup({
+                title: 'Предоставьте номер телефона',
+                message: 'Для продолжения работы приложения необходимо предоставить номер телефона',
+                buttons: [
+                    {
+                        type: 'default',
+                        text: 'Поделиться номером',
+                        id: 'share_phone'
+                    },
+                    {
+                        type: 'cancel',
+                        text: 'Отмена'
+                    }
+                ]
+            }, (buttonId) => {
+                if (buttonId === 'share_phone') {
+                    // Используем метод shareContact если доступен
+                    if (tg.shareContact) {
+                        tg.shareContact({
+                            phone_number: 'request',
+                        }, (result) => {
+                            if (result && result.phone_number) {
+                                this.handlePhoneSuccess(result.phone_number, result);
+                            } else {
+                                this.handlePhoneError('Номер не предоставлен');
+                            }
+                        });
+                    } else {
+                        // Альтернатива - используем глубокую ссылку
+                        this.useDeepLinkForPhone();
+                    }
+                }
+            });
+        } else {
+            // Фолбэк метод
+            this.useDeepLinkForPhone();
+        }
+    }
+
+    useDeepLinkForPhone() {
+        // Создаем глубокую ссылку для запроса номера
+        const phoneRequestUrl = `https://t.me/share/phone?url=${encodeURIComponent(window.location.href)}`;
+        
+        this.showNotification(
+            "Открывается запрос номера",
+            "Для предоставления номера будет открыт диалог Telegram",
+            "info"
+        );
+        
+        // Открываем в новом окне или редиректим
+        setTimeout(() => {
+            window.open(phoneRequestUrl, '_blank');
+            
+            // Предлагаем ручной ввод как запасной вариант
+            setTimeout(() => {
+                this.showManualPhoneInput();
+            }, 3000);
+        }, 1000);
+    }
+
+    showManualPhoneInput() {
+        const manualPhone = prompt("Если автоматический запрос не сработал, введите номер телефона вручную (формат: +79991234567):");
+        if (manualPhone && this.validatePhone(manualPhone)) {
+            this.handlePhoneSuccess(manualPhone, { first_name: 'Пользователь' });
+        } else if (manualPhone) {
+            this.handlePhoneError('Неверный формат номера');
+        }
+    }
+
+    validatePhone(phone) {
+        const phoneRegex = /^\+7\d{10}$/;
+        return phoneRegex.test(phone);
     }
 
     requestPhoneBrowser() {
         console.log('Запрос номера в браузере...');
         
-        // Для браузера используем тестовый номер
-        const testPhone = '+79991234567';
-        const testContact = {
-            first_name: 'Тестовый',
-            last_name: 'Пользователь'
-        };
+        // Для браузера используем тестовый номер или ручной ввод
+        const testPhone = prompt("Введите номер телефона для тестирования (формат: +79991234567):", "+79991234567");
         
-        this.handlePhoneSuccess(testPhone, testContact);
+        if (testPhone && this.validatePhone(testPhone)) {
+            const testContact = {
+                first_name: 'Тестовый',
+                last_name: 'Пользователь'
+            };
+            
+            this.handlePhoneSuccess(testPhone, testContact);
+        } else if (testPhone) {
+            this.handlePhoneError('Неверный формат номера. Используйте формат: +79991234567');
+        } else {
+            this.handlePhoneError('Номер не введен');
+        }
     }
 
     handlePhoneSuccess(phone, contact) {
@@ -135,21 +279,35 @@ class LoyaltyProApp {
             };
         }
         
+        // Скрываем кнопку MainButton если она была показана
+        if (this.isTelegram && tg.MainButton) {
+            tg.MainButton.hide();
+        }
+        
         // Показываем уведомление
         this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
         
         // Переходим на главное приложение
         setTimeout(() => {
             this.showMainApp();
-        }, 1000);
+        }, 1500);
     }
 
     handlePhoneError(message) {
         console.log('❌ Ошибка:', message);
         this.showNotification('Ошибка', message, 'error');
+        
+        // Предлагаем альтернативные способы
+        if (this.isTelegram) {
+            setTimeout(() => {
+                if (confirm('Не удалось получить номер автоматически. Хотите ввести номер вручную?')) {
+                    this.showManualPhoneInput();
+                }
+            }, 2000);
+        }
     }
 
-    logout() {
+    ogout() {
         this.userPhone = null;
         this.isAuthenticated = false;
         localStorage.removeItem('userPhone');
@@ -158,6 +316,7 @@ class LoyaltyProApp {
         this.showAuthPage();
         
         console.log('Пользователь вышел');
+        this.showNotification('Выход', 'Вы вышли из системы', 'info');
     }
 
     navigateTo(page) {
