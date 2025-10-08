@@ -86,6 +86,37 @@ body {
     transform: scale(0.98);
 }
 
+.auth-instruction {
+    color: var(--tg-theme-hint-color);
+    font-size: 14px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-style: italic;
+}
+
+.share-contact-btn {
+    background: #3F75FB;
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    max-width: 280px;
+    transition: all 0.2s ease;
+    margin: 0 auto;
+    display: block;
+}
+
+.share-contact-btn:hover {
+    background: #2a5fd8;
+}
+
+.share-contact-btn:active {
+    transform: scale(0.98);
+}
 /* Скрываем навигацию на странице авторизации */
 #page-auth.active ~ .bottom-nav {
     display: none;
