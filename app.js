@@ -86,7 +86,6 @@ initMainButton() {
         this.createFallbackButton();
         return;
     }
-
     // Настраиваем основную кнопку Telegram
     tg.MainButton.setText("📱 Предоставить номер");
     tg.MainButton.setColor("#3F75FB");
@@ -95,6 +94,27 @@ initMainButton() {
     // Обработчик клика
     tg.MainButton.onClick(() => {
         this.requestPhoneWithMainButton();
+    });
+}
+
+    createFallbackButton() {
+    const authPage = document.getElementById('page-auth');
+    const fallbackHTML = `
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="fallback-phone-btn" class="share-contact-btn">
+                📱 Тестовый режим (ПК версия)
+            </button>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                В Telegram приложении здесь будет кнопка для реального номера
+            </p>
+        </div>
+    `;
+    
+    authPage.querySelector('.auth-container').innerHTML += fallbackHTML;
+    
+    document.getElementById('fallback-phone-btn').addEventListener('click', () => {
+        this.userPhone = '+79991234567';
+        this.processUserAuthentication(this.userPhone);
     });
 }
 
@@ -165,6 +185,20 @@ requestPhoneWithMainButton() {
     // Поиск пользователя по номеру телефона
     findUserByPhone(phone) {
         return this.users.find(user => user.phone === phone);
+    }
+
+    saveUsersData() {
+    try {
+        // В реальном приложении здесь был бы вызов к серверу
+        console.log('Сохранение данных пользователей:', this.users);
+        
+        // Для демонстрации сохраняем в localStorage как fallback
+        localStorage.setItem('loyaltyProUsers', JSON.stringify(this.users));
+        return true;
+    } catch (error) {
+        console.error('Ошибка сохранения данных пользователей:', error);
+        return false;
+    }
     }
 
     // Создание нового пользователя
@@ -421,6 +455,27 @@ requestPhoneWithMainButton() {
         this.currentPage = page;
         this.onPageChange(page);
     }
+
+    onPageChange(page) {
+    console.log(`Перешли на страницу: ${page}`);
+    
+    if (!this.isAuthenticated && page !== 'auth') {
+        return;
+    }
+    
+    switch(page) {
+        case 'home':
+            this.loadPrivileges();
+            break;
+        case 'catalog':
+            this.loadCart();
+            break;
+        case 'cart':
+            this.loadProfile();
+            break;
+    }
+    }
+
 
     navigateTo(page) {
         if (!this.isAuthenticated && page !== 'auth') {
@@ -771,6 +826,14 @@ loadCart() {
             };
         }
     }
+    
+selectTariff() {
+    this.showNotification('В разработке', 'Функция выбора тарифа скоро будет доступна', 'info');
+}
+
+showSupport() {
+    this.showNotification('Поддержка', 'Свяжитесь с нами через @loyaltypro_support', 'info');
+}
 }
 
 // Создаем глобальный экземпляр приложения
