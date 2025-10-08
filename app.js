@@ -138,7 +138,48 @@ class LoyaltyProApp {
             }
         });
     }
-    
+
+    async processUserAuthentication(phone, contactData = null) {
+        this.userPhone = phone;
+        
+        // Сохраняем данные
+        this.saveUserData();
+        this.isAuthenticated = true;
+        
+        // Отправляем данные в бота
+        await this.sendUserDataToBot(phone, contactData);
+        
+        this.showNotification('Успех', 'Номер подтвержден!', 'success');
+        
+        setTimeout(() => {
+            this.showPage('home');
+            this.loadPrivileges();
+        }, 1000);
+    }
+
+    async sendUserDataToBot(phone, contactData = null) {
+        if (!this.isTelegram) {
+            console.log('Отправка данных в бота (ПК режим):', { phone });
+            return;
+        }
+
+        try {
+            const userData = {
+                type: 'user_auth',
+                phone: phone,
+                firstName: contactData?.first_name || this.userData?.firstName,
+                lastName: contactData?.last_name || this.userData?.lastName,
+                userId: contactData?.user_id || this.userData?.id
+            };
+
+            // Отправляем данные в бота
+            tg.sendData(JSON.stringify(userData));
+            console.log('Данные отправлены в бота:', userData);
+        } catch (error) {
+            console.error('Ошибка отправки данных в бота:', error);
+        }
+    }
+
     // Загрузка данных пользователей из users.json
     async loadUsersData() {
         try {
@@ -156,17 +197,13 @@ class LoyaltyProApp {
         }
     }
 
-    // Сохранение данных пользователей в users.json
-    async saveUsersData() {
-        try {
-            // В реальном приложении здесь был бы вызов к серверу
-            console.log('Сохранение данных пользователей:', this.users);
-            
-            // Для демонстрации сохраняем в localStorage как fallback
-            localStorage.setItem('loyaltyProUsers', JSON.stringify(this.users));
-        } catch (error) {
-            console.error('Ошибка сохранения данных пользователей:', error);
-        }
+    saveUserData() {
+        const userData = {
+            userData: this.userData,
+            userPhone: this.userPhone
+        };
+        localStorage.setItem('loyaltyProUserData', JSON.stringify(userData));
+        console.log('Данные пользователя сохранены');
     }
 
     // Поиск пользователя по номеру телефона
@@ -796,29 +833,23 @@ loadCart() {
         }
     }
 
-    // Загрузка пользователей из localStorage как fallback
-    async loadUsersData() {
-        try {
-            // Сначала пробуем загрузить из users.json
-            const response = await fetch('./users.json');
-            if (response.ok) {
-                this.users = await response.json();
-                console.log('Данные пользователей загружены из users.json:', this.users);
-            } else {
-                throw new Error('Файл users.json не найден');
-            }
-        } catch (error) {
-            console.error('Ошибка загрузки users.json, используем localStorage:', error);
-            
-            // Fallback на localStorage
-            const savedUsers = localStorage.getItem('loyaltyProUsers');
-            if (savedUsers) {
-                this.users = JSON.parse(savedUsers);
-                console.log('Данные пользователей загружены из localStorage:', this.users);
-            } else {
-                this.users = [];
-                console.log('Нет сохраненных данных пользователей');
-            }
+    loadUserData() {
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            this.userData = {
+                firstName: user.first_name || 'Пользователь',
+                lastName: user.last_name || '',
+                username: user.username ? `@${user.username}` : 'Не указан',
+                id: user.id
+            };
+            console.log('Данные пользователя:', this.userData);
+        } else {
+            this.userData = {
+                firstName: 'Пользователь',
+                lastName: '',
+                username: 'Не указан',
+                id: 'unknown'
+            };
         }
     }
 }
