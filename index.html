@@ -10,13 +10,35 @@
 <body>
     <div class="app">
         <header class="header">
-    <a href="/" class="logo-link">
-        <img src="logo.svg" alt="Loyalty Pro" class="logo">
-    </a>
+            <a href="/" class="logo-link">
+                <img src="logo.svg" alt="Loyalty Pro" class="logo">
+            </a>
         </header>
+    
         <main class="main">
+            <!-- Страница авторизации -->
+            <div id="page-auth" class="page active">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h1 class="auth-title">Loyalty Pro</h1>
+                        <p class="auth-subtitle">Программа лояльности</p>
+                    </div>
+                    
+                    <div class="auth-content">
+                        <h2>Добро пожаловать!</h2>
+                        <p>Для доступа к бонусной программе необходимо подтвердить номер телефона</p>
+                        
+                        <button id="request-phone-btn" class="phone-request-btn">
+                            📱 Предоставить номер телефона
+                        </button>
+                        
+                        <p class="auth-note">Нажимая кнопку, вы соглашаетесь с условиями использования</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Страница Привилегии -->
-            <div id="page-home" class="page active">
+            <div id="page-home" class="page">
                 <div class="loading">Загрузка товаров...</div>
             </div>
             
@@ -30,32 +52,34 @@
                 <div class="loading">Загрузка профиля...</div>
             </div>
         </main>
-            <!-- Уведомления для ПК -->
-<div id="notification" class="notification">
-    <svg class="notification-icon" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-    </svg>
-    <div class="notification-content">
-        <div class="notification-title" id="notification-title">Успех</div>
-        <div class="notification-message" id="notification-message">Сообщение</div>
-    </div>
-</div>
 
-<!-- Диалог подтверждения для ПК -->
-<div id="confirm-dialog" class="confirm-dialog">
-    <div class="confirm-content">
-        <div class="confirm-title" id="confirm-title">Подтверждение</div>
-        <div class="confirm-message" id="confirm-message">Вы уверены?</div>
-        <div class="confirm-buttons">
-            <button class="confirm-btn secondary" id="confirm-cancel">Отмена</button>
-            <button class="confirm-btn primary" id="confirm-ok">OK</button>
+        <!-- Уведомления для ПК -->
+        <div id="notification" class="notification">
+            <svg class="notification-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <div class="notification-content">
+                <div class="notification-title" id="notification-title">Успех</div>
+                <div class="notification-message" id="notification-message">Сообщение</div>
+            </div>
         </div>
-    </div>
-</div>
+
+        <!-- Диалог подтверждения для ПК -->
+        <div id="confirm-dialog" class="confirm-dialog">
+            <div class="confirm-content">
+                <div class="confirm-title" id="confirm-title">Подтверждение</div>
+                <div class="confirm-message" id="confirm-message">Вы уверены?</div>
+                <div class="confirm-buttons">
+                    <button class="confirm-btn secondary" id="confirm-cancel">Отмена</button>
+                    <button class="confirm-btn primary" id="confirm-ok">OK</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Нижняя навигация с иконками -->
-        <nav class="bottom-nav">
+        <nav class="bottom-nav" style="display: none;">
             <div class="nav-container">
-                <button class="nav-item active" data-page="home">
+                <button class="nav-item" data-page="home">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L1 12h3v10h6v-6h4v6h6V12h3L12 2z"/>
                     </svg>

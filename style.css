@@ -69,6 +69,80 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Стили для страницы авторизации */
+.auth-container {
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    padding: 40px 20px;
+}
+
+.auth-header {
+    margin-bottom: 40px;
+}
+
+.auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #3F75FB;
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    font-size: 16px;
+    color: var(--tg-theme-hint-color, #666666);
+}
+
+.auth-content h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--tg-theme-text-color, #000000);
+}
+
+.auth-content p {
+    font-size: 16px;
+    color: var(--tg-theme-hint-color, #666666);
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.phone-request-btn {
+    background: #3F75FB;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+    margin-bottom: 20px;
+}
+
+.phone-request-btn:hover {
+    background: #2a5fd8;
+}
+
+.phone-request-btn:active {
+    transform: scale(0.98);
+}
+
+.auth-note {
+    font-size: 12px;
+    color: var(--tg-theme-hint-color, #999999);
+}
+
+/* Показываем навигацию только после авторизации */
+.app.authenticated .bottom-nav {
+    display: block !important;
+}
+
+/* Скрываем навигацию на странице авторизации */
+#page-auth.active ~ .bottom-nav {
+    display: none !important;
+}
+
 /* Стили для страницы Привилегии */
 #page-home {
     max-width: 500px;
