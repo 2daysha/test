@@ -106,9 +106,6 @@ requestPhoneWithMainButton() {
             this.userPhone = contact.phone_number;
             console.log('✅ Номер получен через MainButton:', this.userPhone);
             
-            // Скрываем кнопку после успеха
-            tg.MainButton.hide();
-            
             this.processUserAuthentication(this.userPhone, contact);
         } else {
             this.showNotification('Отменено', 'Номер не предоставлен', 'warning');
