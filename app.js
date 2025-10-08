@@ -55,107 +55,66 @@ class LoyaltyProApp {
         });
     }
 
-    initShareContactButton() {
-        const authPage = document.getElementById('page-auth');
-        if (!authPage) return;
+        initShareContactButton() {
+    const authPage = document.getElementById('page-auth');
+    if (!authPage) return;
 
-        authPage.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px;">
-                <div style="margin-bottom: 30px;">
-                    <h2 style="margin-bottom: 10px; color: var(--tg-theme-text-color);">Добро пожаловать!</h2>
-                    <p style="color: var(--tg-theme-hint-color); line-height: 1.5;">
-                        Для доступа к бонусной программе необходимо подтвердить номер телефона
-                    </p>
-                </div>
-                
-                <button id="share-contact-btn" class="auth-btn" style="
-                    background: #3F75FB;
-                    color: white;
-                    border: none;
-                    padding: 16px 24px;
-                    border-radius: 12px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    width: 100%;
-                    max-width: 280px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    transition: all 0.2s ease;
-                ">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                    </svg>
-                    Предоставить номер телефона
-                </button>
-
-                <div style="margin-top: 20px; font-size: 12px; color: var(--tg-theme-hint-color);">
-                    Нажимая кнопку, вы соглашаетесь с условиями использования
-                </div>
+    authPage.innerHTML = `
+        <div class="auth-container">
+            <div class="auth-header">
+                <h2 class="auth-title">Добро пожаловать!</h2>
+                <p class="auth-subtitle">
+                    Для доступа к бонусной программе необходимо подтвердить номер телефона
+                </p>
             </div>
-        `;
+            
+            <p class="auth-instruction">
+                Нажмите кнопку внизу экрана для предоставления номера
+            </p>
+        </div>
+    `;
 
-        // Добавляем обработчик для кнопки
-        document.getElementById('share-contact-btn').addEventListener('click', () => {
-            this.shareContact();
-        });
+    // Используем Main Button вместо обычной кнопки
+    this.initMainButton();
+}
+
+initMainButton() {
+    const tg = window.Telegram.WebApp;
+    
+    if (!this.isTelegram) {
+        // Для ПК версии создаем обычную кнопку
+        this.createFallbackButton();
+        return;
     }
 
-    shareContact() {
-        if (!this.isTelegram) {
-            // Для ПК версии
-            this.userPhone = '+79991234567';
-            this.processUserAuthentication(this.userPhone);
-            return;
+    // Настраиваем основную кнопку Telegram
+    tg.MainButton.setText("📱 Предоставить номер");
+    tg.MainButton.setColor("#3F75FB");
+    tg.MainButton.show();
+    
+    // Обработчик клика
+    tg.MainButton.onClick(() => {
+        this.requestPhoneWithMainButton();
+    });
+}
+
+requestPhoneWithMainButton() {
+    const tg = window.Telegram.WebApp;
+    
+    tg.requestContact((contact) => {
+        if (contact && contact.phone_number) {
+            this.userPhone = contact.phone_number;
+            console.log('✅ Номер получен через MainButton:', this.userPhone);
+            
+            // Скрываем кнопку после успеха
+            tg.MainButton.hide();
+            
+            this.processUserAuthentication(this.userPhone, contact);
+        } else {
+            this.showNotification('Отменено', 'Номер не предоставлен', 'warning');
         }
-
-        // Создаем кнопку поделиться контактом
-        const shareContactBtn = {
-            type: 'phone_number',
-            text: '📱 Поделиться номером'
-        };
-
-        // Показываем всплывающее окно с кнопкой
-        tg.showPopup({
-            title: 'Подтверждение номера',
-            message: 'Для доступа к приложению необходимо подтвердить ваш номер телефона',
-            buttons: [shareContactBtn]
-        }, (buttonId) => {
-            if (buttonId === 'phone_number') {
-                // Когда пользователь нажимает кнопку, открываем интерфейс выбора контакта
-                tg.requestContact((contact) => {
-                    if (contact && contact.phone_number) {
-                        this.userPhone = contact.phone_number;
-                        this.processUserAuthentication(this.userPhone, contact);
-                    } else {
-                        this.showNotification('Отменено', 'Номер не предоставлен', 'warning');
-                    }
-                });
-            } else {
-                this.showNotification('Отменено', 'Авторизация отменена', 'warning');
-            }
-        });
-    }
-
-    async processUserAuthentication(phone, contactData = null) {
-        this.userPhone = phone;
-        
-        // Сохраняем данные
-        this.saveUserData();
-        this.isAuthenticated = true;
-        
-        // Отправляем данные в бота
-        await this.sendUserDataToBot(phone, contactData);
-        
-        this.showNotification('Успех', 'Номер подтвержден!', 'success');
-        
-        setTimeout(() => {
-            this.showPage('home');
-            this.loadPrivileges();
-        }, 1000);
-    }
+    });
+}
 
     async sendUserDataToBot(phone, contactData = null) {
         if (!this.isTelegram) {
@@ -264,43 +223,6 @@ class LoyaltyProApp {
         return false;
     }
 
-    async requestPhoneNumber() {
-        return new Promise((resolve) => {
-            if (this.isTelegram) {
-                tg.showPopup({
-                    title: 'Подтверждение номера',
-                    message: 'Для доступа к приложению необходимо подтвердить ваш номер телефона',
-                    buttons: [
-                        { type: 'default', text: 'Предоставить номер', id: 'share_phone' },
-                        { type: 'cancel', text: 'Отмена' }
-                    ]
-                }, (buttonId) => {
-                    if (buttonId === 'share_phone') {
-                        tg.requestContact((contact) => {
-                            if (contact && contact.phone_number) {
-                                this.processUserAuthentication(contact.phone_number, contact);
-                                resolve(true);
-                            } else {
-                                this.showNotification('Отменено', 'Номер не предоставлен', 'warning');
-                                resolve(false);
-                            }
-                        });
-                    } else {
-                        this.showNotification('Отменено', 'Авторизация отменена', 'warning');
-                        resolve(false);
-                    }
-                });
-            } else {
-                // Для ПК версии - тестовый номер
-                const testPhone = '+79991234567';
-                this.processUserAuthentication(testPhone, {
-                    first_name: 'Тестовый',
-                    last_name: 'Пользователь'
-                });
-                resolve(true);
-            }
-        });
-    }
 
     // Обработка аутентификации пользователя
     processUserAuthentication(phone, contactData = null) {
@@ -785,7 +707,7 @@ loadCart() {
                 buttons: [{ type: 'ok' }]
             });
         } else {
-            alert(`${title}: ${message}`); // Простой fallback
+            alert(`${title}: ${message}`); 
         }
     }
 
