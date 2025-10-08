@@ -119,8 +119,7 @@ class LoyaltyProApp {
                     }
                 });
             } else {
-                // Для ПК версии
-                this.userPhone = '+79991234567';
+                this.userPhone = 'Нет';
                 this.saveUserData();
                 this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
                 resolve(true);
@@ -496,7 +495,7 @@ class LoyaltyProApp {
                     }
                 });
             } else {
-                this.userPhone = '+79991234567';
+                this.userPhone = 'Нет';
                 this.saveUserData();
                 if (this.currentPage === 'cart') {
                     this.loadProfile();
