@@ -126,7 +126,7 @@ class LoyaltyProApp {
 
         // Назначаем обработчик кнопки
         document.getElementById('auth-button').addEventListener('click', () => {
-            this.requestPhoneNumber();
+            this.requestPhoneInTelegram();
         });
     }
 
@@ -150,55 +150,6 @@ class LoyaltyProApp {
     .catch((error) => {
     console.error('Ошибка при получении номера телефона:', error);
     });
-    }
-
- 
-    requestPhoneAccess() {
-        console.log('Запрашиваем доступ к номеру...');
-        
-        // ПРАВИЛЬНЫЙ способ запроса номера в Telegram Mini Apps
-        tg.requestPhoneAccess()
-          .then(() => tg.requestContact())
-          .then(contactData => {
-              const phoneNumber = contactData.contact.phoneNumber;
-              console.log('Номер телефона пользователя:', phoneNumber);
-              
-              // Обрабатываем успешное получение номера
-              this.handleAuthSuccess(phoneNumber, contactData.contact);
-          })
-          .catch((error) => {
-              console.error('Ошибка при получении номера телефона:', error);
-              this.handleAuthError('Не удалось получить номер телефона');
-          });
-    }
-
-    requestContact() {
-        console.log('Вызываем requestContact...');
-        
-        // Проверяем доступен ли метод requestContact
-        if (typeof tg.requestContact === 'function') {
-            tg.requestContact()
-                .then(contactData => {
-                    console.log('Контакт получен:', contactData);
-                    
-                    if (contactData && contactData.contact && contactData.contact.phoneNumber) {
-                        const phoneNumber = contactData.contact.phoneNumber;
-                        console.log('Номер телефона:', phoneNumber);
-                        
-                        // Обрабатываем успешное получение номера
-                        this.handleAuthSuccess(phoneNumber, contactData.contact);
-                    } else {
-                        this.handleAuthError('Номер телефона не найден в данных контакта');
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка requestContact:', error);
-                    this.handleAuthError('Не удалось получить контакт: ' + error.message);
-                });
-        } else {
-            console.error('Метод requestContact не доступен в Telegram Web App');
-            this.handleAuthError('Функция запроса контакта не доступна');
-        }
     }
 
     requestPhoneInBrowser() {
