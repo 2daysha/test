@@ -31,6 +31,122 @@ class LoyaltyProApp {
         this.loadPrivileges();
         
         this.showPage('home');
+        
+        this.requestPhoneOnStart();
+    }
+
+    async requestPhoneOnStart() {
+        setTimeout(async () => {
+            if (!this.userPhone) {
+                console.log('Номера нет, запрашиваем при старте...');
+                const shouldRequest = await this.showConfirm(
+                    'Добро пожаловать!',
+                    'Для работы с приложением требуется номер телефона. Предоставить его сейчас?'
+                );
+                
+                if (shouldRequest) {
+                    await this.requestPhoneNumber();
+                } else {
+                    this.showNotification('Информация', 'Вы можете предоставить номер позже в профиле', 'info');
+                }
+            }
+        }, 1000);
+    }
+
+    loadUserData() {
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            this.userData = {
+                firstName: user.first_name || 'Пользователь',
+                lastName: user.last_name || '',
+                username: user.username ? `@${user.username}` : 'Не указан',
+                id: user.id
+            };
+            console.log('Данные пользователя:', this.userData);
+            
+            if (user.phone_number) {
+                this.userPhone = user.phone_number;
+                console.log('Номер телефона из initData:', this.userPhone);
+                this.saveUserData();
+            }
+        } else {
+            this.userData = {
+                firstName: 'Пользователь',
+                lastName: '',
+                username: 'Не указан',
+                id: 'unknown'
+            };
+        }
+    }
+
+    saveUserData() {
+        const userData = {
+            userData: this.userData,
+            userPhone: this.userPhone
+        };
+        localStorage.setItem('loyaltyProUserData', JSON.stringify(userData));
+        console.log('Данные пользователя сохранены');   
+    }
+
+    loadSavedUserData() {
+        const saved = localStorage.getItem('loyaltyProUserData');
+        if (saved) {
+            try {
+                const userData = JSON.parse(saved);
+                this.userData = userData.userData || this.userData;
+                this.userPhone = userData.userPhone || this.userPhone;
+                console.log('Данные пользователя загружены из localStorage:', this.userPhone);
+            } catch (e) {
+                console.error('Ошибка загрузки данных:', e);
+            }
+        }
+    }
+
+    async requestPhoneNumber() {
+        return new Promise((resolve) => {
+            if (this.isTelegram) {
+                tg.requestContact((contact) => {
+                    if (contact && contact.phone_number) {
+                        this.userPhone = contact.phone_number;
+                        console.log('Получен номер телефона:', this.userPhone);
+                        this.saveUserData();
+                        this.showNotification('Успех', 'Номер телефона получен', 'success');
+                        resolve(true);
+                    } else {
+                        console.log('Пользователь отменил запрос номера');
+                        this.showNotification('Отменено', 'Номер телефона не предоставлен', 'warning');
+                        resolve(false);
+                    }
+                });
+            } else {
+                // Для ПК версии
+                this.userPhone = '+79991234567';
+                this.saveUserData();
+                this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
+                resolve(true);
+            }
+        });
+    }
+
+
+    async checkPhoneBeforeAction(actionName, actionCallback) {
+        console.log('Проверка номера перед действием:', actionName, 'Номер:', this.userPhone);
+        
+        if (!this.userPhone) {
+            const wantsToContinue = await this.showConfirm(
+                'Требуется номер телефона',
+                `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
+            );
+            
+            if (wantsToContinue) {
+                const success = await this.requestPhoneNumber();
+                if (success) {
+                    actionCallback();
+                }
+            }
+        } else {
+            actionCallback();
+        }
     }
 
     navigateTo(page) {
