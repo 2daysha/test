@@ -83,6 +83,17 @@ class LoyaltyProApp {
             id: user.id
         };
         console.log('Данные пользователя:', this.userData);
+        
+        // Пытаемся получить номер телефона из initData
+        if (user.phone_number) {
+            this.userPhone = user.phone_number;
+            console.log('Номер телефона из initData:', this.userPhone);
+            this.saveUserData();
+        } else {
+            console.log('Номер телефона не найден в initData');
+            // Если номера нет в initData, запрашиваем его сразу
+            this.requestPhoneNumberOnStart();
+        }
     } else {
         this.userData = {
             firstName: 'Пользователь',
@@ -90,10 +101,98 @@ class LoyaltyProApp {
             username: 'Не указан',
             id: 'unknown'
         };
+        // Для ПК версии или если нет данных пользователя
+        this.requestPhoneNumberOnStart();
     }
+}
 
-    // Проверяем, есть ли номер телефона в initData
-    this.checkPhoneNumber();
+// Метод для запроса номера при первом входе
+async requestPhoneNumberOnStart() {
+    // Проверяем, есть ли уже сохраненный номер
+    if (this.userPhone) {
+        console.log('Номер уже сохранен:', this.userPhone);
+        return;
+    }
+    
+    // Ждем немного чтобы интерфейс успел загрузиться
+    setTimeout(async () => {
+        const shouldRequest = await this.showConfirm(
+            'Для работы приложения',
+            'Приложению требуется ваш номер телефона для идентификации. Предоставить номер?'
+        );
+        
+        if (shouldRequest) {
+            await this.requestPhoneNumber();
+        } else {
+            this.showNotification('Информация', 'Вы можете предоставить номер позже в профиле', 'info');
+        }
+    }, 1000);
+}
+
+// Упрощаем checkPhoneNumber - он теперь только проверяет
+checkPhoneNumber() {
+    const initData = tg.initDataUnsafe;
+    if (initData && initData.user && initData.user.phone_number) {
+        this.userPhone = initData.user.phone_number;
+        console.log('Номер телефона из initData:', this.userPhone);
+        this.saveUserData();
+    }
+    // Если номера нет в initData, не обнуляем его (может быть сохранен ранее)
+}
+
+// Упрощаем checkPhoneBeforeAction - только проверяет наличие номера
+async checkPhoneBeforeAction(actionName, actionCallback) {
+    console.log('checkPhoneBeforeAction: userPhone =', this.userPhone);
+    
+    if (!this.userPhone) {
+        const wantsToContinue = await this.showConfirm(
+            'Требуется номер телефона',
+            `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
+        );
+        
+        if (wantsToContinue) {
+            await this.requestPhoneNumber();
+            if (this.userPhone) {
+                actionCallback();
+            } else {
+                this.showNotification('Отменено', 'Действие отменено - номер телефона не предоставлен', 'warning');
+            }
+        }
+    } else {
+        actionCallback();
+    }
+}
+
+// Упрощаем requestPhoneNumber - только запрашивает номер
+async requestPhoneNumber() {
+    return new Promise((resolve) => {
+        if (this.isTelegram) {
+            tg.requestContact((contact) => {
+                if (contact && contact.phone_number) {
+                    this.userPhone = contact.phone_number;
+                    console.log('Получен номер телефона:', this.userPhone);
+                    this.saveUserData();
+                    if (this.currentPage === 'cart') {
+                        this.loadProfile();
+                    }
+                    this.showNotification('Успех', 'Номер телефона получен', 'success');
+                    resolve(true);
+                } else {
+                    this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
+                    resolve(false);
+                }
+            });
+        } else {
+            // Для ПК версии
+            this.userPhone = '+79991234567';
+            this.saveUserData();
+            if (this.currentPage === 'cart') {
+                this.loadProfile();
+            }
+            this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
+            resolve(true);
+        }
+    });
 }
 
 
@@ -366,150 +465,7 @@ class LoyaltyProApp {
         console.log('Корзина:', this.cart);
     });
 }
-    saveUserData() {
-    const userData = {
-        userData: this.userData,
-        userPhone: this.userPhone
-    };
-    localStorage.setItem('loyaltyProUserData', JSON.stringify(userData));
-    console.log('Данные пользователя сохранены');   
-    }
 
-    loadSavedUserData() {
-    // Загружаем сохраненные данные пользователя
-    const saved = localStorage.getItem('loyaltyProUserData');
-    if (saved) {
-        try {
-            const userData = JSON.parse(saved);
-            this.userData = userData.userData || this.userData;
-            this.userPhone = userData.userPhone || this.userPhone;
-            console.log('Данные пользователя загружены из localStorage');
-        } catch (e) {
-            console.error('Ошибка загрузки данных:', e);
-        }
-    }
-    }
-
-    checkPhoneNumber() {
-    const initData = tg.initDataUnsafe;
-    if (initData && initData.user && initData.user.phone_number) {
-        this.userPhone = initData.user.phone_number;
-        console.log('Номер телефона из initData:', this.userPhone);
-        this.saveUserData();
-    } else {
-        this.userPhone = null;
-        console.log('Номер телефона не найден в initData');
-    }
-    }
-
-    formatPhoneNumber(phone) {
-    if (!phone) return 'Не указан';
-    
-    const cleaned = phone.replace(/\D/g, '');
-    
-    if (cleaned.length === 11 && (cleaned.startsWith('7') || cleaned.startsWith('8'))) {
-        return `+7 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;
-    } 
-    else if (cleaned.length === 10) {
-        return `+7 (${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8)}`;
-    }
-    else if (cleaned.length === 12 && cleaned.startsWith('7')) {
-        return `+7 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 9)}-${cleaned.slice(9)}`;
-    }
-    
-    return phone;
-    }
-
-    async requestPhoneNumber() {
-    return new Promise((resolve) => {
-        if (this.isTelegram) {
-            // Прямой запрос номера телефона через Telegram
-            tg.requestContact((contact) => {
-                if (contact && contact.phone_number) {
-                    this.userPhone = contact.phone_number;
-                    console.log('Получен номер телефона:', this.userPhone);
-                    this.saveUserData();
-                    if (this.currentPage === 'cart') {
-                        this.loadProfile();
-                    }
-                    this.showNotification('Успех', 'Номер телефона получен', 'success');
-                    resolve(true);
-                } else {
-                    console.log('Пользователь не предоставил номер телефона');
-                    this.showNotification('Отменено', 'Вы не предоставили номер телефона', 'warning');
-                    resolve(false);
-                }
-            });
-        } else {
-            // Для ПК версии
-            this.userPhone = '+79991234567';
-            this.saveUserData();
-            if (this.currentPage === 'cart') {
-                this.loadProfile();
-            }
-            this.showNotification('Успех', 'Номер телефона получен (тестовый режим)', 'success');
-            resolve(true);
-        }
-    });
-    }
-
- 
-    // Функция для проверки наличия номера телефона перед действием
-    async checkPhoneBeforeAction(actionName, actionCallback) {
-    console.log('checkPhoneBeforeAction: userPhone =', this.userPhone);
-    
-    if (!this.userPhone) {
-        const wantsToContinue = await this.showConfirm(
-            'Требуется номер телефона',
-            `Для ${actionName} необходимо предоставить номер телефона. Хотите продолжить?`
-        );
-        
-        console.log('Пользователь хочет продолжить:', wantsToContinue);
-        
-        if (wantsToContinue) {
-            const phoneResult = await this.requestPhoneNumber();
-            console.log('Результат запроса номера:', phoneResult, 'userPhone:', this.userPhone);
-            
-            if (this.userPhone) {
-                actionCallback();
-            } else {
-                this.showNotification('Отменено', 'Действие отменено - номер телефона не предоставлен', 'warning');
-            }
-        }
-    } else {
-        console.log('Номер уже есть, выполняем действие');
-        actionCallback();
-    }
-}
-
-    async checkout() {
-    this.checkPhoneBeforeAction('оформления заказа', () => {
-        this.processCheckout();
-    });
-    }
-
-    async processCheckout() {
-    if (this.cart.length === 0) {
-        this.showNotification('Ошибка', 'Корзина пуста', 'error');
-        return;
-    }
-
-    const total = this.cart.reduce((sum, item) => sum + item.numericPrice, 0);
-    
-    const confirmed = await this.showConfirm(
-        'Подтверждение заказа',
-        `Вы уверены, что хотите оформить заказ на сумму ${total} бонусов?`
-    );
-
-    if (confirmed) {
-        this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
-        this.cart = []; 
-        this.loadCart(); 
-        console.log('Заказ оформлен:', this.cart);
-    } else {
-        this.showNotification('Отменено', 'Заказ отменен', 'warning');
-    }
-    }
 
     // Кастомное уведомление для ПК
     showCustomNotification(title, message, type = 'info') {
