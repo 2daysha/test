@@ -55,7 +55,7 @@ class LoyaltyProApp {
         });
     }
 
-        initShareContactButton() {
+    initShareContactButton() {
     const authPage = document.getElementById('page-auth');
     if (!authPage) return;
 
