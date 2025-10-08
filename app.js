@@ -141,29 +141,69 @@ class LoyaltyProApp {
     requestPhoneInTelegram() {
         console.log('Запрос номера в Telegram...');
         
-        // ПРОСТОЙ И ПРЯМОЙ СПОСОБ - используем MainButton
+        // ИСПРАВЛЕННЫЙ КОД - используем правильные методы Telegram Mini Apps
         if (tg.MainButton) {
             tg.MainButton.setText("Поделиться номером");
             tg.MainButton.show();
             
             // Обработчик клика по MainButton
             tg.MainButton.onClick(() => {
-                console.log('MainButton clicked - Telegram should request contact');
-                // Telegram автоматически запросит контакт при нажатии на MainButton
+                this.requestPhoneAccess();
             });
         } else {
-            // Если MainButton не доступен, используем ручной ввод
-            this.requestManualPhone();
+            // Если MainButton не доступен, используем прямой вызов
+            this.requestPhoneAccess();
         }
     }
 
-    requestManualPhone() {
-        const phone = prompt('Введите номер телефона (формат: +79991234567):');
-        if (phone && this.validatePhone(phone)) {
-            this.handleAuthSuccess(phone, { first_name: 'Пользователь' });
-        } else if (phone) {
-            this.handleAuthError('Неверный формат номера');
+    requestPhoneAccess() {
+        console.log('Запрашиваем доступ к номеру...');
+        
+        // ВАШ КОД - правильный способ запроса номера в Telegram Mini Apps
+        tg.requestPhoneAccess()
+          .then(() => tg.requestContact())
+          .then(contactData => {
+              const phoneNumber = contactData.contact.phoneNumber;
+              console.log('Номер телефона пользователя:', phoneNumber);
+              
+              // Обрабатываем успешное получение номера
+              this.handleAuthSuccess(phoneNumber, contactData.contact);
+          })
+          .catch((error) => {
+              console.error('Ошибка при получении номера телефона:', error);
+              this.handleAuthError('Не удалось получить номер телефона');
+          });
+    }
+
+    handleAuthSuccess(phone, contact) {
+        console.log('✅ Успешная авторизация:', phone);
+        
+        this.userPhone = phone;
+        this.isAuthenticated = true;
+        
+        // Сохраняем номер
+        localStorage.setItem('userPhone', phone);
+        
+        // Обновляем данные пользователя
+        if (contact && (contact.firstName || contact.lastName)) {
+            this.userData = {
+                firstName: contact.firstName || 'Пользователь',
+                lastName: contact.lastName || '',
+                username: 'Не указан',
+                id: 'from_contact'
+            };
         }
+        if (this.isTelegram && tg.MainButton) {
+            tg.MainButton.hide();
+        }
+        
+        // Показываем уведомление об успехе
+        this.showSimpleNotification('Успех!', `Номер ${phone} подтвержден`);
+        
+        // Переходим в приложение
+        setTimeout(() => {
+            this.showMainApp();
+        }, 1000);
     }
 
     requestPhoneInBrowser() {
