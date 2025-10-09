@@ -89,38 +89,50 @@ class LoyaltyProApp {
         }
     }
 
-async requestPhoneTelegram() {
+    async requestPhoneTelegram() {
     console.log('Запрос номера в Telegram...');
     
     try {
-        // Пробуем новый SDK сначала
-        if (window.telegramSDK && window.telegramSDK.requestContact.isAvailable()) {
+        if (window.telegramSDK && window.telegramSDK.requestContact && window.telegramSDK.requestContact.isAvailable()) {
+            console.log('Используем новый SDK...');
             const result = await window.telegramSDK.requestContact();
-            const phoneNumber = result.contact.phoneNumber;
-            console.log('Номер через SDK:', phoneNumber);
-            this.handleAuthSuccess(phoneNumber, result.contact);
-        } 
-        // Пробуем старый API как запасной вариант
-        else if (tg.requestContact) {
+            console.log('Данные от нового SDK:', result);
+            
+            if (result && result.contact && result.contact.phoneNumber) {
+                const phoneNumber = result.contact.phoneNumber;
+
+                this.handleAuthSuccess(phoneNumber, result.contact);
+                return;
+            }
+        }
+        
+        // Пробуем старый API (Telegram Web App)
+        if (tg && tg.requestContact) {
+            console.log('Используем старый API...');
             return new Promise((resolve) => {
                 tg.requestContact((contact) => {
+                    console.log('Данные от старого API:', contact);
+                    
                     if (contact && contact.phone_number) {
                         const phoneNumber = contact.phone_number;
-                        console.log('Номер через старый API:', phoneNumber);
-                        this.handleAuthSuccess(phoneNumber, contact);
-                        resolve();
+                        console.log('✅ Номер получен через старый API:', phoneNumber);
+                        this.handlePhoneSuccess(phoneNumber, contact);
                     } else {
-                        this.handleAuthError('Номер не предоставлен');
-                        resolve();
+                        console.log('❌ Контакт не предоставлен или нет номера');
+                        this.handlePhoneError('Номер не предоставлен');
                     }
+                    resolve();
                 });
             });
-        } else {
-            this.handleAuthError('Функция запроса контакта недоступна');
         }
+        
+        // Если оба метода недоступны
+        console.log('❌ Оба API недоступны');
+        this.handlePhoneError('Функция запроса контакта недоступна в этом клиенте');
+        
     } catch (error) {
-        console.error('Ошибка при запросе контакта:', error);
-        this.handleAuthError('Не удалось получить номер телефона');
+        console.error('❌ Ошибка при запросе контакта:', error);
+        this.handlePhoneError('Не удалось получить номер телефона');
     }
 }
 
@@ -137,35 +149,36 @@ async requestPhoneTelegram() {
         this.handlePhoneSuccess(testPhone, testContact);
     }
 
-    handleAuthSuccess(phone, contact) {
-    console.log('✅ Успешная авторизация:', phone);
-    console.log('📞 Полные данные контакта:', contact);
-    
-    this.userPhone = phone;
-    this.isAuthenticated = true;
-    
-    // Сохраняем номер
-    localStorage.setItem('userPhone', phone);
-    
-    // Обновляем данные пользователя (обрабатываем оба формата)
-    if (contact) {
-        this.userData = {
-            firstName: contact.firstName || contact.first_name || 'Пользователь',
-            lastName: contact.lastName || contact.last_name || '',
-            username: 'Не указан',
-            id: contact.userId || contact.id || 'from_contact'
-        };
+    handlePhoneSuccess(phone, contact) {
+        console.log('✅ Номер получен:', phone);
+        console.log('📋 Данные контакта:', contact);
+        
+        this.userPhone = phone;
+        this.isAuthenticated = true;
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('userPhone', phone);
+        
+        // Обновляем данные пользователя если есть контакт
+        if (contact.first_name || contact.last_name) {
+            this.userData = {
+                firstName: contact.first_name || 'Пользователь',
+                lastName: contact.last_name || '',
+                username: 'Не указан',
+                id: 'from_contact'
+            };
+        }
+        
+        // Показываем уведомление
+        this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
+        
+        // Переходим на главное приложение
+        setTimeout(() => {
+            this.showMainApp();
+        }, 1000);
     }
-    
-    this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
-    
-    // Переходим в приложение
-    setTimeout(() => {
-        this.showMainApp();
-    }, 1000);
-}
 
-    handleAuthError(message) {
+    handlePhoneError(message) {
         console.log('❌ Ошибка:', message);
         this.showNotification('Ошибка', message, 'error');
     }
