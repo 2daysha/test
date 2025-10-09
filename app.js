@@ -34,9 +34,11 @@ class LoyaltyProApp {
         } else {
             this.showAuthPage();
         }
+
+        // Инициализируем навигацию
+        this.initNavigation();
     }
 
-        
     loadTelegramUserData() {
         const user = tg.initDataUnsafe?.user;
         if (user) {
@@ -84,68 +86,54 @@ class LoyaltyProApp {
         const bottomNav = document.querySelector('.bottom-nav');
         if (bottomNav) bottomNav.style.display = 'none';
         
-        // Создаем контент страницы авторизации
-        this.createAuthPageContent();
+        // Назначаем обработчик кнопки авторизации
+        const authButton = document.getElementById('auth-button');
+        if (authButton) {
+            authButton.addEventListener('click', () => {
+                this.requestPhoneInTelegram();
+            });
+        }
     }
 
-    createAuthPageContent() {
-        const authPage = document.getElementById('page-auth');
-        if (!authPage) return;
-
-        authPage.innerHTML = `
-            <div class="auth-container">
-                <div class="auth-header">
-                    <h1>Loyalty Pro</h1>
-                    <p>Программа лояльности</p>
-                </div>
-                
-                <div class="auth-content">
-                    <div class="auth-icon">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="#3F75FB">
-                            <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM12 3v10l3-3h6V3h-9z"/>
-                        </svg>
-                    </div>
-                    
-                    <div class="auth-info">
-                        <h2>Добро пожаловать! 👋</h2>
-                        <p>Для доступа к программе лояльности необходимо предоставить номер телефона</p>
-                    </div>
-                    
-                    <button id="auth-button" class="auth-button">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                        </svg>
-                        Предоставить номер телефона
-                    </button>
-                    
-                    <div class="auth-note">
-                        <p>Мы запросим только номер телефона для идентификации в программе лояльности</p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Назначаем обработчик кнопки
-        document.getElementById('auth-button').addEventListener('click', () => {
-            this.requestPhoneInTelegram();
-        });
-    }
-
-     requestPhoneInTelegram() {
+    requestPhoneInTelegram() {
         console.log('Запрос номера в Telegram...');
         
-        tg.requestPhoneAccess()
-        .then(() => tg.requestContact())
-        .then(contactData => {
-            const phoneNumber = contactData.contact.phoneNumber;
-            console.log('Номер телефона пользователя:', phoneNumber);
-            
-            this.handleAuthSuccess(phoneNumber, contactData.contact);
-        })
-        .catch((error) => {
+        // Используем новый SDK для запроса контакта
+        if (window.telegramSDK && window.telegramSDK.requestContact) {
+            this.requestContactWithSDK();
+        } else {
+            // Резервный метод через старый API
+            this.requestContactLegacy();
+        }
+    }
+
+    async requestContactWithSDK() {
+        try {
+            if (window.telegramSDK.requestContact.isAvailable()) {
+                const result = await window.telegramSDK.requestContact();
+                const phoneNumber = result.contact.phoneNumber;
+                console.log('Номер телефона пользователя:', phoneNumber);
+                this.handleAuthSuccess(phoneNumber, result.contact);
+            } else {
+                this.handleAuthError('Функция запроса контакта недоступна');
+            }
+        } catch (error) {
             console.error('Ошибка при получении номера телефона:', error);
-            this.handleAuthError('Не удалось получить номер телефона: ' + error.message);
-        });
+            this.handleAuthError('Не удалось получить номер телефона');
+        }
+    }
+
+    requestContactLegacy() {
+        tg.requestContact()
+            .then(contactData => {
+                const phoneNumber = contactData.contact.phoneNumber;
+                console.log('Номер телефона пользователя:', phoneNumber);
+                this.handleAuthSuccess(phoneNumber, contactData.contact);
+            })
+            .catch((error) => {
+                console.error('Ошибка при получении номера телефона:', error);
+                this.handleAuthError('Не удалось получить номер телефона: ' + error.message);
+            });
     }
 
     handleAuthSuccess(phone, contact) {
@@ -168,7 +156,7 @@ class LoyaltyProApp {
         }
         
         // Показываем уведомление об успехе
-        this.showSimpleNotification('Успех!', `Номер ${phone} подтвержден`);
+        this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
         
         // Переходим в приложение
         setTimeout(() => {
@@ -178,12 +166,7 @@ class LoyaltyProApp {
 
     handleAuthError(message) {
         console.log('❌ Ошибка авторизации:', message);
-        this.showSimpleNotification('Ошибка', message);
-        
-        // Показываем альтернативный способ ввода
-        setTimeout(() => {
-            this.requestManualPhone();
-        }, 2000);
+        this.showNotification('Ошибка', message, 'error');
     }
 
     showMainApp() {
@@ -195,9 +178,6 @@ class LoyaltyProApp {
         // Показываем навигацию
         const bottomNav = document.querySelector('.bottom-nav');
         if (bottomNav) bottomNav.style.display = 'flex';
-        
-        // Инициализируем навигацию
-        this.initNavigation();
         
         // Загружаем данные
         this.loadUserData();
@@ -284,58 +264,29 @@ class LoyaltyProApp {
         const container = document.getElementById('page-home');
         if (!container) return;
 
-        const categories = [
-            { id: 'all', name: 'Все' },
-            { id: 'electronics', name: 'Электроника' },
-            { id: 'home', name: 'Для дома' },
-            { id: 'lifestyle', name: 'Образ жизни' }
-        ];
-
         const products = [
             {
                 id: 1, name: "Кофеварка автоматическая", description: "Приготовление кофе с таймером",
-                price: "2500 бонусов", numericPrice: 2500, category: "home"
+                price: "2500 бонусов", numericPrice: 2500
             },
             {
                 id: 2, name: "Набор кухонных ножей", description: "6 предметов, керамическое покрытие",
-                price: "1800 бонусов", numericPrice: 1800, category: "home"
+                price: "1800 бонусов", numericPrice: 1800
             },
             {
                 id: 3, name: "Bluetooth колонка", description: "Водонепроницаемая, 10W",
-                price: "3200 бонусов", numericPrice: 3200, category: "electronics"
+                price: "3200 бонусов", numericPrice: 3200
             },
             {
                 id: 4, name: "Подарочная карта в магазин", description: "Номинал 1000 рублей",
-                price: "1000 бонусов", numericPrice: 1000, category: "lifestyle"
-            },
-            {
-                id: 5, name: "Чемодан на колесах", description: "55л, 4 колеса, черный",
-                price: "4500 бонусов", numericPrice: 4500, category: "lifestyle"
-            },
-            {
-                id: 6, name: "Фитнес-браслет", description: "Мониторинг сна и активности",
-                price: "2800 бонусов", numericPrice: 2800, category: "electronics"
+                price: "1000 бонусов", numericPrice: 1000
             }
         ];
 
-        const categoryNames = {
-            electronics: "Электроника",
-            home: "Для дома", 
-            lifestyle: "Образ жизни"
-        };
-
         container.innerHTML = `
-            <div class="categories">
-                ${categories.map(cat => `
-                    <button class="category-btn ${cat.id === 'all' ? 'active' : ''}" data-category="${cat.id}">
-                        ${cat.name}
-                    </button>
-                `).join('')}
-            </div>
-            <div class="products-grid" id="products-grid">
+            <div class="products-grid">
                 ${products.map(product => `
                     <div class="product-card" onclick="app.addToCart(${product.id})">
-                        <span class="product-category">${categoryNames[product.category]}</span>
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
                         <div class="product-price">${product.price}</div>
@@ -343,30 +294,6 @@ class LoyaltyProApp {
                 `).join('')}
             </div>
         `;
-
-        // Обработчики категорий
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const category = e.currentTarget.dataset.category;
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                this.filterProducts(category, products, categoryNames);
-            });
-        });
-    }
-
-    filterProducts(category, products, categoryNames) {
-        const grid = document.getElementById('products-grid');
-        const filteredProducts = category === 'all' ? products : products.filter(p => p.category === category);
-        
-        grid.innerHTML = filteredProducts.map(product => `
-            <div class="product-card" onclick="app.addToCart(${product.id})">
-                <span class="product-category">${categoryNames[product.category]}</span>
-                <h3>${product.name}</h3>
-                <p>${product.description}</p>
-                <div class="product-price">${product.price}</div>
-            </div>
-        `).join('');
     }
 
     addToCart(productId) {
@@ -376,12 +303,10 @@ class LoyaltyProApp {
         }
 
         const products = {
-            1: { name: "Кофеварка автоматическая", price: "2500 бонусов", numericPrice: 2500, category: "Бытовая техника" },
-            2: { name: "Набор кухонных ножей", price: "1800 бонусов", numericPrice: 1800, category: "Кухонные принадлежности" },
-            3: { name: "Bluetooth колонка", price: "3200 бонусов", numericPrice: 3200, category: "Электроника" },
-            4: { name: "Подарочная карта в магазин", price: "1000 бонусов", numericPrice: 1000, category: "Подарочные карты" },
-            5: { name: "Чемодан на колесах", price: "4500 бонусов", numericPrice: 4500, category: "Путешествия" },
-            6: { name: "Фитнес-браслет", price: "2800 бонусов", numericPrice: 2800, category: "Здоровье" }
+            1: { name: "Кофеварка автоматическая", price: "2500 бонусов", numericPrice: 2500 },
+            2: { name: "Набор кухонных ножей", price: "1800 бонусов", numericPrice: 1800 },
+            3: { name: "Bluetooth колонка", price: "3200 бонусов", numericPrice: 3200 },
+            4: { name: "Подарочная карта в магазин", price: "1000 бонусов", numericPrice: 1000 }
         };
 
         const product = products[productId];
@@ -392,11 +317,10 @@ class LoyaltyProApp {
             productId: productId,
             name: product.name,
             price: product.price,
-            numericPrice: product.numericPrice,
-            category: product.category
+            numericPrice: product.numericPrice
         });
 
-        this.showSimpleNotification('Добавлено в корзину', `${product.name} добавлен в корзину`);
+        this.showNotification('Добавлено в корзину', `${product.name} добавлен в корзину`, 'success');
         console.log('Корзина:', this.cart);
     }
 
@@ -420,7 +344,6 @@ class LoyaltyProApp {
             ${this.cart.map(item => `
                 <div class="cart-item">
                     <div class="cart-item-info">
-                        <span class="cart-item-category">${item.category}</span>
                         <h3>${item.name}</h3>
                         <div class="cart-item-price">${item.price}</div>
                     </div>
@@ -442,7 +365,7 @@ class LoyaltyProApp {
     removeFromCart(itemId) {
         this.cart = this.cart.filter(item => item.id !== itemId);
         this.loadCart();
-        this.showSimpleNotification('Удалено', 'Товар удален из корзины');
+        this.showNotification('Удалено', 'Товар удален из корзины', 'success');
     }
 
     async checkout() {
@@ -452,7 +375,7 @@ class LoyaltyProApp {
         }
 
         if (this.cart.length === 0) {
-            this.showSimpleNotification('Ошибка', 'Корзина пуста');
+            this.showNotification('Ошибка', 'Корзина пуста', 'error');
             return;
         }
 
@@ -460,7 +383,7 @@ class LoyaltyProApp {
         const confirmed = await this.showConfirm('Подтверждение заказа', `Оформить заказ на ${total} бонусов?`);
 
         if (confirmed) {
-            this.showSimpleNotification('Успех', 'Заказ успешно оформлен!');
+            this.showNotification('Успех', 'Заказ успешно оформлен!', 'success');
             this.cart = [];
             this.loadCart();
         }
@@ -473,8 +396,7 @@ class LoyaltyProApp {
         const stats = {
             availableBonuses: 5000,
             totalOrders: this.cart.length,
-            totalSpent: this.cart.reduce((sum, item) => sum + item.numericPrice, 0),
-            rate: "Premium"
+            totalSpent: this.cart.reduce((sum, item) => sum + item.numericPrice, 0)
         };
 
         container.innerHTML = `
@@ -485,11 +407,9 @@ class LoyaltyProApp {
                     </svg>
                     <div>
                         <h3 style="margin: 0; font-size: 18px;">${this.userData.firstName}</h3>
-                        <p style="margin: 0; color: #999; font-size: 14px;">Тариф: ${stats.rate}</p>
+                        <p style="margin: 0; color: #999; font-size: 14px;">Тариф: Premium</p>
                     </div>
                 </div>
-                <p><strong>Username:</strong> ${this.userData.username}</p>
-                <p><strong>ID:</strong> ${this.userData.id}</p>
                 <p><strong>Телефон:</strong> ${this.userPhone}</p>
                 
                 <button onclick="app.logout()" class="logout-btn">
@@ -499,27 +419,14 @@ class LoyaltyProApp {
             
             <div class="profile-stats">
                 <div class="stat-card">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB">
-                        <path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-                    </svg>
                     <span class="stat-value">${stats.availableBonuses}</span>
                     <span class="stat-label">Доступно бонусов</span>
                 </div>
                 <div class="stat-card">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3F75FB">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-                    </svg>
                     <span class="stat-value">${stats.totalOrders}</span>
                     <span class="stat-label">Заказов</span>
                 </div>
             </div>
-            
-            <button onclick="app.showSupport()" class="support-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-                </svg>
-                Связаться с поддержкой
-            </button>
         `;
     }
 
@@ -529,50 +436,103 @@ class LoyaltyProApp {
         localStorage.removeItem('userPhone');
         this.cart = [];
         
-        this.showSimpleNotification('Выход', 'Вы вышли из системы');
+        this.showNotification('Выход', 'Вы вышли из системы', 'success');
         this.showAuthPage();
     }
 
     showAuthRequired(action) {
-        this.showSimpleNotification('Требуется авторизация', `Для ${action} необходимо предоставить номер телефона`);
+        this.showNotification('Требуется авторизация', `Для ${action} необходимо предоставить номер телефона`, 'error');
         setTimeout(() => {
             this.showAuthPage();
         }, 1500);
     }
 
-    showSimpleNotification(title, message) {
-        if (this.isTelegram && tg.showPopup) {
-            tg.showPopup({
-                title: title,
-                message: message,
-                buttons: [{ type: 'ok' }]
-            });
+    showNotification(title, message, type = 'success') {
+        const notification = document.getElementById('notification');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        if (notification && notificationTitle && notificationMessage) {
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            // Устанавливаем цвет в зависимости от типа
+            if (type === 'error') {
+                notification.style.backgroundColor = '#f44336';
+            } else if (type === 'warning') {
+                notification.style.backgroundColor = '#ff9800';
+            } else {
+                notification.style.backgroundColor = '#4CAF50';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         } else {
-            alert(`${title}\n${message}`);
+            // Fallback для мобильного Telegram
+            if (this.isTelegram && tg.showPopup) {
+                tg.showPopup({
+                    title: title,
+                    message: message,
+                    buttons: [{ type: 'ok' }]
+                });
+            } else {
+                alert(`${title}\n${message}`);
+            }
         }
     }
 
     showConfirm(title, message) {
         return new Promise((resolve) => {
-            if (this.isTelegram && tg.showPopup) {
-                tg.showPopup({
-                    title: title,
-                    message: message,
-                    buttons: [
-                        { type: 'ok', text: 'Да' },
-                        { type: 'cancel', text: 'Нет' }
-                    ]
-                }, (buttonId) => {
-                    resolve(buttonId === 'ok');
-                });
+            const dialog = document.getElementById('confirm-dialog');
+            const dialogTitle = document.getElementById('confirm-title');
+            const dialogMessage = document.getElementById('confirm-message');
+            const confirmOk = document.getElementById('confirm-ok');
+            const confirmCancel = document.getElementById('confirm-cancel');
+            
+            if (dialog && dialogTitle && dialogMessage && confirmOk && confirmCancel) {
+                dialogTitle.textContent = title;
+                dialogMessage.textContent = message;
+                dialog.classList.add('show');
+                
+                const cleanup = () => {
+                    dialog.classList.remove('show');
+                    confirmOk.removeEventListener('click', onOk);
+                    confirmCancel.removeEventListener('click', onCancel);
+                };
+                
+                const onOk = () => {
+                    cleanup();
+                    resolve(true);
+                };
+                
+                const onCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+                
+                confirmOk.addEventListener('click', onOk);
+                confirmCancel.addEventListener('click', onCancel);
             } else {
-                resolve(confirm(`${title}\n${message}`));
+                // Fallback для мобильного Telegram
+                if (this.isTelegram && tg.showPopup) {
+                    tg.showPopup({
+                        title: title,
+                        message: message,
+                        buttons: [
+                            { type: 'ok', text: 'Да' },
+                            { type: 'cancel', text: 'Нет' }
+                        ]
+                    }, (buttonId) => {
+                        resolve(buttonId === 'ok');
+                    });
+                } else {
+                    resolve(confirm(`${title}\n${message}`));
+                }
             }
         });
-    }
-
-    showSupport() {
-        this.showSimpleNotification('Поддержка', 'По всем вопросам обращайтесь к администратору программы лояльности');
     }
 }
 
