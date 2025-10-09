@@ -5,21 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loyalty Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script type="module">
-        // Импортируем SDK Telegram
-        import { requestContact, requestPhoneAccess } from 'https://unpkg.com/@telegram-apps/sdk?module';
-        
-        // Инициализация Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.enableClosingConfirmation();
-        
-        // Глобальные переменные для хранения данных
-        window.telegramSDK = { requestContact, requestPhoneAccess };
-        window.userData = null;
-        
-        console.log('Telegram Web App инициализирован');
-    </script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -35,27 +20,14 @@
             <div id="page-auth" class="page active">
                 <div class="auth-container">
                     <div class="auth-content">
-                        <div class="auth-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="#3F75FB">
-                                <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM12 3v10l3-3h6V3h-9z"/>
-                            </svg>
-                        </div>
+                        <h2>Добро пожаловать!</h2>
+                        <p>Для доступа к бонусной программе необходимо подтвердить номер телефона</p>
                         
-                        <div class="auth-info">
-                            <h2>Добро пожаловать! 👋</h2>
-                            <p>Для доступа к программе лояльности необходимо предоставить номер телефона</p>
-                        </div>
-                        
-                        <button id="auth-button" class="auth-button">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                            </svg>
-                            Предоставить номер телефона
+                        <button id="request-phone-btn" class="phone-request-btn">
+                            📱 Предоставить номер телефона
                         </button>
                         
-                        <div class="auth-note">
-                            <p>Мы запросим только номер телефона для идентификации в программе лояльности</p>
-                        </div>
+                        <p class="auth-note">Нажимая кнопку, вы соглашаетесь с условиями использования</p>
                     </div>
                 </div>
             </div>
@@ -123,154 +95,6 @@
             </div>
         </nav>
     </div>
-
-    <script>
-        // Основной код приложения
-        document.addEventListener('DOMContentLoaded', function() {
-            // Элементы DOM
-            const authButton = document.getElementById('auth-button');
-            const authPage = document.getElementById('page-auth');
-            const bottomNav = document.querySelector('.bottom-nav');
-            
-            // Функция для показа уведомления
-            function showNotification(title, message, type = 'success') {
-                const notification = document.getElementById('notification');
-                const notificationTitle = document.getElementById('notification-title');
-                const notificationMessage = document.getElementById('notification-message');
-                
-                notificationTitle.textContent = title;
-                notificationMessage.textContent = message;
-                
-                // Устанавливаем цвет в зависимости от типа
-                if (type === 'error') {
-                    notification.style.backgroundColor = '#f44336';
-                } else if (type === 'warning') {
-                    notification.style.backgroundColor = '#ff9800';
-                } else {
-                    notification.style.backgroundColor = '#4CAF50';
-                }
-                
-                notification.classList.add('show');
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            }
-            
-            // Функция для переключения страниц
-            function showPage(pageId) {
-                // Скрываем все страницы
-                document.querySelectorAll('.page').forEach(page => {
-                    page.classList.remove('active');
-                });
-                
-                // Показываем нужную страницу
-                const targetPage = document.getElementById(`page-${pageId}`);
-                if (targetPage) {
-                    targetPage.classList.add('active');
-                }
-            }
-            
-            // Функция для показа навигации
-            function showNavigation() {
-                bottomNav.style.display = 'block';
-            }
-            
-            // Функция для запроса контакта (основная)
-            async function requestUserContact() {
-                try {
-                    if (window.telegramSDK && window.telegramSDK.requestContact) {
-                        if (window.telegramSDK.requestContact.isAvailable()) {
-                            const result = await window.telegramSDK.requestContact();
-                            
-                            // Сохраняем данные пользователя
-                            window.userData = result;
-                            
-                            // Показываем успешное уведомление
-                            showNotification(
-                                'Успех!', 
-                                `Номер ${result.contact.phoneNumber} получен`, 
-                                'success'
-                            );
-                            
-                            // Переходим к основному функционалу
-                            setTimeout(() => {
-                                authPage.classList.remove('active');
-                                showNavigation();
-                                showPage('home');
-                                
-                                // Здесь можно отправить данные на сервер
-                                console.log('Контактные данные:', result);
-                                // sendToServer(result);
-                                
-                            }, 1500);
-                            
-                        } else {
-                            // Функция недоступна - показываем альтернативный метод
-                            showNotification(
-                                'Внимание', 
-                                'Функция недоступна в этом клиенте Telegram', 
-                                'warning'
-                            );
-                            // Альтернативная логика для десктопной версии
-                            handleDesktopAuth();
-                        }
-                    } else {
-                        showNotification('Ошибка', 'SDK не загружен', 'error');
-                    }
-                } catch (error) {
-                    console.error('Ошибка при запросе контакта:', error);
-                    showNotification('Ошибка', 'Не удалось получить номер телефона', 'error');
-                }
-            }
-            
-            // Альтернативный метод для десктопной версии
-            function handleDesktopAuth() {
-                const phoneNumber = prompt('Пожалуйста, введите ваш номер телефона:');
-                if (phoneNumber) {
-                    showNotification('Успех!', `Номер ${phoneNumber} принят`, 'success');
-                    
-                    setTimeout(() => {
-                        authPage.classList.remove('active');
-                        showNavigation();
-                        showPage('home');
-                    }, 1500);
-                }
-            }
-            
-            // Функция для запроса доступа к телефону (альтернативная)
-            async function requestPhoneAccess() {
-                try {
-                    if (window.telegramSDK && window.telegramSDK.requestPhoneAccess) {
-                        if (window.telegramSDK.requestPhoneAccess.isAvailable()) {
-                            const status = await window.telegramSDK.requestPhoneAccess();
-                            
-                            if (status === 'sent') {
-                                showNotification('Успех!', 'Доступ к телефону предоставлен', 'success');
-                            } else if (status === 'cancelled') {
-                                showNotification('Отменено', 'Пользователь отменил запрос', 'warning');
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error('Ошибка при запросе доступа к телефону:', error);
-                }
-            }
-            
-            // Обработчик клика по кнопке авторизации
-            authButton.addEventListener('click', requestUserContact);
-            
-            // Обработчики навигации
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const page = this.getAttribute('data-page');
-                    showPage(page);
-                });
-            });
-            
-            // Инициализация при загрузке
-            console.log('Приложение инициализировано');
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
