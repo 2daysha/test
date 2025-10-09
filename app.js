@@ -36,6 +36,7 @@ class LoyaltyProApp {
         }
     }
 
+        
     loadTelegramUserData() {
         const user = tg.initDataUnsafe?.user;
         if (user) {
