@@ -88,24 +88,53 @@ class LoyaltyProApp {
         }
     }
 
-    async requestPhoneTelegram() {
-    console.log('🟡 Запрос номера в Telegram...');
+async requestPhoneTelegram() {
+    console.log('Запрос номера в Telegram...');
     
-    // Просто запускаем запрос контакта и надеемся что номер появится в initData
-    tg.requestContact(() => {
-        // После одобрения проверяем initData
-        setTimeout(() => {
-            const user = tg.initDataUnsafe?.user;
-            if (user && user.phone_number) {
-                console.log('✅ Номер получен:', user.phone_number);
-                this.handlePhoneSuccess(user.phone_number, user);
-            } else {
-                console.log('❌ Номер не найден, user data:', user);
-                this.handlePhoneError('Не удалось получить номер телефона');
+    try {
+        if (window.telegramSDK && window.telegramSDK.requestContact && window.telegramSDK.requestContact.isAvailable()) {
+            console.log('Используем новый SDK...');
+            const result = await window.telegramSDK.requestContact();
+            console.log('Данные от нового SDK:', result);
+            
+            if (result && result.contact && result.contact.phoneNumber) {
+                const phoneNumber = result.contact.phoneNumber;
+
+                this.handleAuthSuccess(phoneNumber, result.contact);
+                return;
             }
-        }, 500);
-    });
+        }
+        
+        // Пробуем старый API (Telegram Web App)
+        if (tg && tg.requestContact) {
+            console.log('Используем старый API...');
+            return new Promise((resolve) => {
+                tg.requestContact((contact) => {
+                    console.log('Данные от старого API:', contact);
+                    
+                    if (contact && contact.phone_number) {
+                        const phoneNumber = contact.phone_number;
+                        console.log('✅ Номер получен через старый API:', phoneNumber);
+                        this.handlePhoneSuccess(phoneNumber, contact);
+                    } else {
+                        console.log('❌ Контакт не предоставлен или нет номера');
+                        this.handlePhoneError('Номер не предоставлен');
+                    }
+                    resolve();
+                });
+            });
+        }
+        
+        // Если оба метода недоступны
+        console.log('❌ Оба API недоступны');
+        this.handlePhoneError('Функция запроса контакта недоступна в этом клиенте');
+        
+    } catch (error) {
+        console.error('❌ Ошибка при запросе контакта:', error);
+        this.handlePhoneError('Не удалось получить номер телефона');
+    }
 }
+
     requestPhoneBrowser() {
         console.log('Запрос номера в браузере...');
         
