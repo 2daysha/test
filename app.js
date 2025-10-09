@@ -1,4 +1,3 @@
-import { requestContact } from '@telegram-apps/sdk';
 const tg = window.Telegram.WebApp;
 
 class LoyaltyProApp {
@@ -13,7 +12,6 @@ class LoyaltyProApp {
     }
 
     init() {
-        // Инициализация Telegram Web App только если в Telegram
         if (this.isTelegram) {
             tg.expand();
             tg.enableClosingConfirmation();
