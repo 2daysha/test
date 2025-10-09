@@ -89,19 +89,40 @@ class LoyaltyProApp {
         }
     }
 
-    requestPhoneTelegram() {
-        console.log('Запрос номера в Telegram...');
-        
-        tg.requestContact(async (contact) => {
-            console.log('Ответ от Telegram:', contact);
-            
-            if (requestContact.isAvailable()) {
-                const contact = await requestContact();
-            } else {
-                this.handlePhoneError('Номер не предоставлен');
-            }
-        });
+async requestPhoneTelegram() {
+    console.log('Запрос номера в Telegram...');
+    
+    try {
+        // Пробуем новый SDK сначала
+        if (window.telegramSDK && window.telegramSDK.requestContact.isAvailable()) {
+            const result = await window.telegramSDK.requestContact();
+            const phoneNumber = result.contact.phoneNumber;
+            console.log('Номер через SDK:', phoneNumber);
+            this.handleAuthSuccess(phoneNumber, result.contact);
+        } 
+        // Пробуем старый API как запасной вариант
+        else if (tg.requestContact) {
+            return new Promise((resolve) => {
+                tg.requestContact((contact) => {
+                    if (contact && contact.phone_number) {
+                        const phoneNumber = contact.phone_number;
+                        console.log('Номер через старый API:', phoneNumber);
+                        this.handleAuthSuccess(phoneNumber, contact);
+                        resolve();
+                    } else {
+                        this.handleAuthError('Номер не предоставлен');
+                        resolve();
+                    }
+                });
+            });
+        } else {
+            this.handleAuthError('Функция запроса контакта недоступна');
+        }
+    } catch (error) {
+        console.error('Ошибка при запросе контакта:', error);
+        this.handleAuthError('Не удалось получить номер телефона');
     }
+}
 
     requestPhoneBrowser() {
         console.log('Запрос номера в браузере...');
