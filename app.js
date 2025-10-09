@@ -1,3 +1,4 @@
+import { requestContact } from '@telegram-apps/sdk';
 const tg = window.Telegram.WebApp;
 
 class LoyaltyProApp {
@@ -91,11 +92,11 @@ class LoyaltyProApp {
     requestPhoneTelegram() {
         console.log('Запрос номера в Telegram...');
         
-        tg.requestContact((contact) => {
+        tg.requestContact(async (contact) => {
             console.log('Ответ от Telegram:', contact);
             
-            if (contact && contact.phone_number) {
-                this.handlePhoneSuccess(contact.phone_number, contact);
+            if (requestContact.isAvailable()) {
+                const contact = await requestContact();
             } else {
                 this.handlePhoneError('Номер не предоставлен');
             }
