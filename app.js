@@ -90,7 +90,7 @@ class LoyaltyProApp {
         const authButton = document.getElementById('auth-button');
         if (authButton) {
             authButton.addEventListener('click', () => {
-                this.requestPhoneInTelegram();
+                this.requestContactWithSDK();
             });
         }
     }
