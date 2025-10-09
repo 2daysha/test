@@ -9,10 +9,6 @@ class LoyaltyProApp {
         this.isTelegram = !!tg.initData;
         this.isAuthenticated = false;
         this.init();
-
-        this.loadTelegramSDK().then(() => {
-            this.init();
-        });
     }
 
     init() {
@@ -91,68 +87,60 @@ class LoyaltyProApp {
         }
     }
 
-    async loadTelegramSDK() {
-        if (typeof window.telegramSDK !== 'undefined') return;
-        
-        try {
-            // Динамически загружаем SDK
-            const { requestContact, requestPhoneAccess } = await import('https://unpkg.com/@telegram-apps/sdk?module');
-            window.telegramSDK = { requestContact, requestPhoneAccess };
-            console.log('✅ Telegram SDK загружен');
-        } catch (error) {
-            console.log('❌ Не удалось загрузить Telegram SDK, используем старый API');
-            window.telegramSDK = null;
-        }
-    }
-
-    async requestPhoneTelegram() {
+     async requestPhoneTelegram() {
         console.log('Запрос номера в Telegram...');
         
-        try {
-            // Пробуем новый SDK если загружен
-            if (window.telegramSDK && window.telegramSDK.requestContact && window.telegramSDK.requestContact.isAvailable()) {
-                console.log('Используем новый SDK...');
-                const result = await window.telegramSDK.requestContact();
-                console.log('Данные от нового SDK:', result);
-                
-                if (result && result.contact && result.contact.phoneNumber) {
-                    const phoneNumber = result.contact.phoneNumber;
-                    console.log('✅ Номер получен через новый SDK:', phoneNumber);
-                    this.handleAuthSuccess(phoneNumber, result.contact);
-                    return;
-                }
-            }
-            
-            // Пробуем старый API (Telegram Web App)
-            if (tg && tg.requestContact) {
-                console.log('Используем старый API...');
-                return new Promise((resolve) => {
-                    tg.requestContact((contact) => {
-                        console.log('Данные от старого API:', contact);
-                        
-                        if (contact && contact.phone_number) {
-                            const phoneNumber = contact.phone_number;
-                            console.log('✅ Номер получен через старый API:', phoneNumber);
-                            this.handleAuthSuccess(phoneNumber, contact);
-                        } else {
-                            console.log('❌ Контакт не предоставлен или нет номера');
-                            this.handleAuthError('Номер не предоставлен');
-                        }
-                        resolve();
-                    });
-                });
-            }
-            
-            console.log('❌ Оба API недоступны');
+        if (!tg.requestContact) {
             this.handleAuthError('Функция запроса контакта недоступна');
-            
-        } catch (error) {
-            console.error('❌ Ошибка при запросе контакта:', error);
-            this.handleAuthError('Не удалось получить номер телефона');
+            return;
         }
+
+        return new Promise((resolve) => {
+            tg.requestContact((contact) => {
+                console.log('Данные от Telegram API:', contact);
+                
+                if (contact && contact.phone_number) {
+                    const phoneNumber = contact.phone_number;
+                    console.log('✅ Номер получен:', phoneNumber);
+                    this.handleAuthSuccess(phoneNumber, contact);
+                } else {
+                    console.log('❌ Контакт не предоставлен');
+                    this.handleAuthError('Номер не предоставлен');
+                }
+                resolve();
+            });
+        });
     }
 
-    requestPhoneBrowser() {
+    handleAuthSuccess(phone, contact) {
+        console.log('✅ Успешная авторизация:', phone);
+        
+        this.userPhone = phone;
+        this.isAuthenticated = true;
+        localStorage.setItem('userPhone', phone);
+        
+        if (contact) {
+            this.userData = {
+                firstName: contact.first_name || 'Пользователь',
+                lastName: contact.last_name || '',
+                username: 'Не указан',
+                id: contact.user_id || 'from_contact'
+            };
+        }
+        
+        this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
+        
+        setTimeout(() => {
+            this.showMainApp();
+        }, 1000);
+    }
+
+    handleAuthError(message) {
+        console.log('❌ Ошибка авторизации:', message);
+        this.showNotification('Ошибка', message, 'error');
+    }
+
+        requestPhoneBrowser() {
         console.log('Запрос номера в браузере...');
         
         // Для браузера используем тестовый номер
@@ -163,40 +151,6 @@ class LoyaltyProApp {
         };
         
         this.handleAuthSuccess(testPhone, testContact);
-    }
-
-    handleAuthSuccess(phone, contact) {
-        console.log('✅ Номер получен:', phone);
-        console.log('📋 Данные контакта:', contact);
-        
-        this.userPhone = phone;
-        this.isAuthenticated = true;
-        
-        // Сохраняем в localStorage
-        localStorage.setItem('userPhone', phone);
-        
-        // Обновляем данные пользователя если есть контакт
-        if (contact.first_name || contact.last_name) {
-            this.userData = {
-                firstName: contact.first_name || 'Пользователь',
-                lastName: contact.last_name || '',
-                username: 'Не указан',
-                id: 'from_contact'
-            };
-        }
-        
-        // Показываем уведомление
-        this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
-        
-        // Переходим на главное приложение
-        setTimeout(() => {
-            this.showMainApp();
-        }, 1000);
-    }
-
-    handleAuthError(message) {
-        console.log('❌ Ошибка:', message);
-        this.showNotification('Ошибка', message, 'error');
     }
 
     logout() {
