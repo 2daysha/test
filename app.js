@@ -137,36 +137,35 @@ async requestPhoneTelegram() {
         this.handlePhoneSuccess(testPhone, testContact);
     }
 
-    handlePhoneSuccess(phone, contact) {
-        console.log('✅ Номер получен:', phone);
-        console.log('📋 Данные контакта:', contact);
-        
-        this.userPhone = phone;
-        this.isAuthenticated = true;
-        
-        // Сохраняем в localStorage
-        localStorage.setItem('userPhone', phone);
-        
-        // Обновляем данные пользователя если есть контакт
-        if (contact.first_name || contact.last_name) {
-            this.userData = {
-                firstName: contact.first_name || 'Пользователь',
-                lastName: contact.last_name || '',
-                username: 'Не указан',
-                id: 'from_contact'
-            };
-        }
-        
-        // Показываем уведомление
-        this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
-        
-        // Переходим на главное приложение
-        setTimeout(() => {
-            this.showMainApp();
-        }, 1000);
+    handleAuthSuccess(phone, contact) {
+    console.log('✅ Успешная авторизация:', phone);
+    console.log('📞 Полные данные контакта:', contact);
+    
+    this.userPhone = phone;
+    this.isAuthenticated = true;
+    
+    // Сохраняем номер
+    localStorage.setItem('userPhone', phone);
+    
+    // Обновляем данные пользователя (обрабатываем оба формата)
+    if (contact) {
+        this.userData = {
+            firstName: contact.firstName || contact.first_name || 'Пользователь',
+            lastName: contact.lastName || contact.last_name || '',
+            username: 'Не указан',
+            id: contact.userId || contact.id || 'from_contact'
+        };
     }
+    
+    this.showNotification('Успех!', `Номер ${phone} подтвержден`, 'success');
+    
+    // Переходим в приложение
+    setTimeout(() => {
+        this.showMainApp();
+    }, 1000);
+}
 
-    handlePhoneError(message) {
+    handleAuthError(message) {
         console.log('❌ Ошибка:', message);
         this.showNotification('Ошибка', message, 'error');
     }
