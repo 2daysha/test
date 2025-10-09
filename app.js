@@ -88,7 +88,7 @@ class LoyaltyProApp {
         }
     }
 
-async requestPhoneTelegram() {
+    async requestPhoneTelegram() {
     console.log('Запрос номера в Telegram...');
     
     try {
@@ -100,7 +100,7 @@ async requestPhoneTelegram() {
             if (result && result.contact && result.contact.phoneNumber) {
                 const phoneNumber = result.contact.phoneNumber;
 
-                this.handlePhoneSuccess(phoneNumber, result.contact);
+                this.handleAuthSuccess(phoneNumber, result.contact);
                 return;
             }
         }
@@ -115,10 +115,10 @@ async requestPhoneTelegram() {
                     if (contact && contact.phone_number) {
                         const phoneNumber = contact.phone_number;
                         console.log('✅ Номер получен через старый API:', phoneNumber);
-                        this.handlePhoneSuccess(phoneNumber, contact);
+                        this.handleAuthSuccess(phoneNumber, contact);
                     } else {
                         console.log('❌ Контакт не предоставлен или нет номера');
-                        this.handlePhoneError('Номер не предоставлен');
+                        this.handleAuthError('Номер не предоставлен');
                     }
                     resolve();
                 });
@@ -127,11 +127,11 @@ async requestPhoneTelegram() {
         
         // Если оба метода недоступны
         console.log('❌ Оба API недоступны');
-        this.handlePhoneError('Функция запроса контакта недоступна в этом клиенте');
+        this.handleAuthError('Функция запроса контакта недоступна в этом клиенте');
         
     } catch (error) {
         console.error('❌ Ошибка при запросе контакта:', error);
-        this.handlePhoneError('Не удалось получить номер телефона');
+        this.handleAuthError('Не удалось получить номер телефона');
     }
 }
 
@@ -145,10 +145,10 @@ async requestPhoneTelegram() {
             last_name: 'Пользователь'
         };
         
-        this.handlePhoneSuccess(testPhone, testContact);
+        this.handleAuthSuccess(testPhone, testContact);
     }
 
-    handlePhoneSuccess(phone, contact) {
+    handleAuthSuccess(phone, contact) {
         console.log('✅ Номер получен:', phone);
         console.log('📋 Данные контакта:', contact);
         
@@ -177,7 +177,7 @@ async requestPhoneTelegram() {
         }, 1000);
     }
 
-    handlePhoneError(message) {
+    handleAuthError(message) {
         console.log('❌ Ошибка:', message);
         this.showNotification('Ошибка', message, 'error');
     }
