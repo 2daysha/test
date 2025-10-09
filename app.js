@@ -1,4 +1,3 @@
-import { requestContact } from '@telegram-apps/sdk';
 const tg = window.Telegram.WebApp;
 
 class LoyaltyProApp {
@@ -10,6 +9,10 @@ class LoyaltyProApp {
         this.isTelegram = !!tg.initData;
         this.isAuthenticated = false;
         this.init();
+
+        this.loadTelegramSDK().then(() => {
+            this.init();
+        });
     }
 
     init() {
@@ -88,52 +91,66 @@ class LoyaltyProApp {
         }
     }
 
-    async requestPhoneTelegram() {
-    console.log('Запрос номера в Telegram...');
-    
-    try {
-        if (window.telegramSDK && window.telegramSDK.requestContact && window.telegramSDK.requestContact.isAvailable()) {
-            console.log('Используем новый SDK...');
-            const result = await window.telegramSDK.requestContact();
-            console.log('Данные от нового SDK:', result);
-            
-            if (result && result.contact && result.contact.phoneNumber) {
-                const phoneNumber = result.contact.phoneNumber;
-
-                this.handleAuthSuccess(phoneNumber, result.contact);
-                return;
-            }
+    async loadTelegramSDK() {
+        if (typeof window.telegramSDK !== 'undefined') return;
+        
+        try {
+            // Динамически загружаем SDK
+            const { requestContact, requestPhoneAccess } = await import('https://unpkg.com/@telegram-apps/sdk?module');
+            window.telegramSDK = { requestContact, requestPhoneAccess };
+            console.log('✅ Telegram SDK загружен');
+        } catch (error) {
+            console.log('❌ Не удалось загрузить Telegram SDK, используем старый API');
+            window.telegramSDK = null;
         }
-        
-        // Пробуем старый API (Telegram Web App)
-        if (tg && tg.requestContact) {
-            console.log('Используем старый API...');
-            return new Promise((resolve) => {
-                tg.requestContact((contact) => {
-                    console.log('Данные от старого API:', contact);
-                    
-                    if (contact && contact.phone_number) {
-                        const phoneNumber = contact.phone_number;
-                        console.log('✅ Номер получен через старый API:', phoneNumber);
-                        this.handleAuthSuccess(phoneNumber, contact);
-                    } else {
-                        console.log('❌ Контакт не предоставлен или нет номера');
-                        this.handleAuthError('Номер не предоставлен');
-                    }
-                    resolve();
-                });
-            });
-        }
-        
-        // Если оба метода недоступны
-        console.log('❌ Оба API недоступны');
-        this.handleAuthError('Функция запроса контакта недоступна в этом клиенте');
-        
-    } catch (error) {
-        console.error('❌ Ошибка при запросе контакта:', error);
-        this.handleAuthError('Не удалось получить номер телефона');
     }
-}
+
+    async requestPhoneTelegram() {
+        console.log('Запрос номера в Telegram...');
+        
+        try {
+            // Пробуем новый SDK если загружен
+            if (window.telegramSDK && window.telegramSDK.requestContact && window.telegramSDK.requestContact.isAvailable()) {
+                console.log('Используем новый SDK...');
+                const result = await window.telegramSDK.requestContact();
+                console.log('Данные от нового SDK:', result);
+                
+                if (result && result.contact && result.contact.phoneNumber) {
+                    const phoneNumber = result.contact.phoneNumber;
+                    console.log('✅ Номер получен через новый SDK:', phoneNumber);
+                    this.handleAuthSuccess(phoneNumber, result.contact);
+                    return;
+                }
+            }
+            
+            // Пробуем старый API (Telegram Web App)
+            if (tg && tg.requestContact) {
+                console.log('Используем старый API...');
+                return new Promise((resolve) => {
+                    tg.requestContact((contact) => {
+                        console.log('Данные от старого API:', contact);
+                        
+                        if (contact && contact.phone_number) {
+                            const phoneNumber = contact.phone_number;
+                            console.log('✅ Номер получен через старый API:', phoneNumber);
+                            this.handleAuthSuccess(phoneNumber, contact);
+                        } else {
+                            console.log('❌ Контакт не предоставлен или нет номера');
+                            this.handleAuthError('Номер не предоставлен');
+                        }
+                        resolve();
+                    });
+                });
+            }
+            
+            console.log('❌ Оба API недоступны');
+            this.handleAuthError('Функция запроса контакта недоступна');
+            
+        } catch (error) {
+            console.error('❌ Ошибка при запросе контакта:', error);
+            this.handleAuthError('Не удалось получить номер телефона');
+        }
+    }
 
     requestPhoneBrowser() {
         console.log('Запрос номера в браузере...');
