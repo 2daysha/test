@@ -100,7 +100,7 @@ async requestPhoneTelegram() {
             if (result && result.contact && result.contact.phoneNumber) {
                 const phoneNumber = result.contact.phoneNumber;
 
-                this.handleAuthSuccess(phoneNumber, result.contact);
+                this.handlePhoneSuccess(phoneNumber, result.contact);
                 return;
             }
         }
