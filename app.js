@@ -91,118 +91,21 @@ class LoyaltyProApp {
     async requestPhoneTelegram() {
     console.log('🟡 Запрос номера в Telegram...');
     
-    try {
-        // Пробуем новый SDK (@telegram-apps/sdk)
-        if (window.telegramSDK && window.telegramSDK.requestContact && window.telegramSDK.requestContact.isAvailable()) {
-            console.log('🟡 Используем новый SDK...');
-            const result = await window.telegramSDK.requestContact();
-            console.log('📨 Данные от нового SDK:', result);
-            
-            if (result && result.contact && result.contact.phoneNumber) {
-                const phoneNumber = result.contact.phoneNumber;
-                console.log('✅ Номер получен через новый SDK:', phoneNumber);
-                this.handleAuthSuccess(phoneNumber, result.contact);
-                return;
+    // Просто запускаем запрос контакта и надеемся что номер появится в initData
+    tg.requestContact(() => {
+        // После одобрения проверяем initData
+        setTimeout(() => {
+            const user = tg.initDataUnsafe?.user;
+            if (user && user.phone_number) {
+                console.log('✅ Номер получен:', user.phone_number);
+                this.handlePhoneSuccess(user.phone_number, user);
+            } else {
+                console.log('❌ Номер не найден, user data:', user);
+                this.handlePhoneError('Не удалось получить номер телефона');
             }
-        }
-        
-        // Пробуем старый API (Telegram Web App) с правильной обработкой
-        if (tg && tg.requestContact) {
-            console.log('🟡 Используем старый API...');
-            
-            return new Promise((resolve) => {
-                tg.requestContact(async (contactData) => {
-                    console.log('📨 Сырые данные от старого API:', contactData);
-                    
-                    try {
-                        // Обрабатываем данные - они приходят в виде строки или объекта
-                        let contact;
-                        
-                        if (typeof contactData === 'string') {
-                            // Декодируем URL-encoded строку
-                            const decodedString = decodeURIComponent(contactData);
-                            console.log('🔍 Декодированная строка:', decodedString);
-                            
-                            // Парсим как query string
-                            const params = new URLSearchParams(decodedString);
-                            contact = {
-                                phone_number: params.get('phone_number'),
-                                first_name: params.get('first_name'),
-                                last_name: params.get('last_name'),
-                                user_id: params.get('user_id')
-                            };
-                        } else if (typeof contactData === 'object') {
-                            // Уже объект
-                            contact = contactData;
-                        } else if (contactData === true) {
-                            // Иногда приходит просто true - нужно получить контакт через другой метод
-                            console.log('🟡 Контакт одобрен, получаем данные...');
-                            contact = await this.getRequestedContact();
-                        }
-                        
-                        console.log('📊 Обработанные данные контакта:', contact);
-                        
-                        if (contact && contact.phone_number) {
-                            const phoneNumber = contact.phone_number;
-                            console.log('✅ Номер получен через старый API:', phoneNumber);
-                            this.handleAuthSuccess(phoneNumber, contact);
-                        } else {
-                            console.log('❌ Не удалось извлечь номер из данных:', contact);
-                            this.handleAuthError('Номер не предоставлен');
-                        }
-                    } catch (error) {
-                        console.error('❌ Ошибка обработки данных:', error);
-                        this.handleAuthError('Ошибка обработки данных контакта');
-                    }
-                    
-                    resolve();
-                });
-            });
-        }
-        
-        console.log('❌ Оба API недоступны');
-        this.handleAuthError('Функция запроса контакта недоступна');
-        
-    } catch (error) {
-        console.error('❌ Ошибка при запросе контакта:', error);
-        this.handleAuthError('Не удалось получить номер телефона');
-    }
-}
-
-// Новая функция для получения контакта после одобрения
-async getRequestedContact() {
-    return new Promise((resolve) => {
-        if (tg.invokeCustomMethod) {
-            tg.invokeCustomMethod('getRequestedContact', {}, (result) => {
-                console.log('📨 Результат getRequestedContact:', result);
-                
-                if (result && typeof result === 'string') {
-                    try {
-                        // Парсим URL-encoded строку
-                        const decoded = decodeURIComponent(result);
-                        const params = new URLSearchParams(decoded);
-                        
-                        const contact = {
-                            phone_number: params.get('phone_number'),
-                            first_name: params.get('first_name'),
-                            last_name: params.get('last_name'),
-                            user_id: params.get('user_id')
-                        };
-                        resolve(contact);
-                    } catch (error) {
-                        console.error('❌ Ошибка парсинга контакта:', error);
-                        resolve(null);
-                    }
-                } else {
-                    resolve(result);
-                }
-            });
-        } else {
-            resolve(null);
-        }
+        }, 500);
     });
 }
-
     requestPhoneBrowser() {
         console.log('Запрос номера в браузере...');
         
