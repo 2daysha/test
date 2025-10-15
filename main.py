@@ -4,14 +4,16 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 from telegram.ext import filters
 from dotenv import load_dotenv
 
+from utils import link_tg_account
+
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    web_app_url = "https://2daysha.github.io/test/"
+    web_app_url = os.getenv('WEB_APP_URL')
     
     keyboard = [
-        [InlineKeyboardButton("📱 Открыть приложение", web_app=WebAppInfo(url=web_app_url))],
+        [InlineKeyboardButton("📱 Открыть приложение", web_app=WebAppInfo(url="https://2daysha.github.io/test/"))],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Откройте приложение для управления.....', reply_markup=reply_markup)
@@ -31,12 +33,29 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     else:
         await query.edit_message_text(text=f"Вы нажали: {query.data}")
 
+async def handle_contact_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    contact = update.message.contact
+    link_data = {
+        'phone_number': contact.phone_number,
+        'telegram_id': contact.user_id
+    }
+        
+    response = link_tg_account(link_data)
+        
+    if response.status_code != 200:
+        try:
+            data = response.json()
+            print(data, flush=True)
+        except ValueError:
+            print("Ответ не в формате JSON")
+        await update.message.reply_text("❌ Ошибка авторизации")
+
 def main() -> None:
     print("🔄 Запуск бота...")
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, web_app_data))
+    application.add_handler(MessageHandler(filters.CONTACT, handle_contact_message))
     
     print("✅ Бот успешно запущен!")
     print("🤖 Бот работает и ожидает сообщений...")
