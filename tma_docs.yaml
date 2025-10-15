@@ -1,0 +1,157 @@
+openapi: 3.0.3
+info:
+  title: Telegram Mini App API
+  version: 1.0.0
+  description: >
+    API для интеграции Telegram Mini App.  
+    Все запросы требуют заголовок авторизации формата:
+    `Authorization: tma <initData>`
+
+servers:
+  - url: http://localhost
+
+components:
+  securitySchemes:
+    TelegramMiniAppAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: >
+        Telegram Mini App аутентификация.  
+        Используй формат: `tma <initData>`
+
+  schemas:
+    TelegramProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "123456789"
+    Participant:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "b3e94e12-1eac-45fa-9df2-77081c23a90f"
+        phone_number:
+          type: string
+          example: "+79991234567"
+        balance:
+          type: number
+          example: 1200.0
+        telegram_profile:
+          $ref: "#/components/schemas/TelegramProfile"
+    ProductCategory:
+      type: object
+      properties:
+        guid:
+          type: string
+          example: "76be139e-646c-4f27-a465-30ee8fd929b9"
+        name:
+          type: string
+          example: "Одежда"
+    Product:
+      type: object
+      properties:
+        guid:
+          type: string
+          example: "76be139e-646c-4f27-a465-30ee8fd929b9"
+        name:
+          type: string
+          example: "Футболка с логотипом"
+        stock:
+          type: string
+          example: ""
+        image_url:
+          type: string
+          example: "https://example.com/media/products/tshirt.jpg"
+        price:
+          type: number
+          example: 123
+        is_available:
+          type: boolean
+          example: True
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+
+security:
+  - TelegramMiniAppAuth: []
+
+paths:
+  api/telegram/check-telegram-link/:
+    post:
+      summary: Проверка привязки аккаунта Telegram
+      description: Проверяет, связан ли пользователь Telegram Mini App с участником системы.
+      security:
+        - TelegramMiniAppAuth: []
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      is_linked:
+                        type: boolean
+                        example: true
+                      participant:
+                        $ref: "#/components/schemas/Participant"
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+                        example: true
+                      is_linked:
+                        type: boolean
+                        example: false
+                      message:
+                        type: string
+                        example: "Аккаунт не привязан"
+        "500":
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              example:
+                success: false
+                message: "Error"
+
+  api/telegram//products/:
+    get:
+      summary: Получение списка товаров
+      description: Возвращает список доступных товаров.
+      security:
+        - TelegramMiniAppAuth: []
+      responses:
+        "200":
+          description: Список товаров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+        "401":
+          description: Ошибка Telegram-аутентификации
+
+  api/telegram/product-categories/:
+    get:
+      summary: Получение списка категорий
+      description: Возвращает категории товаров.
+      security:
+        - TelegramMiniAppAuth: []
+      responses:
+        "200":
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductCategory"
+        "401":
+          description: Ошибка Telegram-аутентификации
