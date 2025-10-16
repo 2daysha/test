@@ -1,4 +1,12 @@
-const tg = window.Telegram.WebApp;
+const tg = window.Telegram?.WebApp || null;
+if (tg) {
+    tg.expand();
+    tg.enableClosingConfirmation();
+    console.log('Telegram Web App инициализирован:', tg.initDataUnsafe);
+} else {
+    console.log('Запуск в обычном браузере');
+}
+
 
 class LoyaltyProApp {
     constructor() {
@@ -47,24 +55,47 @@ class LoyaltyProApp {
     }
 
     async checkTelegramLink() {
-        try {
-            const response = await fetch(`${this.baseURL}/api/telegram/check-telegram-link/`, {
-                method: 'POST',
-                headers: this.getAuthHeaders()
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            if (data.success && data.is_linked && data.participant) {
-                this.participant = data.participant;
-                await this.loadProducts();
-                await this.loadProductCategories();
-                return true;
-            }
+    try {
+        const response = await fetch(`${this.baseURL}/api/telegram/check-telegram-link/`, {
+            method: 'POST',
+            headers: this.getAuthHeaders()
+        });
+
+        // 🔥 Проверка статуса 401 — если токен невалиден
+        if (response.status === 401) {
+            console.warn("Неавторизован. Перенаправляем на авторизацию...");
+            this.isAuthenticated = false;
+            this.participant = null;
+            this.showAuthPage();
             return false;
-        } catch (error) {
-            throw error;
         }
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        // 🔥 Правильная обработка ответа
+        if (data.success && data.is_linked && data.participant) {
+            this.participant = data.participant;
+            await this.loadProducts();
+            await this.loadProductCategories();
+            return true;
+        } else if (data.success && !data.is_linked) {
+            console.warn("Пользователь не привязан — показываем авторизацию");
+            this.showAuthPage();
+            return false;
+        } else {
+            console.error("Неизвестная структура ответа:", data);
+            this.showAuthPage();
+            return false;
+        }
+
+    } catch (error) {
+        console.error('Ошибка при проверке привязки:', error);
+        this.showAuthPage();
+        return false;
     }
+}
+
 
     async loadProducts() {
         try {
@@ -188,20 +219,24 @@ class LoyaltyProApp {
     }
 
     loadUserData() {
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            this.userData = {
-                firstName: user.first_name || 'Пользователь',
-                lastName: user.last_name || '',
-                username: user.username ? `@${user.username}` : 'Не указан',
-                id: user.id
-            };
-        
-        } else {
-            this.userData = { firstName: 'Пользователь', lastName: '', username: 'Не указан', id: 'unknown' };
-        }
-        this.checkPhoneNumber();
+    const tgUser = tg.initDataUnsafe?.user;
+    const participant = this.participant;
+    const profile = participant?.telegram_profile || tgUser;
+
+    if (profile) {
+        this.userData = {
+            firstName: profile.first_name || 'Пользователь',
+            lastName: profile.last_name || '',
+            username: profile.username ? `@${profile.username}` : 'Не указан',
+            id: profile.id
+        };
+    } else {
+        this.userData = { firstName: 'Пользователь', lastName: '', username: 'Не указан', id: 'unknown' };
     }
+
+    this.userPhone = tgUser?.phone_number || participant?.telegram_profile?.phone_number || null;
+}
+
 
 
     checkPhoneNumber() {
