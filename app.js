@@ -23,36 +23,36 @@ class LoyaltyProApp {
         this.init();
     }
 
-    async init() {
-        if (this.isTelegram) {
-            tg.expand();
-            tg.enableClosingConfirmation();
-        }
+    
+    async init() { 
+    if (this.isTelegram && tg) {
+        tg.expand();
+        tg.enableClosingConfirmation();
+    }
 
-        this.loadUserDataFromStorage();
+    this.loadUserDataFromStorage();
 
-        try {
-            await this.checkTelegramLink();
-
-            if (this.participant) {
-                this.isAuthenticated = true;
-                this.showMainApp();
-            } else {
-                this.showAuthPage();
-            }
-        } catch (err) {
-            console.error('Ошибка проверки привязки:', err);
+    try {
+        const linked = await this.checkTelegramLink();
+        if (linked) {
+            this.isAuthenticated = true;
+            this.showMainApp();
+        } else {
             this.showAuthPage();
         }
+    } catch (err) {
+        console.error('Ошибка проверки привязки:', err);
+        this.showAuthPage();
     }
+}
 
     getAuthHeaders() {
-        const initData = tg.initData || 'test_init_data';
-        return {
-            'Authorization': `tma ${initData}`,
-            'Content-Type': 'application/json'
-        };
-    }
+    const initData = tg?.initData || '';
+    return {
+        'Authorization': `tma ${initData}`,
+        'Content-Type': 'application/json'
+    };
+}
 
     async checkTelegramLink() {
     try {
@@ -60,39 +60,28 @@ class LoyaltyProApp {
             method: 'POST',
             headers: this.getAuthHeaders()
         });
-
-        // 🔥 Проверка статуса 401 — если токен невалиден
+        
         if (response.status === 401) {
-            console.warn("Неавторизован. Перенаправляем на авторизацию...");
-            this.isAuthenticated = false;
-            this.participant = null;
             this.showAuthPage();
             return false;
         }
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
-        // 🔥 Правильная обработка ответа
+        const data = await response.json();
+        
         if (data.success && data.is_linked && data.participant) {
             this.participant = data.participant;
             await this.loadProducts();
             await this.loadProductCategories();
             return true;
-        } else if (data.success && !data.is_linked) {
-            console.warn("Пользователь не привязан — показываем авторизацию");
-            this.showAuthPage();
-            return false;
-        } else {
-            console.error("Неизвестная структура ответа:", data);
-            this.showAuthPage();
-            return false;
         }
-
-    } catch (error) {
-        console.error('Ошибка при проверке привязки:', error);
-        this.showAuthPage();
         return false;
+    } catch (error) {
+        console.error('Check telegram link error:', error);
+        throw error;
     }
 }
 
@@ -171,6 +160,7 @@ class LoyaltyProApp {
         }
     }
 
+
     requestPhoneBrowser() {
         this.userPhone = prompt("Введите номер телефона:");
         if (this.userPhone) {
@@ -219,7 +209,7 @@ class LoyaltyProApp {
     }
 
     loadUserData() {
-    const tgUser = tg.initDataUnsafe?.user;
+    const tgUser = tg?.initDataUnsafe?.user;
     const participant = this.participant;
     const profile = participant?.telegram_profile || tgUser;
 
@@ -231,10 +221,15 @@ class LoyaltyProApp {
             id: profile.id
         };
     } else {
-        this.userData = { firstName: 'Пользователь', lastName: '', username: 'Не указан', id: 'unknown' };
+        this.userData = { 
+            firstName: 'Пользователь', 
+            lastName: '', 
+            username: 'Не указан', 
+            id: 'unknown' 
+        };
     }
 
-    this.userPhone = tgUser?.phone_number || participant?.telegram_profile?.phone_number || null;
+    this.userPhone = tgUser?.phone_number || participant?.phone_number || null;
 }
 
 
