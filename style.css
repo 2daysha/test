@@ -259,7 +259,7 @@ body {
 }
 
 .support-btn {
-    margin-top: 20px; /* увеличиваем отступ сверху */
+    margin-top: 15px; 
 }
 
 .stat-card { background: #f8f8f8; border-radius: 16px; padding: 16px; text-align: center; border: 1px solid #e5e5e5; }

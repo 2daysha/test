@@ -139,28 +139,72 @@ class LoyaltyProApp {
     }
 
     async requestPhoneTelegram() {
-        try {
-            if (tg && tg.requestContact) {
-                tg.requestContact(contact => {
-                    if (contact) {
-                        this.userPhone = contact.phone_number;
-                        this.checkTelegramLink().then(success => {
-                            if (success) {
-                                this.isAuthenticated = true;
-                                this.showMainApp();
-                            }
-                        });
-                    } else {
-                        this.showNotification('Контакт не предоставлен', 'Вы не предоставили номер телефона', 'error');
-                    }
-                });
-            }
-        } catch (err) {
-            console.error(err);
+    try {
+        if (!tg || !tg.requestContact) {
+            this.showNotification('Ошибка', 'Функция запроса контакта недоступна', 'error');
+            return;
         }
+
+        tg.requestContact(async (contact) => {
+            if (contact && contact.phone_number) {
+                this.userPhone = contact.phone_number;
+                console.log('Получен номер телефона:', this.userPhone);
+                
+                try {
+                    // 1. Сначала отправляем номер на бэкенд для привязки
+                    const linkSuccess = await this.linkTelegramAccount();
+                    
+                    if (linkSuccess) {
+                        // 2. Затем проверяем привязку
+                        const checkSuccess = await this.checkTelegramLink();
+                        
+                        if (checkSuccess) {
+                            this.isAuthenticated = true;
+                            this.showMainApp();
+                            this.showNotification('Успех', 'Аккаунт успешно привязан', 'success');
+                        } else {
+                            this.showNotification('Ошибка', 'Не удалось подтвердить привязку', 'error');
+                        }
+                    } else {
+                        this.showNotification('Ошибка', 'Не удалось привязать аккаунт', 'error');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при привязке аккаунта:', error);
+                    this.showNotification('Ошибка', 'Ошибка сервера', 'error');
+                }
+            } else {
+                this.showNotification('Контакт не предоставлен', 'Вы не предоставили номер телефона', 'error');
+            }
+        });
+    } catch (err) {
+        console.error('Ошибка в requestPhoneTelegram:', err);
+        this.showNotification('Ошибка', 'Произошла непредвиденная ошибка', 'error');
     }
+}
 
+    async linkTelegramAccount() {
+    try {
+        const tgUser = tg.initDataUnsafe?.user;
+        const linkData = {
+            phone_number: this.userPhone,
+            telegram_id: tgUser?.id,
+            first_name: tgUser?.first_name,
+            last_name: tgUser?.last_name,
+            username: tgUser?.username
+        };
 
+        const response = await fetch(`${this.baseURL}/api/telegram/link-telegram/`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(linkData)
+        });
+
+        return response.ok;
+    } catch (error) {
+        console.error('Link telegram account error:', error);
+        return false;
+    }
+}
     requestPhoneBrowser() {
         this.userPhone = prompt("Введите номер телефона:");
         if (this.userPhone) {
