@@ -78,7 +78,7 @@ class LoyaltyProApp {
 
     async loadProducts() {
         try {
-            const response = await fetch(`${this.baseURL}/api/telegram//products/`, {
+            const response = await fetch(`${this.baseURL}/api/telegram/products/`, {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });

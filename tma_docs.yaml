@@ -120,7 +120,7 @@ paths:
                 success: false
                 message: "Error"
 
-  api/telegram//products/:
+  api/telegram/products/:
     get:
       summary: Получение списка товаров
       description: Возвращает список доступных товаров.
