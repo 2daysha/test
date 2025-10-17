@@ -20,6 +20,9 @@ class LoyaltyProApp {
         this.baseURL = 'http://localhost:3001';
         this.isAuthenticated = false;
         this.isTelegram = !!window.Telegram?.WebApp;
+
+        window.debugApp = this;
+
         this.init();
     }
 
@@ -447,6 +450,20 @@ class LoyaltyProApp {
         document.body.appendChild(container);
         setTimeout(() => container.classList.remove('show'), 3000);
         setTimeout(() => container.remove(), 3500);
+    }
+
+    resetAllData() {
+    this.cart = [];
+    this.userData = null;
+    this.participant = null;
+    this.userPhone = null;
+    this.isAuthenticated = false;
+    
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    this.showAuthPage();
+    this.showNotification('Сброс', 'Все данные очищены', 'info');
     }
 }
 
