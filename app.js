@@ -27,7 +27,7 @@ class LoyaltyProApp {
         this.init();
     }
 
-    
+
     async init() { 
     console.log('🔧 DEBUG: === App init started ===');
     console.log('🔧 DEBUG: isTelegram:', this.isTelegram);
@@ -489,5 +489,4 @@ class LoyaltyProApp {
     }
 }
 
-// создаём глобальный экземпляр
-window.app = new LoyaltyProApp();
+window.LoyaltyProApp = LoyaltyProApp;
