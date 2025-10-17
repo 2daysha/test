@@ -20,9 +20,6 @@ class LoyaltyProApp {
         this.baseURL = 'http://localhost:3001';
         this.isAuthenticated = false;
         this.isTelegram = !!window.Telegram?.WebApp;
-
-        window.debugApp = this;
-
         this.init();
     }
 
@@ -362,26 +359,29 @@ class LoyaltyProApp {
         }
 
         container.innerHTML = this.cart.map(item => `
-        <div class="cart-item animate-card">
-            <div class="cart-item-header">
-                <div class="cart-item-info">
-                    <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
-                    <h3>${item.name}</h3>
-                    <p>${item.stock || ''}</p>
+            <div class="cart-item animate-card">
+                <div class="cart-item-header">
+                ${item.image_url ? `
+                <img src="${item.image_url}" alt="${item.name}" class="cart-item-image">
+            ` : ''}
+                    <div class="cart-item-info">
+                        <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
+                        <h3>${item.name}</h3>
+                        <p>${item.stock || ''}</p>
+                    </div>
+                    <div class="cart-item-price">${item.price * item.quantity}</div>
                 </div>
-                <div class="cart-item-price">${item.price * item.quantity}</div>
+                <div class="cart-item-actions">
+                    <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
+                </div>
             </div>
-            <div class="cart-item-actions">
-                <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
+        `).join('') + `
+            <div class="cart-total animate-card">
+                <h3>Итого</h3>
+                <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * i.quantity, 0)}</div>
+                <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
             </div>
-        </div>
-    `).join('') + `
-        <div class="cart-total animate-card">
-            <h3>Итого</h3>
-            <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * i.quantity, 0)}</div>
-            <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
-        </div>
-    `;
+        `;
     }
 
     removeFromCart(productGuid) {
