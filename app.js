@@ -362,7 +362,7 @@ class LoyaltyProApp {
             <div class="cart-item animate-card">
                 <div class="cart-item-header">
                 ${item.image_url ? `
-                <img src="${item.image_url}" alt="${item.name}" class="cart-item-image">
+                <img src="${item.image_url}" alt="${item.name}" class="cart-image-url">
             ` : ''}
                     <div class="cart-item-info">
                         <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
