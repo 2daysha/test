@@ -55,7 +55,7 @@ class LoyaltyProApp {
         this.showAuthPage();
     }
     }
-    
+
     getAuthHeaders() {
     const initData = tg?.initData || '';
     return {
@@ -98,6 +98,7 @@ class LoyaltyProApp {
         if (data.success && data.is_linked && data.participant) {
             console.log('🔧 DEBUG: Account is linked, participant:', data.participant);
             this.participant = data.participant;
+            this.userPhone = this.participant.phone_number;
             console.log('🔧 DEBUG: Participant phone:', this.participant?.phone_number);
             await this.loadProducts();
             await this.loadProductCategories();
@@ -273,7 +274,7 @@ class LoyaltyProApp {
         };
     }
 
-    this.userPhone = tgUser?.phone_number || participant?.phone_number || null;
+    this.userPhone = participant?.phone_number || tgUser?.phone_number || null;
 }
 
 
