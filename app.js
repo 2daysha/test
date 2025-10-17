@@ -361,6 +361,17 @@ class LoyaltyProApp {
             return;
         }
 
+        grid.innerHTML = products.map(p => `
+        <div class="product-card ...">
+        <!-- НЕТ ИЗОБРАЖЕНИЯ -->
+        <span class="product-category">${p.category?.name || 'Без категории'}</span>
+        <h3>${p.name}</h3>
+        <p>${p.stock || ''}</p>
+        <div class="product-price">${p.price} бонусов</div>
+        ${!p.is_available ? '<div class="product-unavailable">Недоступно</div>' : ''}
+         </div>
+        `).join('');
+
         container.innerHTML = this.cart.map(item => `
             <div class="cart-item animate-card">
                 <div class="cart-item-header">
@@ -390,12 +401,28 @@ class LoyaltyProApp {
         this.loadCart();
     }
 
-    checkoutCart() {
-        this.checkPhoneBeforeAction('оплаты', () => {
-            this.cart = [];
-            this.showNotification('Успешно', 'Оплата прошла успешно!', 'success');
-            this.loadCart();
-        });
+    async checkoutCart() {
+    this.checkPhoneBeforeAction('оплаты', async () => {
+        try {
+            const response = await fetch(`${this.baseURL}/api/telegram/purchase/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({ items: this.cart })
+            });
+            
+            if (response.ok) {
+                this.cart = [];
+                this.showNotification('Успешно', 'Оплата прошла успешно!', 'success');
+                // Обновить баланс участника
+                await this.checkTelegramLink();
+            } else {
+                this.showNotification('Ошибка', 'Не удалось完成 оплату', 'error');
+            }
+        } catch (error) {
+            this.showNotification('Ошибка', 'Ошибка соединения', 'error');
+        }
+        this.loadCart();
+    });
     }
 
     loadProfile() {
