@@ -20,14 +20,10 @@ class LoyaltyProApp {
         this.baseURL = 'http://localhost:3001';
         this.isAuthenticated = false;
         this.isTelegram = !!window.Telegram?.WebApp;
-
-        window.app = this;
-        window.debugApp = this;
-
         this.init();
     }
 
-
+    
     async init() { 
     console.log('🔧 DEBUG: === App init started ===');
     console.log('🔧 DEBUG: isTelegram:', this.isTelegram);
@@ -489,4 +485,5 @@ class LoyaltyProApp {
     }
 }
 
-window.LoyaltyProApp = LoyaltyProApp;
+// создаём глобальный экземпляр
+window.app = new LoyaltyProApp();
