@@ -20,6 +20,10 @@ class LoyaltyProApp {
         this.baseURL = 'http://localhost:3001';
         this.isAuthenticated = false;
         this.isTelegram = !!window.Telegram?.WebApp;
+
+        window.app = this;
+        window.debugApp = this;
+
         this.init();
     }
 
