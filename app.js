@@ -175,23 +175,29 @@ class LoyaltyProApp {
     }
 
     async requestPhoneTelegram() {
-    if (!tg || !tg.requestContact) {
+    if (!tg || typeof tg.requestContact !== 'function') {
         this.showNotification('Ошибка', 'Telegram API не поддерживает запрос контакта', 'error');
         return;
     }
 
-    tg.requestContact((contact) => {
-        if (!contact || !contact.phone_number) {
+    tg.requestContact((success) => {
+        if (!success) {
             this.showNotification('Контакт не предоставлен', 'Вы не разрешили доступ к номеру телефона', 'warning');
             return;
         }
 
-        this.userPhone = contact.phone_number;
-        console.log('Телефон получен от Telegram:', this.userPhone);
-        this.showNotification('Успех', 'Номер телефона успешно получен', 'success');
-        
-        this.isAuthenticated = true;
-        this.showMainApp();
+        // После согласия Telegram добавит phone_number в initDataUnsafe.user
+        const phone = tg.initDataUnsafe?.user?.phone_number;
+        if (phone) {
+            this.userPhone = phone;
+            console.log('✅ Телефон получен из Telegram initDataUnsafe:', this.userPhone);
+
+            this.showNotification('Успех', `Номер ${this.userPhone} успешно получен`, 'success');
+            this.isAuthenticated = true;
+            this.showMainApp();
+        } else {
+            this.showNotification('Ошибка', 'Телефон не найден в данных Telegram', 'error');
+        }
     });
 }
 
@@ -375,11 +381,30 @@ class LoyaltyProApp {
                 </div>
             `).join('')}
         </div>
-        <div class="cart-total">
-            <h3>Итого:</h3>
-            <div class="cart-total-price">${this.cart.reduce((s, i) => s + i.price * i.quantity, 0)} бонусов</div>
-            <button class="checkout-btn" onclick="app.checkoutCart()">Оплатить</button>
+        <div class="cart-total animate-card">
+    <div class="cart-total-header">
+        <h3 class="cart-total-title">Итого</h3>
+        <div class="cart-total-amount">
+            <span class="cart-total-price">${this.cart.reduce((s, i) => s + i.price * i.quantity, 0)}</span>
+            <span class="cart-total-currency">бонусов</span>
         </div>
+    </div>
+    <div class="cart-total-details">
+        <div class="cart-total-item">
+            <span>Товары (${this.cart.reduce((sum, item) => sum + item.quantity, 0)})</span>
+            <span>${this.cart.reduce((s, i) => s + i.price * i.quantity, 0)} бон.</span>
+        </div>
+        <div class="cart-total-divider"></div>
+        <div class="cart-total-final">
+            <span>К оплате</span>
+            <span class="final-price">${this.cart.reduce((s, i) => s + i.price * i.quantity, 0)} бон.</span>
+        </div>
+    </div>
+    <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
+        <span class="checkout-text">Оплатить</span>
+        <span class="checkout-arrow">→</span>
+    </button>
+</div>
     `;
 }
 
