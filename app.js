@@ -332,20 +332,21 @@ class LoyaltyProApp {
 }
 
     addToCart(productGuid) {
-        this.checkPhoneBeforeAction('добавления товара', () => {
-            const product = this.products.find(p => p.guid === productGuid);
-            if (!product) return this.showNotification('Ошибка', 'Товар не найден', 'error');
-            if (!product.is_available) return this.showNotification('Товар недоступен', 'Временно отсутствует', 'error');
-            if (this.participant && product.price > this.participant.balance) return this.showNotification('Недостаточно бонусов', `У вас ${this.participant.balance}`, 'warning');
-
-            const exists = this.cart.find(c => c.guid === product.guid);
-            if (!exists) this.cart.push({ ...product, quantity: 1 });
-            else exists.quantity++;
-
-            this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
-            this.saveUserData();
-        });
+    const product = this.products.find(p => p.guid === productGuid);
+    if (!product) {
+        this.showNotification('Ошибка', 'Товар не найден', 'error');
+        return;
     }
+
+    const existing = this.cart.find(i => i.guid === productGuid);
+    if (existing) existing.quantity++;
+    else this.cart.push({ ...product, quantity: 1 });
+
+    localStorage.setItem('cart', JSON.stringify(this.cart));
+
+    this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
+}
+
 
     loadCart() {
     const container = document.getElementById('page-catalog');
@@ -356,31 +357,32 @@ class LoyaltyProApp {
         return;
     }
 
-    container.innerHTML = this.cart.map(item => `
-        <div class="cart-item animate-card">
-            <div class="cart-item-header">
-                ${item.image_url ? `
-                    <img src="${item.image_url}" alt="${item.name}" class="cart-image-url">
-                ` : ''}
-                <div class="cart-item-info">
-                    <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
-                    <h3>${item.name}</h3>
-                    <p>${item.stock || ''}</p>
+    container.innerHTML = `
+        <div class="cart-list">
+            ${this.cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-left">
+                        <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}">
+                    </div>
+                    <div class="cart-item-right">
+                        <h3>${item.name}</h3>
+                        <p>${item.category?.name || 'Без категории'}</p>
+                        <div class="cart-item-bottom">
+                            <span class="cart-item-price">${item.price} бонусов</span>
+                            <button class="delete-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="cart-item-price">${item.price * (item.quantity || 1)}</div>
-            </div>
-            <div class="cart-item-actions">
-                <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
-            </div>
+            `).join('')}
         </div>
-    `).join('') + `
-        <div class="cart-total animate-card">
-            <h3>Итого</h3>
-            <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * (i.quantity || 1), 0)}</div>
-            <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
+        <div class="cart-total">
+            <h3>Итого:</h3>
+            <div class="cart-total-price">${this.cart.reduce((s, i) => s + i.price * i.quantity, 0)} бонусов</div>
+            <button class="checkout-btn" onclick="app.checkoutCart()">Оплатить</button>
         </div>
     `;
-    }
+}
+
 
 
     removeFromCart(productGuid) {
