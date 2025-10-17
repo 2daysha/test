@@ -325,7 +325,7 @@ class LoyaltyProApp {
         grid.innerHTML = products.map(p => `
             <div class="product-card animate-card ${!p.is_available ? 'unavailable' : ''}" onclick="app.addToCart('${p.guid}')">
                 <span class="product-category">${p.category?.name || 'Без категории'}</span>
-                ${item.image_url ? `
+                ${p.image_url ? `
                 <img src="${p.image_url}" alt="${p.name}" class="cart-image-url">
                 ` : ''}
                 <h3>${p.name}</h3>
@@ -364,18 +364,18 @@ class LoyaltyProApp {
         container.innerHTML = this.cart.map(item => `
             <div class="cart-item animate-card">
                 <div class="cart-item-header">
-                ${item.image_url ? `
-                <img src="${item.image_url}" alt="${item.name}" class="cart-image-url">
+                ${p.image_url ? `
+                <img src="${p.image_url}" alt="${p.name}" class="cart-image-url">
             ` : ''}
                     <div class="cart-item-info">
-                        <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
-                        <h3>${item.name}</h3>
-                        <p>${item.stock || ''}</p>
+                        <span class="cart-item-category">${p.category?.name || 'Без категории'}</span>
+                        <h3>${p.name}</h3>
+                        <p>${p.stock || ''}</p>
                     </div>
-                    <div class="cart-item-price">${item.price * item.quantity}</div>
+                    <div class="cart-item-price">${p.price * p.quantity}</div>
                 </div>
                 <div class="cart-item-actions">
-                    <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
+                    <button class="delete-btn animate-btn" onclick="app.removeFromCart('${p.guid}')">Удалить</button>
                 </div>
             </div>
         `).join('') + `
