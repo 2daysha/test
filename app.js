@@ -175,28 +175,34 @@ class LoyaltyProApp {
     }
 
     async requestPhoneTelegram() {
-    if (!tg || typeof tg.requestContact !== 'function') {
+    if (!tg || !tg.requestContact) {
         this.showNotification('Ошибка', 'Telegram API не поддерживает запрос контакта', 'error');
         return;
     }
 
+    console.log('🔧 DEBUG: Starting phone request...');
+    
     tg.requestContact((success) => {
-        if (!success) {
-            this.showNotification('Контакт не предоставлен', 'Вы не разрешили доступ к номеру телефона', 'warning');
-            return;
-        }
-
-        // После согласия Telegram добавит phone_number в initDataUnsafe.user
-        const phone = tg.initDataUnsafe?.user?.phone_number;
-        if (phone) {
-            this.userPhone = phone;
-            console.log('✅ Телефон получен из Telegram initDataUnsafe:', this.userPhone);
-
-            this.showNotification('Успех', `Номер ${this.userPhone} успешно получен`, 'success');
-            this.isAuthenticated = true;
-            this.showMainApp();
+        console.log('🔧 DEBUG: Contact callback, success:', success);
+        
+        if (success) {
+            const phoneNumber = tg.initDataUnsafe?.user?.phone_number;
+            console.log('🔧 DEBUG: Phone from Telegram:', phoneNumber);
+            
+            if (phoneNumber) {
+                this.userPhone = phoneNumber;
+                console.log('🔧 DEBUG: userPhone set to:', this.userPhone);
+                
+                window.debugApp = this;
+                
+                this.showNotification('Успех', 'Номер телефона получен', 'success');
+                this.isAuthenticated = true;
+                this.showMainApp();
+            } else {
+                this.showNotification('Ошибка', 'Не удалось получить номер', 'error');
+            }
         } else {
-            this.showNotification('Ошибка', 'Телефон не найден в данных Telegram', 'error');
+            this.showNotification('Отменено', 'Доступ к номеру не предоставлен', 'warning');
         }
     });
 }
