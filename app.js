@@ -361,38 +361,27 @@ class LoyaltyProApp {
             return;
         }
 
-        grid.innerHTML = products.map(p => `
-        <div class="product-card ...">
-        <!-- НЕТ ИЗОБРАЖЕНИЯ -->
-        <span class="product-category">${p.category?.name || 'Без категории'}</span>
-        <h3>${p.name}</h3>
-        <p>${p.stock || ''}</p>
-        <div class="product-price">${p.price} бонусов</div>
-        ${!p.is_available ? '<div class="product-unavailable">Недоступно</div>' : ''}
-         </div>
-        `).join('');
-
         container.innerHTML = this.cart.map(item => `
-            <div class="cart-item animate-card">
-                <div class="cart-item-header">
-                    <div class="cart-item-info">
-                        <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
-                        <h3>${item.name}</h3>
-                        <p>${item.stock || ''}</p>
-                    </div>
-                    <div class="cart-item-price">${item.price * item.quantity}</div>
+        <div class="cart-item animate-card">
+            <div class="cart-item-header">
+                <div class="cart-item-info">
+                    <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
+                    <h3>${item.name}</h3>
+                    <p>${item.stock || ''}</p>
                 </div>
-                <div class="cart-item-actions">
-                    <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
-                </div>
+                <div class="cart-item-price">${item.price * item.quantity}</div>
             </div>
-        `).join('') + `
-            <div class="cart-total animate-card">
-                <h3>Итого</h3>
-                <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * i.quantity, 0)}</div>
-                <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
+            <div class="cart-item-actions">
+                <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
             </div>
-        `;
+        </div>
+    `).join('') + `
+        <div class="cart-total animate-card">
+            <h3>Итого</h3>
+            <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * i.quantity, 0)}</div>
+            <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
+        </div>
+    `;
     }
 
     removeFromCart(productGuid) {
@@ -401,28 +390,12 @@ class LoyaltyProApp {
         this.loadCart();
     }
 
-    async checkoutCart() {
-    this.checkPhoneBeforeAction('оплаты', async () => {
-        try {
-            const response = await fetch(`${this.baseURL}/api/telegram/purchase/`, {
-                method: 'POST',
-                headers: this.getAuthHeaders(),
-                body: JSON.stringify({ items: this.cart })
-            });
-            
-            if (response.ok) {
-                this.cart = [];
-                this.showNotification('Успешно', 'Оплата прошла успешно!', 'success');
-                // Обновить баланс участника
-                await this.checkTelegramLink();
-            } else {
-                this.showNotification('Ошибка', 'Не удалось完成 оплату', 'error');
-            }
-        } catch (error) {
-            this.showNotification('Ошибка', 'Ошибка соединения', 'error');
-        }
-        this.loadCart();
-    });
+    checkoutCart() {
+        this.checkPhoneBeforeAction('оплаты', () => {
+            this.cart = [];
+            this.showNotification('Успешно', 'Оплата прошла успешно!', 'success');
+            this.loadCart();
+        });
     }
 
     loadProfile() {
@@ -477,20 +450,6 @@ class LoyaltyProApp {
         document.body.appendChild(container);
         setTimeout(() => container.classList.remove('show'), 3000);
         setTimeout(() => container.remove(), 3500);
-    }
-
-    resetAllData() {
-    this.cart = [];
-    this.userData = null;
-    this.participant = null;
-    this.userPhone = null;
-    this.isAuthenticated = false;
-    
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    this.showAuthPage();
-    this.showNotification('Сброс', 'Все данные очищены', 'info');
     }
 }
 
