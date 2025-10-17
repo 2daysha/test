@@ -325,6 +325,9 @@ class LoyaltyProApp {
         grid.innerHTML = products.map(p => `
             <div class="product-card animate-card ${!p.is_available ? 'unavailable' : ''}" onclick="app.addToCart('${p.guid}')">
                 <span class="product-category">${p.category?.name || 'Без категории'}</span>
+                ${item.image_url ? `
+                <img src="${item.image_url}" alt="${item.name}" class="cart-image-url">
+            ` : ''}
                 <h3>${p.name}</h3>
                 <p>${p.stock || ''}</p>
                 <div class="product-price">${p.price} бонусов</div>
