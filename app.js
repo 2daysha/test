@@ -67,55 +67,59 @@ class LoyaltyProApp {
    
     async checkTelegramLink() {
     try {
-        console.log('🔧 DEBUG: === checkTelegramLink started ===');
-        console.log('🔧 DEBUG: userPhone before request:', this.userPhone);
-        console.log('🔧 DEBUG: initData available:', !!tg?.initData);
-        console.log('🔧 DEBUG: initData length:', tg?.initData?.length);
-        console.log('🔧 DEBUG: Telegram user:', tg?.initDataUnsafe?.user);
-        
         const response = await fetch(`${this.baseURL}/api/telegram/check-telegram-link/`, {
             method: 'POST',
             headers: this.getAuthHeaders()
         });
-        
-        console.log('🔧 DEBUG: Response status:', response.status);
-        console.log('🔧 DEBUG: Response ok:', response.ok);
-        
+
         if (response.status === 401) {
-            console.log('🔧 DEBUG: 401 Unauthorized - showing auth page');
+            console.warn('401 Unauthorized — пользователь не авторизован');
+            this.logout(); // очистка данных
             this.showAuthPage();
             return false;
         }
 
-        if (!response.ok) {
-            console.log('🔧 DEBUG: Response not OK, throwing error');
-            throw new Error(`HTTP ${response.status}`);
-        }
-
         const data = await response.json();
-        console.log('🔧 DEBUG: Response data:', data);
-        
+        console.log('Ответ check-telegram-link:', data);
+
         if (data.success && data.is_linked && data.participant) {
-            console.log('🔧 DEBUG: Account is linked, participant:', data.participant);
             this.participant = data.participant;
-            this.userPhone = this.participant.phone_number;
-            console.log('🔧 DEBUG: Participant phone:', this.participant?.phone_number);
+            this.userPhone = data.participant.phone_number || null;
+            this.userData = {
+                ...this.userData,
+                ...data.participant.telegram_profile
+            };
+            this.saveUserData();
             await this.loadProducts();
             await this.loadProductCategories();
             return true;
+        } else if (data.success && !data.is_linked) {
+            console.warn('Аккаунт не привязан');
+            this.showAuthPage();
+            return false;
+        } else {
+            console.error('Ошибка привязки Telegram');
+            this.showAuthPage();
+            return false;
         }
-        
-        console.log('🔧 DEBUG: Account not linked or other issue');
-        console.log('🔧 DEBUG: success:', data.success);
-        console.log('🔧 DEBUG: is_linked:', data.is_linked);
-        console.log('🔧 DEBUG: has participant:', !!data.participant);
-        
-        return false;
     } catch (error) {
-        console.error('🔧 DEBUG: Check telegram link error:', error);
-        throw error;
+        console.error('Ошибка при проверке привязки Telegram:', error);
+        this.showNotification('Ошибка', 'Не удалось проверить привязку', 'error');
+        this.showAuthPage();
+        return false;
     }
 }
+
+    logout() {
+        this.isAuthenticated = false;
+        this.userData = null;
+        this.participant = null;
+        this.userPhone = null;
+        this.cart = [];
+        localStorage.removeItem('userData');
+        localStorage.removeItem('participant');
+        this.showAuthPage();
+    }
 
 
     async loadProducts() {
@@ -171,40 +175,26 @@ class LoyaltyProApp {
     }
 
     async requestPhoneTelegram() {
-    try {
-        if (!tg || !tg.requestContact) {
-            this.showNotification('Ошибка', 'Функция запроса контакта недоступна', 'error');
+    if (!tg || !tg.requestContact) {
+        this.showNotification('Ошибка', 'Telegram API не поддерживает запрос контакта', 'error');
+        return;
+    }
+
+    tg.requestContact((contact) => {
+        if (!contact || !contact.phone_number) {
+            this.showNotification('Контакт не предоставлен', 'Вы не разрешили доступ к номеру телефона', 'warning');
             return;
         }
 
-        tg.requestContact(async (contact) => {
-            if (contact && contact.phone_number) {
-                this.userPhone = contact.phone_number;
-                console.log('Получен номер телефона:', this.userPhone);
-                
-                try {
-                    const checkSuccess = await this.checkTelegramLink();
-                    
-                    if (checkSuccess) {
-                        this.isAuthenticated = true;
-                        this.showMainApp();
-                        this.showNotification('Успех', 'Аккаунт успешно привязан', 'success');
-                    } else {
-                        this.showNotification('Ошибка', 'Не удалось привязать аккаунт', 'error');
-                    }
-                } catch (error) {
-                    console.error('Ошибка при проверке привязки:', error);
-                    this.showNotification('Ошибка', 'Ошибка сервера', 'error');
-                }
-            } else {
-                this.showNotification('Контакт не предоставлен', 'Вы не предоставили номер телефона', 'error');
-            }
-        });
-    } catch (err) {
-        console.error('Ошибка в requestPhoneTelegram:', err);
-        this.showNotification('Ошибка', 'Произошла непредвиденная ошибка', 'error');
-    }
+        this.userPhone = contact.phone_number;
+        console.log('Телефон получен от Telegram:', this.userPhone);
+        this.showNotification('Успех', 'Номер телефона успешно получен', 'success');
+        
+        this.isAuthenticated = true;
+        this.showMainApp();
+    });
 }
+
 
     requestPhoneBrowser() {
         this.userPhone = prompt("Введите номер телефона:");
@@ -285,56 +275,61 @@ class LoyaltyProApp {
     }
 
     renderProducts() {
-        const container = document.getElementById('page-home');
-        if (!container) return;
+    const container = document.getElementById('page-home');
+    if (!container) return;
 
-        const categories = ['all', ...this.categories.map(c => c.slug || c.name.toLowerCase())];
-        container.innerHTML = `
-            <div class="categories">
-                ${categories.map(cat => `
-                    <button class="category-btn ${cat==='all'?'active':''}" data-category="${cat}">
-                        ${cat[0].toUpperCase() + cat.slice(1)}
-                    </button>
-                `).join('')}
-            </div>
-            <div class="products-grid" id="products-grid"></div>
-        `;
+    const categories = ['all', ...this.categories.map(c => c.slug || c.name.toLowerCase())];
 
-        this.updateProductGrid('all');
+    // Рендерим блок с категориями и контейнер для товаров
+    container.innerHTML = `
+        <div class="categories">
+            ${categories.map(cat => `
+                <button class="category-btn ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
+                    ${cat[0].toUpperCase() + cat.slice(1)}
+                </button>
+            `).join('')}
+        </div>
+        <div class="products-grid" id="products-grid"></div>
+    `;
 
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const category = e.currentTarget.dataset.category;
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                this.updateProductGrid(category);
-            });
+    // Сразу показываем все товары
+    this.updateProductGrid('all');
+
+    // Назначаем обработчики кнопок категорий
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const category = e.currentTarget.dataset.category;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            this.updateProductGrid(category);
         });
-    }
+    });
+}
 
     updateProductGrid(category) {
-        const grid = document.getElementById('products-grid');
-        if (!grid) return;
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
 
-        const products = category === 'all' ? this.products : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
-        if (products.length === 0) {
-            grid.innerHTML = `<div class="loading">Нет товаров в этой категории</div>`;
-            return;
-        }
+    const products = category === 'all'
+        ? this.products
+        : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
 
-        grid.innerHTML = products.map(p => `
-            <div class="product-card animate-card ${!p.is_available ? 'unavailable' : ''}" onclick="app.addToCart('${p.guid}')">
-                <span class="product-category">${p.category?.name || 'Без категории'}</span>
-                ${p.image_url ? `
-                <img src="${p.image_url}" alt="${p.name}" class="cart-image-url">
-                ` : ''}
-                <h3>${p.name}</h3>
-                <p>${p.stock || ''}</p>
-                <div class="product-price">${p.price} бонусов</div>
-                ${!p.is_available ? '<div class="product-unavailable">Недоступно</div>' : ''}
-            </div>
-        `).join('');
+    if (products.length === 0) {
+        grid.innerHTML = `<div class="loading">Нет товаров в этой категории</div>`;
+        return;
     }
+
+    grid.innerHTML = products.map(p => `
+        <div class="product-card" onclick="app.addToCart('${p.guid}')">
+            <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
+            <span class="product-category">${p.category?.name || 'Без категории'}</span>
+            <h3>${p.name}</h3>
+            <p>${p.stock || ''}</p>
+            <div class="product-price">${p.price} бонусов</div>
+            ${!p.is_available ? '<div class="product-unavailable">Недоступно</div>' : ''}
+        </div>
+    `).join('');
+}
 
     addToCart(productGuid) {
         this.checkPhoneBeforeAction('добавления товара', () => {
@@ -353,39 +348,40 @@ class LoyaltyProApp {
     }
 
     loadCart() {
-        const container = document.getElementById('page-catalog');
-        if (!container) return;
+    const container = document.getElementById('page-catalog');
+    if (!container) return;
 
-        if (this.cart.length === 0) {
-            container.innerHTML = `<div class="loading">Ваша корзина пуста</div>`;
-            return;
-        }
-
-        container.innerHTML = this.cart.map(item => `
-            <div class="cart-item animate-card">
-                <div class="cart-item-header">
-                ${p.image_url ? `
-                <img src="${p.image_url}" alt="${p.name}" class="cart-image-url">
-            ` : ''}
-                    <div class="cart-item-info">
-                        <span class="cart-item-category">${p.category?.name || 'Без категории'}</span>
-                        <h3>${p.name}</h3>
-                        <p>${p.stock || ''}</p>
-                    </div>
-                    <div class="cart-item-price">${p.price * p.quantity}</div>
-                </div>
-                <div class="cart-item-actions">
-                    <button class="delete-btn animate-btn" onclick="app.removeFromCart('${p.guid}')">Удалить</button>
-                </div>
-            </div>
-        `).join('') + `
-            <div class="cart-total animate-card">
-                <h3>Итого</h3>
-                <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * i.quantity, 0)}</div>
-                <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
-            </div>
-        `;
+    if (this.cart.length === 0) {
+        container.innerHTML = `<div class="loading">Ваша корзина пуста</div>`;
+        return;
     }
+
+    container.innerHTML = this.cart.map(item => `
+        <div class="cart-item animate-card">
+            <div class="cart-item-header">
+                ${item.image_url ? `
+                    <img src="${item.image_url}" alt="${item.name}" class="cart-image-url">
+                ` : ''}
+                <div class="cart-item-info">
+                    <span class="cart-item-category">${item.category?.name || 'Без категории'}</span>
+                    <h3>${item.name}</h3>
+                    <p>${item.stock || ''}</p>
+                </div>
+                <div class="cart-item-price">${item.price * (item.quantity || 1)}</div>
+            </div>
+            <div class="cart-item-actions">
+                <button class="delete-btn animate-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
+            </div>
+        </div>
+    `).join('') + `
+        <div class="cart-total animate-card">
+            <h3>Итого</h3>
+            <div class="cart-total-price">${this.cart.reduce((sum, i) => sum + i.price * (i.quantity || 1), 0)}</div>
+            <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">Оплатить</button>
+        </div>
+    `;
+    }
+
 
     removeFromCart(productGuid) {
         this.cart = this.cart.filter(c => c.guid !== productGuid);
