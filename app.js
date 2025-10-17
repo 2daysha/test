@@ -25,15 +25,25 @@ class LoyaltyProApp {
 
     
     async init() { 
+    console.log('🔧 DEBUG: === App init started ===');
+    console.log('🔧 DEBUG: isTelegram:', this.isTelegram);
+    console.log('🔧 DEBUG: tg available:', !!tg);
+    
     if (this.isTelegram && tg) {
         tg.expand();
         tg.enableClosingConfirmation();
+        console.log('🔧 DEBUG: Telegram WebApp initialized');
+        console.log('🔧 DEBUG: initDataUnsafe user:', tg.initDataUnsafe?.user);
     }
 
     this.loadUserDataFromStorage();
+    console.log('🔧 DEBUG: userData from storage:', this.userData);
+    console.log('🔧 DEBUG: participant from storage:', this.participant);
 
     try {
         const linked = await this.checkTelegramLink();
+        console.log('🔧 DEBUG: checkTelegramLink result:', linked);
+        
         if (linked) {
             this.isAuthenticated = true;
             this.showMainApp();
@@ -41,11 +51,11 @@ class LoyaltyProApp {
             this.showAuthPage();
         }
     } catch (err) {
-        console.error('Ошибка проверки привязки:', err);
+        console.error('🔧 DEBUG: Init error:', err);
         this.showAuthPage();
     }
-}
-
+    }
+    
     getAuthHeaders() {
     const initData = tg?.initData || '';
     return {
@@ -54,33 +64,54 @@ class LoyaltyProApp {
     };
 }
 
+   
     async checkTelegramLink() {
     try {
+        console.log('🔧 DEBUG: === checkTelegramLink started ===');
+        console.log('🔧 DEBUG: userPhone before request:', this.userPhone);
+        console.log('🔧 DEBUG: initData available:', !!tg?.initData);
+        console.log('🔧 DEBUG: initData length:', tg?.initData?.length);
+        console.log('🔧 DEBUG: Telegram user:', tg?.initDataUnsafe?.user);
+        
         const response = await fetch(`${this.baseURL}/api/telegram/check-telegram-link/`, {
             method: 'POST',
             headers: this.getAuthHeaders()
         });
         
+        console.log('🔧 DEBUG: Response status:', response.status);
+        console.log('🔧 DEBUG: Response ok:', response.ok);
+        
         if (response.status === 401) {
+            console.log('🔧 DEBUG: 401 Unauthorized - showing auth page');
             this.showAuthPage();
             return false;
         }
 
         if (!response.ok) {
+            console.log('🔧 DEBUG: Response not OK, throwing error');
             throw new Error(`HTTP ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('🔧 DEBUG: Response data:', data);
         
         if (data.success && data.is_linked && data.participant) {
+            console.log('🔧 DEBUG: Account is linked, participant:', data.participant);
             this.participant = data.participant;
+            console.log('🔧 DEBUG: Participant phone:', this.participant?.phone_number);
             await this.loadProducts();
             await this.loadProductCategories();
             return true;
         }
+        
+        console.log('🔧 DEBUG: Account not linked or other issue');
+        console.log('🔧 DEBUG: success:', data.success);
+        console.log('🔧 DEBUG: is_linked:', data.is_linked);
+        console.log('🔧 DEBUG: has participant:', !!data.participant);
+        
         return false;
     } catch (error) {
-        console.error('Check telegram link error:', error);
+        console.error('🔧 DEBUG: Check telegram link error:', error);
         throw error;
     }
 }
@@ -151,25 +182,17 @@ class LoyaltyProApp {
                 console.log('Получен номер телефона:', this.userPhone);
                 
                 try {
-                    // 1. Сначала отправляем номер на бэкенд для привязки
-                    const linkSuccess = await this.linkTelegramAccount();
+                    const checkSuccess = await this.checkTelegramLink();
                     
-                    if (linkSuccess) {
-                        // 2. Затем проверяем привязку
-                        const checkSuccess = await this.checkTelegramLink();
-                        
-                        if (checkSuccess) {
-                            this.isAuthenticated = true;
-                            this.showMainApp();
-                            this.showNotification('Успех', 'Аккаунт успешно привязан', 'success');
-                        } else {
-                            this.showNotification('Ошибка', 'Не удалось подтвердить привязку', 'error');
-                        }
+                    if (checkSuccess) {
+                        this.isAuthenticated = true;
+                        this.showMainApp();
+                        this.showNotification('Успех', 'Аккаунт успешно привязан', 'success');
                     } else {
                         this.showNotification('Ошибка', 'Не удалось привязать аккаунт', 'error');
                     }
                 } catch (error) {
-                    console.error('Ошибка при привязке аккаунта:', error);
+                    console.error('Ошибка при проверке привязки:', error);
                     this.showNotification('Ошибка', 'Ошибка сервера', 'error');
                 }
             } else {
@@ -182,29 +205,6 @@ class LoyaltyProApp {
     }
 }
 
-    async linkTelegramAccount() {
-    try {
-        const tgUser = tg.initDataUnsafe?.user;
-        const linkData = {
-            phone_number: this.userPhone,
-            telegram_id: tgUser?.id,
-            first_name: tgUser?.first_name,
-            last_name: tgUser?.last_name,
-            username: tgUser?.username
-        };
-
-        const response = await fetch(`${this.baseURL}/api/telegram/link-telegram/`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(linkData)
-        });
-
-        return response.ok;
-    } catch (error) {
-        console.error('Link telegram account error:', error);
-        return false;
-    }
-}
     requestPhoneBrowser() {
         this.userPhone = prompt("Введите номер телефона:");
         if (this.userPhone) {
