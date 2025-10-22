@@ -143,8 +143,6 @@ class LoyaltyProApp {
 
         tg.requestContact(async (success) => {
             if (success) {
-                this.showNotification('Успех', 'Номер телефона получен', 'success');
-                
                 // После успешного запроса контакта проверяем статус на сервере
                 try {
                     const linked = await this.checkTelegramLink();
@@ -500,6 +498,31 @@ class LoyaltyProApp {
         setTimeout(() => container.classList.remove('show'), 3000);
         setTimeout(() => container.remove(), 3500);
     }
+
+    showSuccessOverlay(title, message) {
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay show';
+    overlay.innerHTML = `
+        <div class="success-checkmark">
+            <div class="check-icon">
+                <span class="icon-line line-tip"></span>
+                <span class="icon-line line-long"></span>
+                <div class="icon-circle"></div>
+                <div class="icon-fix"></div>
+            </div>
+        </div>
+        <div class="success-overlay-content">
+            <div class="success-overlay-title">${title}</div>
+            <div class="success-overlay-message">${message}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 300);
+    }, 3000);
+}
 }
 
 window.app = new LoyaltyProApp();

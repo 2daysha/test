@@ -313,7 +313,7 @@ body {
     justify-content: space-between;
 }
 
-.cart-item-right h3 {
+.cart-item-top h3 {
     font-size: 16px;
     font-weight: 600;
     color: #000000;
@@ -335,6 +335,51 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+}
+
+/* Управление количеством */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8f8f8;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.quantity-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #3F75FB;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:active {
+    transform: scale(0.95);
+}
+
+.quantity {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+    min-width: 40px;
+    text-align: center;
+}
+
+.item-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
 }
 
 .cart-item-price {
@@ -345,7 +390,7 @@ body {
 
 /* Кнопка удаления */
 .delete-btn {
-    padding: 8px 16px;
+    padding: 8px 12px;
     background: #ff3b30;
     color: white;
     border: none;
@@ -354,6 +399,9 @@ body {
     font-size: 12px;
     font-weight: 500;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .delete-btn:hover {
@@ -377,14 +425,24 @@ body {
 .cart-total-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 16px;
+}
+
+.total-info {
+    flex: 1;
 }
 
 .cart-total-title {
     font-size: 18px;
     font-weight: 600;
     color: #000000;
+    margin-bottom: 4px;
+}
+
+.total-items {
+    font-size: 14px;
+    color: #666666;
 }
 
 .cart-total-amount {
@@ -482,6 +540,208 @@ body {
     transform: scale(0.98);
 }
 
+/* === УВЕДОМЛЕНИЯ === */
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid #e5e5e5;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 90vw;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.notification-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.notification-message {
+    font-size: 14px;
+    color: #666666;
+    line-height: 1.4;
+}
+
+/* Типы уведомлений */
+.notification-success {
+    border-left: 4px solid #34C759;
+}
+
+.notification-success .notification-icon {
+    color: #34C759;
+}
+
+.notification-error {
+    border-left: 4px solid #FF3B30;
+}
+
+.notification-error .notification-icon {
+    color: #FF3B30;
+}
+
+.notification-warning {
+    border-left: 4px solid #FF9500;
+}
+
+.notification-warning .notification-icon {
+    color: #FF9500;
+}
+
+.notification-info {
+    border-left: 4px solid #3F75FB;
+}
+
+.notification-info .notification-icon {
+    color: #3F75FB;
+}
+
+/* === УВЕДОМЛЕНИЕ УСПЕХА НА ВЕСЬ ЭКРАН === */
+.success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.success-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.success-checkmark {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.success-checkmark .check-icon {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 50%;
+    box-sizing: content-box;
+    border: 4px solid #34C759;
+}
+
+.success-checkmark .check-icon::before {
+    top: 3px;
+    left: -2px;
+    width: 30px;
+    transform-origin: 100% 50%;
+    border-radius: 100px 0 0 100px;
+}
+
+.success-checkmark .check-icon::after {
+    top: 0;
+    left: 30px;
+    width: 60px;
+    transform-origin: 0 50%;
+    border-radius: 0 100px 100px 0;
+    animation: rotate-circle 4.25s ease-in;
+}
+
+.success-checkmark .check-icon .icon-line {
+    height: 4px;
+    background-color: #34C759;
+    display: block;
+    border-radius: 2px;
+    position: absolute;
+    z-index: 10;
+}
+
+.success-checkmark .check-icon .icon-line.line-tip {
+    top: 56px;
+    left: 24px;
+    width: 40px;
+    transform: rotate(45deg);
+    animation: icon-line-tip 0.75s;
+}
+
+.success-checkmark .check-icon .icon-line.line-long {
+    top: 50px;
+    right: 16px;
+    width: 56px;
+    transform: rotate(-45deg);
+    animation: icon-line-long 0.75s;
+}
+
+.success-overlay-content {
+    text-align: center;
+    padding: 0 20px;
+}
+
+.success-overlay-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 12px;
+}
+
+.success-overlay-message {
+    font-size: 18px;
+    color: #666666;
+    line-height: 1.4;
+}
+
+@keyframes rotate-circle {
+    0% { transform: rotate(-45deg); }
+    5% { transform: rotate(-45deg); }
+    12% { transform: rotate(-405deg); }
+    100% { transform: rotate(-405deg); }
+}
+
+@keyframes icon-line-tip {
+    0% { width: 0; left: 4px; top: 58px; }
+    54% { width: 0; left: 4px; top: 58px; }
+    70% { width: 40px; left: 24px; top: 56px; }
+    84% { width: 24px; left: 16px; top: 58px; }
+    100% { width: 40px; left: 24px; top: 56px; }
+}
+
+@keyframes icon-line-long {
+    0% { width: 0; right: 46px; top: 54px; }
+    65% { width: 0; right: 46px; top: 54px; }
+    84% { width: 56px; right: 16px; top: 50px; }
+    100% { width: 56px; right: 16px; top: 50px; }
+}
+
 /* Анимации */
 @keyframes slideUp {
     from {
@@ -491,6 +751,26 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+.animate-card {
+    animation: slideUp 0.3s ease;
+}
+
+.animate-btn {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(63, 117, 251, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(63, 117, 251, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(63, 117, 251, 0);
     }
 }
 
@@ -521,11 +801,31 @@ body {
     margin-top: 15px; 
 }
 
-.stat-card { background: #f8f8f8; border-radius: 16px; padding: 16px; text-align: center; border: 1px solid #e5e5e5; }
+.stat-card { 
+    background: #f8f8f8; 
+    border-radius: 16px; 
+    padding: 16px; 
+    text-align: center; 
+    border: 1px solid #e5e5e5; 
+}
 .stat-value { font-size: 24px; font-weight: 700; color: #3F75FB; }
 .stat-label { font-size: 12px; color: #999999; margin-top: 4px; }
 
-.support-btn, .tariff-btn { background: #3F75FB; color: white; border-radius: 12px; padding: 16px; width: 100%; font-weight: 600; cursor: pointer; }
+.support-btn, .tariff-btn { 
+    background: #3F75FB; 
+    color: white; 
+    border-radius: 12px; 
+    padding: 16px; 
+    width: 100%; 
+    font-weight: 600; 
+    cursor: pointer; 
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.support-btn:active, .tariff-btn:active {
+    transform: scale(0.98);
+}
 
 /* Скрываем элементы Telegram в браузере */
 .webapp-control, .tg-webapp-popup { display: none !important; }
@@ -578,9 +878,22 @@ body {
         align-items: flex-start;
     }
 
+    .quantity-controls {
+        align-self: stretch;
+        justify-content: center;
+    }
+
+    .item-total {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .delete-btn {
         align-self: stretch;
         text-align: center;
+        justify-content: center;
     }
 
     .cart-header {
@@ -597,6 +910,26 @@ body {
 
     .cart-total-amount {
         text-align: left;
+    }
+
+    /* Адаптация уведомлений */
+    .notification {
+        min-width: 280px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+    }
+
+    .success-checkmark {
+        width: 80px;
+        height: 80px;
+    }
+
+    .success-overlay-title {
+        font-size: 24px;
+    }
+
+    .success-overlay-message {
+        font-size: 16px;
     }
 }
     
@@ -898,4 +1231,12 @@ body {
 
 .cart-item-info {
     flex: 1;
+}
+
+/* Сообщение загрузки */
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 16px;
+    color: #666666;
 }
