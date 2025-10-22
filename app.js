@@ -14,6 +14,14 @@ class LoyaltyProApp {
         this.isTelegram = !!tg;
         this.authState = 'checking';
         this.init();
+        this.handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            this.closeProductModal();
+        }
+
+        document.addEventListener('keydown', this.handleKeyDown);
+
+    };
     }
 
     async init() { 
@@ -344,7 +352,7 @@ class LoyaltyProApp {
 
     grid.innerHTML = products.map(p => `
         <div class="product-card ${!p.is_available ? 'unavailable' : ''}" 
-             onclick="${p.is_available ? `app.addToCart('${p.guid}')` : 'return false'}">
+             onclick="app.openProductModal('${p.guid}')">
             <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
             <span class="product-category">${p.category?.name || 'Без категории'}</span>
             <h3>${p.name}</h3>
@@ -451,6 +459,49 @@ class LoyaltyProApp {
                 </button>
             </div>
         `;
+    }
+
+    openProductModal(productGuid) {
+    const product = this.products.find(p => p.guid === productGuid);
+    if (!product) return;
+
+    const modal = document.getElementById('product-modal');
+    if (!modal) return;
+
+    document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
+    document.getElementById('modal-product-image').alt = product.name;
+    document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
+    document.getElementById('modal-product-name').textContent = product.name;
+    document.getElementById('modal-product-stock').textContent = product.stock || '';
+    document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
+    document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+
+    const addToCartBtn = document.getElementById('modal-add-to-cart');
+    
+    if (!product.is_available) {
+        addToCartBtn.textContent = 'Недоступно';
+        addToCartBtn.disabled = true;
+        addToCartBtn.style.background = '#ccc';
+    } else {
+        addToCartBtn.textContent = 'Добавить в корзину';
+        addToCartBtn.disabled = false;
+        addToCartBtn.style.background = '#3F75FB';
+        addToCartBtn.onclick = () => {
+            this.addToCart(product.guid);
+            this.closeProductModal();
+        };
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    }
+
+    closeProductModal() {
+        const modal = document.getElementById('product-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     }
 
     updateQuantity(productGuid, newQuantity) {

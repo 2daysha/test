@@ -36,6 +36,36 @@
             <div id="page-home" class="page">
                 <div class="loading">Загрузка товаров...</div>
             </div>
+
+            <!-- Модальное окно товара -->
+            <div id="product-modal" class="product-modal">
+                <div class="modal-overlay" onclick="app.closeProductModal()"></div>
+                <div class="modal-content">
+                    <button class="modal-close" onclick="app.closeProductModal()">×</button>
+                    
+                    <div class="product-modal-left">
+                        <img id="modal-product-image" src="" alt="" class="modal-product-image">
+                    </div>
+                    
+                    <div class="product-modal-right">
+                        <div class="modal-product-category" id="modal-product-category"></div>
+                        <h2 id="modal-product-name" class="modal-product-name"></h2>
+                        <p id="modal-product-stock" class="modal-product-stock"></p>
+                        
+                        <div class="modal-product-description">
+                            <h4>Описание</h4>
+                            <p id="modal-product-description-text">Описание отсутствует</p>
+                        </div>
+                        
+                        <div class="modal-product-bottom">
+                            <div class="modal-product-price" id="modal-product-price"></div>
+                            <button id="modal-add-to-cart" class="modal-add-to-cart-btn">
+                                Добавить в корзину
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- Страница Корзина -->
             <div id="page-catalog" class="page">
