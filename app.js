@@ -12,6 +12,7 @@ class LoyaltyProApp {
         this.baseURL = 'http://localhost:3001';
         this.isAuthenticated = false;
         this.isTelegram = !!tg;
+        this.authState = 'checking';
         this.init();
     }
 
@@ -19,20 +20,39 @@ class LoyaltyProApp {
         if (!this.isTelegram || !tg) return;
 
         tg.expand();
-        tg.enableClosingConfirmation();
-
         this.loadUserDataFromStorage();
+        await this.checkAuthentication();
+    }
 
+    // Централизованная проверка аутентификации
+    async checkAuthentication() {
         try {
             const linked = await this.checkTelegramLink();
             if (linked) {
-                this.isAuthenticated = true;
-                this.showMainApp();
+                this.setAuthState('authenticated');
+                return true;
             } else {
-                this.showAuthPage();
+                this.setAuthState('unauthenticated');
+                return false;
             }
-        } catch {
-            this.showAuthPage();
+        } catch (error) {
+            this.setAuthState('unauthenticated');
+            return false;
+        }
+    }
+
+    // Установка состояния аутентификации
+    setAuthState(state) {
+        this.authState = state;
+        this.isAuthenticated = state === 'authenticated';
+        
+        switch (state) {
+            case 'authenticated':
+                this.showMainApp();
+                break;
+            case 'unauthenticated':
+                this.showAuthPage();
+                break;
         }
     }
 
@@ -52,8 +72,10 @@ class LoyaltyProApp {
             });
 
             if (response.status === 401) {
-                this.logout();
-                this.showAuthPage();
+                return false;
+            }
+
+            if (!response.ok) {
                 return false;
             }
 
@@ -67,72 +89,21 @@ class LoyaltyProApp {
                     ...data.participant.telegram_profile
                 };
                 this.saveUserData();
-                await this.loadProducts();
-                await this.loadProductCategories();
+                
+                // Загружаем продукты и категории только если еще не загружены
+                if (this.products.length === 0) {
+                    await this.loadProducts();
+                }
+                if (this.categories.length === 0) {
+                    await this.loadProductCategories();
+                }
                 return true;
-            } else {
-                this.showAuthPage();
-                return false;
             }
-        } catch {
-            this.showNotification('Ошибка', 'Не удалось проверить привязку', 'error');
-            this.showAuthPage();
+            return false;
+        } catch (error) {
+            console.error('Check telegram link error:', error);
             return false;
         }
-    }
-
-    logout() {
-        this.isAuthenticated = false;
-        this.userData = null;
-        this.participant = null;
-        this.userPhone = null;
-        this.cart = [];
-        localStorage.removeItem('userData');
-        localStorage.removeItem('participant');
-        this.showAuthPage();
-    }
-
-    async loadProducts() {
-        try {
-            const response = await fetch(`${this.baseURL}/api/telegram/products/`, {
-                method: 'GET',
-                headers: this.getAuthHeaders()
-            });
-            if (response.ok) this.products = await response.json();
-        } catch {}
-    }
-
-    async loadProductCategories() {
-        try {
-            const response = await fetch(`${this.baseURL}/api/telegram/product-categories/`, {
-                method: 'GET',
-                headers: this.getAuthHeaders()
-            });
-            if (response.ok) this.categories = await response.json();
-        } catch {}
-    }
-
-    showAuthPage() {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-auth').classList.add('active');
-        document.querySelector('.bottom-nav').style.display = 'none';
-        document.querySelector('.app').classList.remove('authenticated');
-
-        const requestBtn = document.getElementById('request-phone-btn');
-        if (requestBtn) requestBtn.addEventListener('click', () => this.requestPhoneTelegram());
-    }
-
-    showMainApp() {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelector('.bottom-nav').style.display = 'flex';
-        document.querySelector('.app').classList.add('authenticated');
-
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', e => this.navigateTo(e.currentTarget.dataset.page));
-        });
-
-        this.loadUserData();
-        this.showPage('home');
     }
 
     async requestPhoneTelegram() {
@@ -143,12 +114,13 @@ class LoyaltyProApp {
 
         tg.requestContact(async (success) => {
             if (success) {
-                // После успешного запроса контакта проверяем статус на сервере
+                this.showNotification('Успех', 'Номер телефона получен', 'success');
+                
                 try {
-                    const linked = await this.checkTelegramLink();
+                    const linked = await this.pollTelegramLink(10000, 1000);
                     if (linked) {
-                        this.isAuthenticated = true;
-                        this.showMainApp();
+                        this.setAuthState('authenticated');
+                        this.showNotification('Успех', 'Номер телефона успешно привязан!', 'success');
                     } else {
                         this.showNotification('Ошибка', 'Не удалось привязать номер телефона', 'error');
                     }
@@ -161,6 +133,99 @@ class LoyaltyProApp {
         });
     }
 
+    async pollTelegramLink(timeout = 10000, interval = 1000) {
+        return new Promise((resolve, reject) => {
+            const startTime = Date.now();
+            
+            const poll = async () => {
+                try {
+                    const linked = await this.checkTelegramLink();
+                    
+                    if (linked) {
+                        resolve(true);
+                        return;
+                    }
+                    if (Date.now() - startTime >= timeout) {
+                        resolve(false);
+                        return;
+                    }
+                    setTimeout(poll, interval);
+                } catch (error) {
+                    if (Date.now() - startTime >= timeout) {
+                        resolve(false);
+                        return;
+                    }
+                    setTimeout(poll, interval);
+                }
+            };
+            poll();
+        });
+    }
+
+    logout() {
+        this.isAuthenticated = false;
+        this.authState = 'unauthenticated';
+        this.userData = null;
+        this.participant = null;
+        this.userPhone = null;
+        this.cart = [];
+        this.products = [];
+        this.categories = [];
+        localStorage.removeItem('userData');
+        localStorage.removeItem('participant');
+        localStorage.removeItem('cart');
+        this.setAuthState('unauthenticated');
+    }
+
+    async loadProducts() {
+        try {
+            const response = await fetch(`${this.baseURL}/api/telegram/products/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+            if (response.ok) this.products = await response.json();
+        } catch (error) {
+            console.error('Load products error:', error);
+        }
+    }
+
+    async loadProductCategories() {
+        try {
+            const response = await fetch(`${this.baseURL}/api/telegram/product-categories/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+            if (response.ok) this.categories = await response.json();
+        } catch (error) {
+            console.error('Load categories error:', error);
+        }
+    }
+
+    showAuthPage() {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-auth').classList.add('active');
+        document.querySelector('.bottom-nav').style.display = 'none';
+        document.querySelector('.app').classList.remove('authenticated');
+
+        const requestBtn = document.getElementById('request-phone-btn');
+        if (requestBtn) {
+            requestBtn.onclick = () => this.requestPhoneTelegram();
+        }
+    }
+
+    showMainApp() {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelector('.bottom-nav').style.display = 'flex';
+        document.querySelector('.app').classList.add('authenticated');
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.onclick = (e) => this.navigateTo(e.currentTarget.dataset.page);
+        });
+
+        this.loadUserData();
+        this.showPage('home');
+    }
+
     saveUserData() {
         localStorage.setItem('userData', JSON.stringify(this.userData));
         localStorage.setItem('participant', JSON.stringify(this.participant));
@@ -169,12 +234,18 @@ class LoyaltyProApp {
     loadUserDataFromStorage() {
         const storedUser = localStorage.getItem('userData');
         const storedParticipant = localStorage.getItem('participant');
+        const storedCart = localStorage.getItem('cart');
+        
         if (storedUser) this.userData = JSON.parse(storedUser);
         if (storedParticipant) this.participant = JSON.parse(storedParticipant);
+        if (storedCart) this.cart = JSON.parse(storedCart);
     }
 
     navigateTo(page) {
-        if (!this.isAuthenticated) return this.showAuthPage();
+        if (!this.isAuthenticated) {
+            this.showNotification('Ошибка', 'Требуется авторизация', 'error');
+            return;
+        }
         this.showPage(page);
     }
 
@@ -221,7 +292,6 @@ class LoyaltyProApp {
             };
         }
 
-        // Телефон получаем только из participant (серверные данные)
         this.userPhone = participant?.phone_number || null;
     }
 
@@ -245,12 +315,12 @@ class LoyaltyProApp {
         this.updateProductGrid('all');
 
         document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.onclick = (e) => {
                 const category = e.currentTarget.dataset.category;
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                 e.currentTarget.classList.add('active');
                 this.updateProductGrid(category);
-            });
+            };
         });
     }
 
@@ -280,12 +350,20 @@ class LoyaltyProApp {
     }
 
     addToCart(productGuid) {
+        if (!this.isAuthenticated) {
+            this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
+            return;
+        }
+
         const product = this.products.find(p => p.guid === productGuid);
         if (!product) return;
 
         const existing = this.cart.find(i => i.guid === productGuid);
-        if (existing) existing.quantity++;
-        else this.cart.push({ ...product, quantity: 1 });
+        if (existing) {
+            existing.quantity++;
+        } else {
+            this.cart.push({ ...product, quantity: 1 });
+        }
 
         localStorage.setItem('cart', JSON.stringify(this.cart));
         this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
@@ -295,13 +373,7 @@ class LoyaltyProApp {
         const container = document.getElementById('page-catalog');
         if (!container) return;
 
-        // Загружаем корзину из localStorage при каждом вызове
-        const storedCart = localStorage.getItem('cart');
-        if (storedCart) {
-            this.cart = JSON.parse(storedCart);
-        }
-
-        if (this.cart.length === 0) {
+        if (!this.cart || this.cart.length === 0) {
             container.innerHTML = `
                 <div class="empty-cart">
                     <div class="empty-cart-icon">🛒</div>
@@ -373,6 +445,8 @@ class LoyaltyProApp {
     }
 
     updateQuantity(productGuid, newQuantity) {
+        if (!this.isAuthenticated) return;
+
         if (newQuantity < 1) {
             this.removeFromCart(productGuid);
             return;
@@ -387,6 +461,8 @@ class LoyaltyProApp {
     }
 
     removeFromCart(productGuid) {
+        if (!this.isAuthenticated) return;
+
         this.cart = this.cart.filter(c => c.guid !== productGuid);
         localStorage.setItem('cart', JSON.stringify(this.cart));
         this.showNotification('Удалено', 'Товар удален из корзины', 'info');
@@ -394,49 +470,54 @@ class LoyaltyProApp {
     }
 
     async checkoutCart() {
-        this.checkPhoneBeforeAction('оплаты', async () => {
-            try {
-                const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                
-                // Проверяем достаточно ли бонусов
-                if (this.participant?.balance < totalAmount) {
-                    this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
-                    return;
-                }
+        if (!this.isAuthenticated) {
+            this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
+            return;
+        }
 
-                // Отправляем запрос на сервер для создания заказа
-                const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-                    method: 'POST',
-                    headers: this.getAuthHeaders(),
-                    body: JSON.stringify({
-                        items: this.cart.map(item => ({
-                            product_guid: item.guid,
-                            quantity: item.quantity,
-                            price: item.price
-                        }))
-                    })
-                });
+        if (!this.userPhone) {
+            this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
+            return;
+        }
 
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.success) {
-                        this.cart = [];
-                        localStorage.removeItem('cart');
-                        this.showNotification('Успешно', 'Заказ создан и оплачен!', 'success');
-                        this.loadCart();
-                        
-                        // Обновляем баланс пользователя
-                        await this.checkTelegramLink();
-                    } else {
-                        this.showNotification('Ошибка', result.message || 'Ошибка при создании заказа', 'error');
-                    }
-                } else {
-                    this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
-                }
-            } catch (error) {
-                this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+        try {
+            const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (this.participant?.balance < totalAmount) {
+                this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+                return;
             }
-        });
+
+            const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({
+                    items: this.cart.map(item => ({
+                        product_guid: item.guid,
+                        quantity: item.quantity,
+                        price: item.price
+                    }))
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    this.cart = [];
+                    localStorage.removeItem('cart');
+                    this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+                    
+                    await this.checkTelegramLink();
+                    this.loadCart();
+                } else {
+                    this.showNotification('Ошибка', result.message || 'Ошибка при создании заказа', 'error');
+                }
+            } else {
+                this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
+            }
+        } catch (error) {
+            this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+        }
     }
 
     loadProfile() {
@@ -469,17 +550,7 @@ class LoyaltyProApp {
     }
 
     formatPhoneNumber(phone) {
-        // Простое форматирование номера телефона
-        return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
-    }
-
-    checkPhoneBeforeAction(action, callback) {
-        if (!this.userPhone) {
-            this.showNotification('Нужен телефон', `Для ${action} требуется номер телефона`, 'warning');
-            this.showAuthPage();
-            return;
-        }
-        callback();
+        return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 ($2) $3-$4-$5');
     }
 
     showNotification(title, message, type = 'info') {
@@ -500,29 +571,29 @@ class LoyaltyProApp {
     }
 
     showSuccessOverlay(title, message) {
-    const overlay = document.createElement('div');
-    overlay.className = 'success-overlay show';
-    overlay.innerHTML = `
-        <div class="success-checkmark">
-            <div class="check-icon">
-                <span class="icon-line line-tip"></span>
-                <span class="icon-line line-long"></span>
-                <div class="icon-circle"></div>
-                <div class="icon-fix"></div>
+        const overlay = document.createElement('div');
+        overlay.className = 'success-overlay show';
+        overlay.innerHTML = `
+            <div class="success-checkmark">
+                <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                </div>
             </div>
-        </div>
-        <div class="success-overlay-content">
-            <div class="success-overlay-title">${title}</div>
-            <div class="success-overlay-message">${message}</div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    
-    setTimeout(() => {
-        overlay.classList.remove('show');
-        setTimeout(() => overlay.remove(), 300);
-    }, 3000);
-}
+            <div class="success-overlay-content">
+                <div class="success-overlay-title">${title}</div>
+                <div class="success-overlay-message">${message}</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => {
+            overlay.classList.remove('show');
+            setTimeout(() => overlay.remove(), 300);
+        }, 3000);
+    }
 }
 
 window.app = new LoyaltyProApp();
