@@ -16,22 +16,14 @@ class LoyaltyProApp {
     }
 
     async init() { 
-        if (!this.isTelegram || !tg) return;
+    if (!this.isTelegram || !tg) return;
 
-        tg.expand();
-        tg.enableClosingConfirmation();
+    tg.expand();
+    tg.enableClosingConfirmation();
 
-        this.loadUserDataFromStorage();
-
-        const linked = await this.checkTelegramLink();
-
-        if (linked && this.userPhone) {
-            this.isAuthenticated = true;
-            this.showMainApp();
-        } else {
-            this.showAuthPage();
-        }
-    }
+    this.loadUserDataFromStorage();
+    this.showAuthPage();
+}
 
     getAuthHeaders() {
         const initData = tg?.initData || '';
