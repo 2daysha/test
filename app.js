@@ -24,7 +24,7 @@ class LoyaltyProApp {
         if (tg.disableClosingConfirmation) {
         tg.disableClosingConfirmation();
         }
-        
+
         this.loadUserDataFromStorage();
         await this.checkAuthentication();
     }
@@ -330,48 +330,53 @@ class LoyaltyProApp {
     }
 
     updateProductGrid(category) {
-        const grid = document.getElementById('products-grid');
-        if (!grid) return;
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
 
-        const products = category === 'all'
-            ? this.products
-            : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
+    const products = category === 'all'
+        ? this.products
+        : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
 
-        if (products.length === 0) {
-            grid.innerHTML = `<div class="loading">Нет товаров в этой категории</div>`;
-            return;
-        }
+    if (products.length === 0) {
+        grid.innerHTML = `<div class="loading">Нет товаров в этой категории</div>`;
+        return;
+    }
 
-        grid.innerHTML = products.map(p => `
-            <div class="product-card" onclick="app.addToCart('${p.guid}')">
-                <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
-                <span class="product-category">${p.category?.name || 'Без категории'}</span>
-                <h3>${p.name}</h3>
-                <p>${p.stock || ''}</p>
-                <div class="product-price">${p.price} бонусов</div>
-                ${!p.is_available ? '<div class="product-unavailable">Недоступно</div>' : ''}
-            </div>
-        `).join('');
+    grid.innerHTML = products.map(p => `
+        <div class="product-card ${!p.is_available ? 'unavailable' : ''}" 
+             onclick="${p.is_available ? `app.addToCart('${p.guid}')` : 'return false'}">
+            <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
+            <span class="product-category">${p.category?.name || 'Без категории'}</span>
+            <h3>${p.name}</h3>
+            <p>${p.stock || ''}</p>
+            <div class="product-price">${p.price} бонусов</div>
+        </div>
+    `).join('');
     }
 
     addToCart(productGuid) {
-        if (!this.isAuthenticated) {
-            this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
-            return;
-        }
+    if (!this.isAuthenticated) {
+        this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
+        return;
+    }
 
-        const product = this.products.find(p => p.guid === productGuid);
-        if (!product) return;
+    const product = this.products.find(p => p.guid === productGuid);
+    if (!product) return;
 
-        const existing = this.cart.find(i => i.guid === productGuid);
-        if (existing) {
-            existing.quantity++;
-        } else {
-            this.cart.push({ ...product, quantity: 1 });
-        }
+    if (!product.is_available) {
+        this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
+        return;
+    }
 
-        localStorage.setItem('cart', JSON.stringify(this.cart));
-        this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
+    const existing = this.cart.find(i => i.guid === productGuid);
+    if (existing) {
+        existing.quantity++;
+    } else {
+        this.cart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem('cart', JSON.stringify(this.cart));
+    this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
     }
 
     loadCart() {
@@ -443,7 +448,6 @@ class LoyaltyProApp {
                 </div>
                 <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
                     <span class="checkout-text">Перейти к оплате</span>
-                    <span class="checkout-arrow">→</span>
                 </button>
             </div>
         `;
