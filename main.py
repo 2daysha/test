@@ -16,7 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("❇️ Открыть приложение ❇️", web_app=WebAppInfo(url="https://2daysha.github.io/test/"))],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('❇️ Открыть приложение ❇️', reply_markup=reply_markup)
+    await update.message.reply_text('Чтобы открыть приложение нажми на кнопку', reply_markup=reply_markup)
 
 async def web_app_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 

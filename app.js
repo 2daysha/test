@@ -135,22 +135,27 @@ class LoyaltyProApp {
         this.showPage('home');
     }
 
-    requestPhoneTelegram() {
+    async requestPhoneTelegram() {
         if (!tg || !tg.requestContact) {
             this.showNotification('Ошибка', 'Telegram API не поддерживает запрос контакта', 'error');
             return;
         }
 
-        tg.requestContact((success) => {
+        tg.requestContact(async (success) => {
             if (success) {
-                const phoneNumber = tg.initDataUnsafe?.user?.phone_number;
-                if (phoneNumber) {
-                    this.userPhone = phoneNumber;
-                    this.isAuthenticated = true;
-                    this.showNotification('Успех', 'Номер телефона получен', 'success');
-                    this.showMainApp();
-                } else {
-                    this.showNotification('Ошибка', 'Не удалось получить номер', 'error');
+                this.showNotification('Успех', 'Номер телефона получен', 'success');
+                
+                // После успешного запроса контакта проверяем статус на сервере
+                try {
+                    const linked = await this.checkTelegramLink();
+                    if (linked) {
+                        this.isAuthenticated = true;
+                        this.showMainApp();
+                    } else {
+                        this.showNotification('Ошибка', 'Не удалось привязать номер телефона', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Ошибка', 'Ошибка при проверке номера телефона', 'error');
                 }
             } else {
                 this.showNotification('Отменено', 'Доступ к номеру не предоставлен', 'warning');
@@ -218,7 +223,8 @@ class LoyaltyProApp {
             };
         }
 
-        this.userPhone = participant?.phone_number || tgUser?.phone_number || null;
+        // Телефон получаем только из participant (серверные данные)
+        this.userPhone = participant?.phone_number || null;
     }
 
     renderProducts() {
@@ -231,7 +237,7 @@ class LoyaltyProApp {
             <div class="categories">
                 ${categories.map(cat => `
                     <button class="category-btn ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
-                        ${cat[0].toUpperCase() + cat.slice(1)}
+                        ${cat === 'all' ? 'Все' : (cat[0].toUpperCase() + cat.slice(1))}
                     </button>
                 `).join('')}
             </div>
@@ -291,12 +297,35 @@ class LoyaltyProApp {
         const container = document.getElementById('page-catalog');
         if (!container) return;
 
+        // Загружаем корзину из localStorage при каждом вызове
+        const storedCart = localStorage.getItem('cart');
+        if (storedCart) {
+            this.cart = JSON.parse(storedCart);
+        }
+
         if (this.cart.length === 0) {
-            container.innerHTML = `<div class="loading">Ваша корзина пуста</div>`;
+            container.innerHTML = `
+                <div class="empty-cart">
+                    <div class="empty-cart-icon">🛒</div>
+                    <h2>Ваша корзина пуста</h2>
+                    <p>Добавьте товары из каталога</p>
+                    <button class="back-to-catalog" onclick="app.showPage('home')">
+                        Вернуться в каталог
+                    </button>
+                </div>
+            `;
             return;
         }
 
+        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+
         container.innerHTML = `
+            <div class="cart-header">
+                <h1>Корзина</h1>
+                <span class="cart-count">${totalItems} товара</span>
+            </div>
+            
             <div class="cart-list">
                 ${this.cart.map(item => `
                     <div class="cart-item">
@@ -304,43 +333,111 @@ class LoyaltyProApp {
                             <img src="${item.image_url || 'placeholder.png'}" alt="${item.name}">
                         </div>
                         <div class="cart-item-right">
-                            <h3>${item.name}</h3>
-                            <p>${item.category?.name || 'Без категории'}</p>
+                            <div class="cart-item-top">
+                                <h3>${item.name}</h3>
+                                <p class="cart-item-category">${item.category?.name || 'Без категории'}</p>
+                            </div>
                             <div class="cart-item-bottom">
-                                <span class="cart-item-price">${item.price} бонусов</span>
-                                <button class="delete-btn" onclick="app.removeFromCart('${item.guid}')">Удалить</button>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" onclick="app.updateQuantity('${item.guid}', ${item.quantity - 1})">-</button>
+                                    <span class="quantity">${item.quantity} шт.</span>
+                                    <button class="quantity-btn" onclick="app.updateQuantity('${item.guid}', ${item.quantity + 1})">+</button>
+                                </div>
+                                <div class="item-total">
+                                    <span class="cart-item-price">${item.price * item.quantity} бонусов</span>
+                                    <button class="delete-btn" onclick="app.removeFromCart('${item.guid}')">
+                                        🗑️ Удалить
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 `).join('')}
             </div>
+            
             <div class="cart-total animate-card">
                 <div class="cart-total-header">
-                    <h3 class="cart-total-title">Итого</h3>
+                    <div class="total-info">
+                        <h3 class="cart-total-title">Итого к оплате</h3>
+                        <p class="total-items">${totalItems} товара на сумму</p>
+                    </div>
                     <div class="cart-total-amount">
-                        <span class="cart-total-price">${this.cart.reduce((s, i) => s + i.price * i.quantity, 0)}</span>
+                        <span class="cart-total-price">${totalAmount}</span>
                         <span class="cart-total-currency">бонусов</span>
                     </div>
                 </div>
                 <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
-                    <span class="checkout-text">Оплатить</span>
+                    <span class="checkout-text">Перейти к оплате</span>
                     <span class="checkout-arrow">→</span>
                 </button>
             </div>
         `;
     }
 
+    updateQuantity(productGuid, newQuantity) {
+        if (newQuantity < 1) {
+            this.removeFromCart(productGuid);
+            return;
+        }
+
+        const item = this.cart.find(i => i.guid === productGuid);
+        if (item) {
+            item.quantity = newQuantity;
+            localStorage.setItem('cart', JSON.stringify(this.cart));
+            this.loadCart();
+        }
+    }
+
     removeFromCart(productGuid) {
         this.cart = this.cart.filter(c => c.guid !== productGuid);
+        localStorage.setItem('cart', JSON.stringify(this.cart));
         this.showNotification('Удалено', 'Товар удален из корзины', 'info');
         this.loadCart();
     }
 
-    checkoutCart() {
-        this.checkPhoneBeforeAction('оплаты', () => {
-            this.cart = [];
-            this.showNotification('Успешно', 'Оплата прошла успешно!', 'success');
-            this.loadCart();
+    async checkoutCart() {
+        this.checkPhoneBeforeAction('оплаты', async () => {
+            try {
+                const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                // Проверяем достаточно ли бонусов
+                if (this.participant?.balance < totalAmount) {
+                    this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+                    return;
+                }
+
+                // Отправляем запрос на сервер для создания заказа
+                const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+                    method: 'POST',
+                    headers: this.getAuthHeaders(),
+                    body: JSON.stringify({
+                        items: this.cart.map(item => ({
+                            product_guid: item.guid,
+                            quantity: item.quantity,
+                            price: item.price
+                        }))
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        this.cart = [];
+                        localStorage.removeItem('cart');
+                        this.showNotification('Успешно', 'Заказ создан и оплачен!', 'success');
+                        this.loadCart();
+                        
+                        // Обновляем баланс пользователя
+                        await this.checkTelegramLink();
+                    } else {
+                        this.showNotification('Ошибка', result.message || 'Ошибка при создании заказа', 'error');
+                    }
+                } else {
+                    this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
+                }
+            } catch (error) {
+                this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+            }
         });
     }
 
@@ -350,11 +447,13 @@ class LoyaltyProApp {
 
         const { firstName, lastName, username } = this.userData || {};
         const balance = this.participant?.balance || 0;
+        const phone = this.userPhone ? this.formatPhoneNumber(this.userPhone) : 'Не привязан';
 
         container.innerHTML = `
             <div class="profile-info animate-card">
                 <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
                 <p><strong>Логин:</strong> ${username}</p>
+                <p><strong>Телефон:</strong> ${phone}</p>
             </div>
             <div class="profile-stats">
                 <div class="stat-card animate-card">
@@ -362,13 +461,18 @@ class LoyaltyProApp {
                     <span class="stat-label">Бонусы</span>
                 </div>
                 <div class="stat-card animate-card">
-                    <span class="stat-value">${this.cart.length}</span>
+                    <span class="stat-value">${this.cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
                     <span class="stat-label">В корзине</span>
                 </div>
             </div>
             <button class="tariff-btn animate-btn">Тарифы</button>
             <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">Поддержка</button>
         `;
+    }
+
+    formatPhoneNumber(phone) {
+        // Простое форматирование номера телефона
+        return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
     }
 
     checkPhoneBeforeAction(action, callback) {
