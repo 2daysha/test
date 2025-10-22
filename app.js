@@ -23,15 +23,12 @@ class LoyaltyProApp {
 
         this.loadUserDataFromStorage();
 
-        try {
-            const linked = await this.checkTelegramLink();
-            if (linked) {
-                this.isAuthenticated = true;
-                this.showMainApp();
-            } else {
-                this.showAuthPage();
-            }
-        } catch {
+        const linked = await this.checkTelegramLink();
+
+        if (linked && this.userPhone) {
+            this.isAuthenticated = true;
+            this.showMainApp();
+        } else {
             this.showAuthPage();
         }
     }
