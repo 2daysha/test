@@ -20,6 +20,11 @@ class LoyaltyProApp {
         if (!this.isTelegram || !tg) return;
 
         tg.expand();
+
+        if (tg.disableClosingConfirmation) {
+        tg.disableClosingConfirmation();
+        }
+        
         this.loadUserDataFromStorage();
         await this.checkAuthentication();
     }
