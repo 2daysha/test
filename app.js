@@ -23,12 +23,15 @@ class LoyaltyProApp {
 
         this.loadUserDataFromStorage();
 
-        const linked = await this.checkTelegramLink();
-
-        if (linked && this.userPhone) {
-            this.isAuthenticated = true;
-            this.showMainApp();
-        } else {
+        try {
+            const linked = await this.checkTelegramLink();
+            if (linked) {
+                this.isAuthenticated = true;
+                this.showMainApp();
+            } else {
+                this.showAuthPage();
+            }
+        } catch {
             this.showAuthPage();
         }
     }
@@ -110,15 +113,14 @@ class LoyaltyProApp {
     }
 
     showAuthPage() {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-auth').classList.add('active');
-    document.querySelector('.bottom-nav').style.display = 'none';
-    document.querySelector('.app').classList.remove('authenticated');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-auth').classList.add('active');
+        document.querySelector('.bottom-nav').style.display = 'none';
+        document.querySelector('.app').classList.remove('authenticated');
 
-    const requestBtn = document.getElementById('request-phone-btn');
-    if (requestBtn) requestBtn.addEventListener('click', () => this.requestPhoneTelegram());
-}
-
+        const requestBtn = document.getElementById('request-phone-btn');
+        if (requestBtn) requestBtn.addEventListener('click', () => this.requestPhoneTelegram());
+    }
 
     showMainApp() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -134,20 +136,32 @@ class LoyaltyProApp {
     }
 
     requestPhoneTelegram() {
-        if (!tg) {
-            this.showNotification('Ошибка', 'Telegram WebApp недоступен', 'error');
+        if (!tg || !tg.requestContact) {
+            this.showNotification('Ошибка', 'Telegram API не поддерживает запрос контакта', 'error');
             return;
         }
 
-        tg.sendData(JSON.stringify({ action: 'request_phone' }));
-
-        this.showNotification('Телефон', 'Проверьте чат с ботом — он запросил номер телефона.', 'info');
+        tg.requestContact((success) => {
+            if (success) {
+                const phoneNumber = tg.initDataUnsafe?.user?.phone_number;
+                if (phoneNumber) {
+                    this.userPhone = phoneNumber;
+                    this.isAuthenticated = true;
+                    this.showNotification('Успех', 'Номер телефона получен', 'success');
+                    this.showMainApp();
+                } else {
+                    this.showNotification('Ошибка', 'Не удалось получить номер', 'error');
+                }
+            } else {
+                this.showNotification('Отменено', 'Доступ к номеру не предоставлен', 'warning');
+            }
+        });
     }
 
-        saveUserData() {
-            localStorage.setItem('userData', JSON.stringify(this.userData));
-            localStorage.setItem('participant', JSON.stringify(this.participant));
-        }
+    saveUserData() {
+        localStorage.setItem('userData', JSON.stringify(this.userData));
+        localStorage.setItem('participant', JSON.stringify(this.participant));
+    }
 
     loadUserDataFromStorage() {
         const storedUser = localStorage.getItem('userData');
