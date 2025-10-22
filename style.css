@@ -258,11 +258,11 @@ body {
     transform: translate(-50%, -50%) rotate(-15deg);
     font-size: 18px;
     font-weight: 800;
-    color: #ff3b30;
+    color: #3966d8;
     background: rgba(255, 255, 255, 0.9);
     padding: 8px 16px;
     border-radius: 8px;
-    border: 2px solid #ff3b30;
+    border: 2px solid #25428d;
     z-index: 2;
     white-space: nowrap;
 }
@@ -878,7 +878,7 @@ body {
     .product-card {
         padding: 12px;
     }
-    
+
     .product-card.unavailable::after {
         font-size: 14px;
         padding: 8px 12px;
