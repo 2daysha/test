@@ -426,7 +426,7 @@ class LoyaltyProApp {
                                 <div class="item-total">
                                     <span class="cart-item-price">${item.price * item.quantity} бонусов</span>
                                     <button class="delete-btn" onclick="app.removeFromCart('${item.guid}')">
-                                        🗑️ Удалить
+                                        Удалить
                                     </button>
                                 </div>
                             </div>
