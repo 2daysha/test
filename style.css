@@ -133,7 +133,6 @@ body {
     height: 60px;
     max-width: 500px;
     margin: 0 auto;
-    border-top: 1px solid #e5e5e5;
 }
 
 .nav-item {
@@ -152,9 +151,6 @@ body {
 
 .nav-item.active {
     color: #3F75FB;
-    background: rgba(63, 117, 251, 0.1);
-    border-radius: 12px 12px 0 0;
-    margin: 0 2px;
 }
 
 .nav-icon { 
