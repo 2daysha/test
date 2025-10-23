@@ -328,6 +328,15 @@ class LoyaltyProApp {
         const categories = ['all', ...this.categories.map(c => c.slug || c.name.toLowerCase())];
 
         container.innerHTML = `
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input type="text" class="search-input" id="search-input" placeholder="Поиск товаров...">
+                    <button class="search-clear" id="search-clear" style="display: none;">×</button>
+                </div>
+            </div>
             <div class="categories">
                 ${categories.map(cat => `
                     <button class="category-btn ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
@@ -342,6 +351,7 @@ class LoyaltyProApp {
             </div>
         `;
 
+        this.setupSearch();
         this.updateProductGrid('all');
 
         document.querySelectorAll('.category-btn').forEach(btn => {
@@ -353,8 +363,99 @@ class LoyaltyProApp {
             };
         });
     }
+    setupSearch() {
+        const searchInput = document.getElementById('search-input');
+        const searchClear = document.getElementById('search-clear');
+
+        if (!searchInput || !searchClear) return;
+
+        // Поиск при вводе текста
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            
+            if (searchTerm.length > 0) {
+                searchClear.style.display = 'flex';
+                this.performSearch(searchTerm);
+            } else {
+                searchClear.style.display = 'none';
+                // Возвращаемся к текущей категории
+                const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+                this.updateProductGrid(activeCategory);
+            }
+        });
+
+        // Очистка поиска
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            searchClear.style.display = 'none';
+            const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+            this.updateProductGrid(activeCategory);
+            searchInput.focus();
+        });
+
+        // Закрытие поиска по Escape
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                searchClear.style.display = 'none';
+                const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+                this.updateProductGrid(activeCategory);
+            }
+        });
+    }
+
+    performSearch(searchTerm) {
+        const grid = document.getElementById('products-grid');
+        if (!grid) return;
+
+        const filteredProducts = this.products.filter(product => 
+            product.name.toLowerCase().includes(searchTerm) ||
+            product.description?.toLowerCase().includes(searchTerm) ||
+            product.category?.name.toLowerCase().includes(searchTerm)
+        );
+
+        const noProductsMessage = grid.querySelector('.no-products-message');
+        
+        // Очищаем grid (сохраняя сообщение)
+        const messageToKeep = grid.querySelector('.no-products-message');
+        grid.innerHTML = '';
+        if (messageToKeep) {
+            grid.appendChild(messageToKeep);
+        }
+        
+        if (filteredProducts.length === 0) {
+            noProductsMessage.style.display = 'flex';
+            noProductsMessage.textContent = 'По вашему запросу ничего не найдено';
+        } else {
+            noProductsMessage.style.display = 'none';
+            
+            filteredProducts.forEach(p => {
+                const productCard = document.createElement('div');
+                productCard.className = `product-card ${!p.is_available ? 'unavailable' : ''}`;
+                if (p.is_available) {
+                    productCard.onclick = () => this.openProductModal(p.guid);
+                }
+                
+                productCard.innerHTML = `
+                    <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
+                    <span class="product-category">${p.category?.name || 'Без категории'}</span>
+                    <h3>${p.name}</h3>
+                    <p>${p.stock || ''}</p>
+                    <div class="product-price">${p.price} бонусов</div>
+                `;
+                grid.appendChild(productCard);
+            });
+        }
+    }
 
     updateProductGrid(category) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && searchInput.value.trim() !== '') {
+            searchInput.value = '';
+            const searchClear = document.getElementById('search-clear');
+            if (searchClear) searchClear.style.display = 'none';
+        }
+        
         const grid = document.getElementById('products-grid');
         if (!grid) return;
 

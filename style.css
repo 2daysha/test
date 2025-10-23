@@ -1612,3 +1612,20 @@ body {
 .notification { 
     z-index: 10002 !important; 
 }
+
+/*Строка поиска*/
+.search-container { padding: 0 16px 16px; }
+.search-box { position: relative; display: flex; align-items: center; background: #f8f8f8; border-radius: 12px; padding: 8px 16px; border: 1px solid #e5e5e5; }
+.search-icon { width: 18px; height: 18px; color: #666; margin-right: 8px; flex-shrink: 0; }
+.search-input { flex: 1; border: none; background: transparent; font-size: 16px; color: #000; outline: none; }
+.search-input::placeholder { color: #999; }
+.search-clear { background: none; border: none; font-size: 20px; color: #666; cursor: pointer; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+.search-clear:hover { color: #000; }
+
+.search-box:focus-within { border-color: #3F75FB; background: #fff; }
+
+@media (max-width: 480px) {
+    .search-container { padding: 0 12px 12px; }
+    .search-box { padding: 6px 12px; }
+    .search-input { font-size: 14px; }
+}
