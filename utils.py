@@ -6,31 +6,25 @@ load_dotenv()
 
 BASE_DOMAIN = os.getenv('BASE_DOMAIN')
 
-
+#ПОТОМ УБРАТЬ!!!!!!!!!!!!!!!!!!!!!
 def get_bot_access_token():
-    request_url = f'{BASE_DOMAIN}/api/token/'
-    payload = {
-        'email': os.getenv('TG_BOT_SYSTEM_USER_EMAIL'),
-        'password': os.getenv('TG_BOT_SYSTEM_USER_PASSWORD'),
-    }
-
-    response = requests.post(request_url, json=payload)
-
-    if response.status_code == 200:
-        data = response.json()
-        return data.get('access')
-    else:
-        raise Exception(f'Ошибка получения токена: {response.status_code} {response.text}')
-    
+    # Для разработки - возвращаем заглушку
+    print("⚠️  Режим разработки: используем заглушку для токена")
+    return "dev_token_placeholder"
 
 def link_tg_account(link_data):
-    token = get_bot_access_token()
-
-    request_url = f'{BASE_DOMAIN}/api/telegram/link-telegram/'
-    headers = {
-        'Authorization': f'Bearer {token}'
+    # Для разработки - имитируем успешную привязку
+    print(f"⚠️  Режим разработки: имитация привязки для {link_data}")
+    return {
+        'success': True,
+        'is_linked': True,
+        'participant': {
+            'phone_number': link_data['phone_number'],
+            'balance': 1000,
+            'telegram_profile': {
+                'first_name': 'Test',
+                'last_name': 'User',
+                'username': 'testuser'
+            }
+        }
     }
-
-    response = requests.post(request_url, json=link_data, headers=headers)
-    return response
-
