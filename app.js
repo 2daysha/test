@@ -14,14 +14,15 @@ class LoyaltyProApp {
         this.isTelegram = !!tg;
         this.authState = 'checking';
         this.init();
+        
+        // Исправляем обработчик клавиш
         this.handleKeyDown = (e) => {
-        if (e.key === 'Escape') {
-            this.closeProductModal();
-        }
-
+            if (e.key === 'Escape') {
+                this.closeProductModal();
+            }
+        };
         document.addEventListener('keydown', this.handleKeyDown);
 
-    };
     }
 
     async init() { 
@@ -30,7 +31,7 @@ class LoyaltyProApp {
         tg.expand();
 
         if (tg.disableClosingConfirmation) {
-        tg.disableClosingConfirmation();
+            tg.disableClosingConfirmation();
         }
 
         this.loadUserDataFromStorage();
@@ -196,7 +197,13 @@ class LoyaltyProApp {
                 method: 'GET',
                 headers: this.getAuthHeaders()
             });
-            if (response.ok) this.products = await response.json();
+            if (response.ok) {
+                this.products = await response.json();
+                // После загрузки товаров обновляем отображение если на странице товаров
+                if (this.currentPage === 'home') {
+                    this.updateProductGrid('all');
+                }
+            }
         } catch (error) {
             console.error('Load products error:', error);
         }
@@ -213,8 +220,6 @@ class LoyaltyProApp {
             console.error('Load categories error:', error);
         }
     }
-
-    
 
     showAuthPage() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -280,9 +285,15 @@ class LoyaltyProApp {
 
     onPageChange(page) {
         switch (page) {
-            case 'home': this.renderProducts(); break;
-            case 'catalog': this.loadCart(); break;
-            case 'cart': this.loadProfile(); break;
+            case 'home': 
+                this.renderProducts(); 
+                break;
+            case 'catalog': 
+                this.loadCart(); 
+                break;
+            case 'cart': 
+                this.loadProfile(); 
+                break;
         }
     }
 
@@ -324,7 +335,11 @@ class LoyaltyProApp {
                     </button>
                 `).join('')}
             </div>
-            <div class="products-grid" id="products-grid"></div>
+            <div class="products-grid" id="products-grid">
+                <div class="no-products-message" style="display: none;">
+                    Нет товаров в этой категории
+                </div>
+            </div>
         `;
 
         this.updateProductGrid('all');
@@ -340,53 +355,69 @@ class LoyaltyProApp {
     }
 
     updateProductGrid(category) {
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
+        const grid = document.getElementById('products-grid');
+        if (!grid) return;
 
-    const products = category === 'all'
-        ? this.products
-        : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
+        const products = category === 'all'
+            ? this.products
+            : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
 
-    if (products.length === 0) {
-        grid.innerHTML = `<div class="loading">Нет товаров в этой категории</div>`;
-        return;
-    }
-
-    grid.innerHTML = products.map(p => `
-        <div class="product-card ${!p.is_available ? 'unavailable' : ''}" 
-             onclick="app.openProductModal('${p.guid}')">
-            <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
-            <span class="product-category">${p.category?.name || 'Без категории'}</span>
-            <h3>${p.name}</h3>
-            <p>${p.stock || ''}</p>
-            <div class="product-price">${p.price} бонусов</div>
-        </div>
-    `).join('');
+        const noProductsMessage = grid.querySelector('.no-products-message');
+        
+        // Очищаем grid (сохраняя сообщение)
+        const messageToKeep = grid.querySelector('.no-products-message');
+        grid.innerHTML = '';
+        if (messageToKeep) {
+            grid.appendChild(messageToKeep);
+        }
+        
+        if (products.length === 0) {
+            noProductsMessage.style.display = 'flex';
+        } else {
+            noProductsMessage.style.display = 'none';
+            
+            products.forEach(p => {
+                const productCard = document.createElement('div');
+                productCard.className = `product-card ${!p.is_available ? 'unavailable' : ''}`;
+                if (p.is_available) {
+                    productCard.onclick = () => this.openProductModal(p.guid);
+                }
+                
+                productCard.innerHTML = `
+                    <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
+                    <span class="product-category">${p.category?.name || 'Без категории'}</span>
+                    <h3>${p.name}</h3>
+                    <p>${p.stock || ''}</p>
+                    <div class="product-price">${p.price} бонусов</div>
+                `;
+                grid.appendChild(productCard);
+            });
+        }
     }
 
     addToCart(productGuid) {
-    if (!this.isAuthenticated) {
-        this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
-        return;
-    }
+        if (!this.isAuthenticated) {
+            this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
+            return;
+        }
 
-    const product = this.products.find(p => p.guid === productGuid);
-    if (!product) return;
+        const product = this.products.find(p => p.guid === productGuid);
+        if (!product) return;
 
-    if (!product.is_available) {
-        this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
-        return;
-    }
+        if (!product.is_available) {
+            this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
+            return;
+        }
 
-    const existing = this.cart.find(i => i.guid === productGuid);
-    if (existing) {
-        existing.quantity++;
-    } else {
-        this.cart.push({ ...product, quantity: 1 });
-    }
+        const existing = this.cart.find(i => i.guid === productGuid);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            this.cart.push({ ...product, quantity: 1 });
+        }
 
-    localStorage.setItem('cart', JSON.stringify(this.cart));
-    this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
+        localStorage.setItem('cart', JSON.stringify(this.cart));
+        this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
     }
 
     loadCart() {
@@ -464,38 +495,38 @@ class LoyaltyProApp {
     }
 
     openProductModal(productGuid) {
-    const product = this.products.find(p => p.guid === productGuid);
-    if (!product) return;
+        const product = this.products.find(p => p.guid === productGuid);
+        if (!product) return;
 
-    const modal = document.getElementById('product-modal');
-    if (!modal) return;
+        const modal = document.getElementById('product-modal');
+        if (!modal) return;
 
-    document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
-    document.getElementById('modal-product-image').alt = product.name;
-    document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
-    document.getElementById('modal-product-name').textContent = product.name;
-    document.getElementById('modal-product-stock').textContent = product.stock || '';
-    document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
-    document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+        document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
+        document.getElementById('modal-product-image').alt = product.name;
+        document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
+        document.getElementById('modal-product-name').textContent = product.name;
+        document.getElementById('modal-product-stock').textContent = product.stock || '';
+        document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
+        document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
 
-    const addToCartBtn = document.getElementById('modal-add-to-cart');
-    
-    if (!product.is_available) {
-        addToCartBtn.textContent = 'Недоступно';
-        addToCartBtn.disabled = true;
-        addToCartBtn.style.background = '#ccc';
-    } else {
-        addToCartBtn.textContent = 'Добавить в корзину';
-        addToCartBtn.disabled = false;
-        addToCartBtn.style.background = '#3F75FB';
-        addToCartBtn.onclick = () => {
-            this.addToCart(product.guid);
-            this.closeProductModal();
-        };
-    }
+        const addToCartBtn = document.getElementById('modal-add-to-cart');
+        
+        if (!product.is_available) {
+            addToCartBtn.textContent = 'Недоступно';
+            addToCartBtn.disabled = true;
+            addToCartBtn.style.background = '#ccc';
+        } else {
+            addToCartBtn.textContent = 'Добавить в корзину';
+            addToCartBtn.disabled = false;
+            addToCartBtn.style.background = '#3F75FB';
+            addToCartBtn.onclick = () => {
+                this.addToCart(product.guid);
+                this.closeProductModal();
+            };
+        }
 
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
 
     closeProductModal() {
