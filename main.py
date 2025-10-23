@@ -3,7 +3,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler
 from telegram.ext import filters
 from dotenv import load_dotenv
-
 from utils import link_tg_account
 
 load_dotenv()
