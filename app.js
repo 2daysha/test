@@ -325,8 +325,6 @@ class LoyaltyProApp {
         const container = document.getElementById('page-home');
         if (!container) return;
 
-        const categories = ['all', ...this.categories.map(c => c.slug || c.name.toLowerCase())];
-
         container.innerHTML = `
             <div class="search-container">
                 <div class="search-box">
@@ -337,13 +335,22 @@ class LoyaltyProApp {
                     <button class="search-clear" id="search-clear" style="display: none;">×</button>
                 </div>
             </div>
-            <div class="categories">
-                ${categories.map(cat => `
-                    <button class="category-btn ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
-                        ${cat === 'all' ? 'Все' : (cat[0].toUpperCase() + cat.slice(1))}
-                    </button>
-                `).join('')}
+            
+            <div class="categories-dropdown">
+                <button class="categories-toggle" id="categories-toggle">
+                    <span class="categories-toggle-text">Категории</span>
+                    <svg class="categories-arrow" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7 10l5 5 5-5z"/>
+                    </svg>
+                </button>
+                <div class="categories-menu" id="categories-menu">
+                    <div class="categories-list" id="categories-list">
+                        <!-- Категории будут добавляться динамически -->
+                    </div>
+                </div>
+                <div class="categories-overlay" id="categories-overlay"></div>
             </div>
+            
             <div class="products-grid" id="products-grid">
                 <div class="no-products-message" style="display: none;">
                     Нет товаров в этой категории
@@ -351,18 +358,101 @@ class LoyaltyProApp {
             </div>
         `;
 
+        this.setupCategoriesDropdown();
         this.setupSearch();
         this.updateProductGrid('all');
+    }
 
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.onclick = (e) => {
-                const category = e.currentTarget.dataset.category;
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
+    setupCategoriesDropdown() {
+        const categoriesToggle = document.getElementById('categories-toggle');
+        const categoriesMenu = document.getElementById('categories-menu');
+        const categoriesList = document.getElementById('categories-list');
+        const categoriesOverlay = document.getElementById('categories-overlay');
+
+        if (!categoriesToggle || !categoriesMenu || !categoriesList) return;
+
+        // Создаем список категорий
+        const categories = ['all', ...this.categories.map(c => c.slug || c.name.toLowerCase())];
+        
+        categoriesList.innerHTML = categories.map(cat => `
+            <button class="category-item ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
+                ${cat === 'all' ? 'Все товары' : (cat[0].toUpperCase() + cat.slice(1))}
+            </button>
+        `).join('');
+
+        // Переключение меню
+        categoriesToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = categoriesMenu.classList.contains('active');
+            
+            if (isActive) {
+                this.closeCategoriesMenu();
+            } else {
+                this.openCategoriesMenu();
+            }
+        });
+
+        // Выбор категории
+        categoriesList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-item')) {
+                const category = e.target.dataset.category;
+                
+                // Обновляем активную категорию
+                categoriesList.querySelectorAll('.category-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Обновляем текст кнопки
+                const categoryText = e.target.textContent;
+                categoriesToggle.querySelector('.categories-toggle-text').textContent = categoryText;
+                
+                // Закрываем меню и обновляем товары
+                this.closeCategoriesMenu();
                 this.updateProductGrid(category);
-            };
+            }
+        });
+
+        // Закрытие меню при клике вне
+        categoriesOverlay.addEventListener('click', () => {
+            this.closeCategoriesMenu();
+        });
+
+        // Закрытие меню при клике на документ
+        document.addEventListener('click', (e) => {
+            if (!categoriesToggle.contains(e.target) && !categoriesMenu.contains(e.target)) {
+                this.closeCategoriesMenu();
+            }
+        });
+
+        // Закрытие меню по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeCategoriesMenu();
+            }
         });
     }
+
+    openCategoriesMenu() {
+        const categoriesToggle = document.getElementById('categories-toggle');
+        const categoriesMenu = document.getElementById('categories-menu');
+        const categoriesOverlay = document.getElementById('categories-overlay');
+
+        categoriesToggle.classList.add('active');
+        categoriesMenu.classList.add('active');
+        categoriesOverlay.classList.add('active');
+    }
+
+    closeCategoriesMenu() {
+        const categoriesToggle = document.getElementById('categories-toggle');
+        const categoriesMenu = document.getElementById('categories-menu');
+        const categoriesOverlay = document.getElementById('categories-overlay');
+
+        categoriesToggle.classList.remove('active');
+        categoriesMenu.classList.remove('active');
+        categoriesOverlay.classList.remove('active');
+    }
+
     setupSearch() {
         const searchInput = document.getElementById('search-input');
         const searchClear = document.getElementById('search-clear');
@@ -455,7 +545,7 @@ class LoyaltyProApp {
             const searchClear = document.getElementById('search-clear');
             if (searchClear) searchClear.style.display = 'none';
         }
-        
+
         const grid = document.getElementById('products-grid');
         if (!grid) return;
 
@@ -474,6 +564,7 @@ class LoyaltyProApp {
         
         if (products.length === 0) {
             noProductsMessage.style.display = 'flex';
+            noProductsMessage.textContent = 'Нет товаров в этой категории';
         } else {
             noProductsMessage.style.display = 'none';
             

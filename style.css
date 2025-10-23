@@ -1629,3 +1629,31 @@ body {
     .search-box { padding: 6px 12px; }
     .search-input { font-size: 14px; }
 }
+
+/* Выпадающее меню категорий */
+.categories-dropdown { position: relative; margin: 0 16px 16px; }
+.categories-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; background: #f8f8f8; border: 1px solid #e5e5e5; border-radius: 12px; padding: 12px 16px; font-size: 16px; color: #000; cursor: pointer; transition: all 0.3s ease; }
+.categories-toggle:hover { background: #f0f0f0; }
+.categories-toggle.active { background: #fff; border-color: #3F75FB; }
+.categories-toggle-text { font-weight: 500; }
+.categories-arrow { width: 18px; height: 18px; transition: transform 0.3s ease; }
+.categories-toggle.active .categories-arrow { transform: rotate(180deg); }
+
+.categories-menu { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; margin-top: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); z-index: 100; max-height: 0; overflow: hidden; transition: all 0.3s ease; opacity: 0; }
+.categories-menu.active { max-height: 300px; opacity: 1; overflow-y: auto; }
+
+.categories-list { display: flex; flex-direction: column; padding: 8px; }
+.category-item { background: none; border: none; padding: 12px 16px; text-align: left; font-size: 14px; color: #000; cursor: pointer; border-radius: 8px; transition: all 0.2s ease; }
+.category-item:hover { background: #f8f8f8; }
+.category-item.active { background: rgba(63, 117, 251, 0.1); color: #3F75FB; font-weight: 500; }
+
+/* Overlay для закрытия при клике вне меню */
+.categories-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99; display: none; }
+.categories-overlay.active { display: block; }
+
+/* Мобильная адаптация */
+@media (max-width: 480px) {
+    .categories-dropdown { margin: 0 12px 12px; }
+    .categories-toggle { padding: 10px 14px; font-size: 14px; }
+    .category-item { padding: 10px 14px; font-size: 13px; }
+}
