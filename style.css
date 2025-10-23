@@ -1540,19 +1540,61 @@ body {
 }
 
 /* Исправление темного фона корзины */
-#page-catalog { background: #ffffff !important; }
-.cart-list { background: transparent !important; }
-.cart-item { background: white !important; }
-.cart-item-left, .cart-item-right { background: transparent !important; }
-.empty-cart { background: transparent !important; }
+#page-catalog { 
+    background: #ffffff !important; 
+}
+
+.cart-list { 
+    background: transparent !important; 
+}
+
+.cart-item { 
+    background: white !important; 
+    border: 1px solid #e5e5e5 !important;
+}
+
+.cart-item-left, .cart-item-right { 
+    background: transparent !important; 
+}
+
+.empty-cart { 
+    background: transparent !important; 
+}
+
+/* Убираем все темные переменные Telegram */
+.cart-item {
+    background: white !important;
+    --tg-theme-secondary-bg-color: white !important;
+    --tg-theme-section-bg-color: #e5e5e5 !important;
+}
 
 /* Исправление уведомления успеха */
-.success-overlay { background: rgba(255, 255, 255, 0.98) !important; z-index: 10001 !important; }
-.success-overlay-content { background: transparent !important; }
-.success-overlay-title { color: #000000 !important; }
-.success-overlay-message { color: #666666 !important; }
+.success-overlay { 
+    background: rgba(255, 255, 255, 0.98) !important; 
+    z-index: 10001 !important; 
+}
+
+.success-overlay-content { 
+    background: transparent !important; 
+}
+
+.success-overlay-title { 
+    color: #000000 !important; 
+}
+
+.success-overlay-message { 
+    color: #666666 !important; 
+}
 
 /* Исправление z-index порядка */
-.product-modal { z-index: 10000 !important; }
-.success-overlay { z-index: 10001 !important; }
-.notification { z-index: 10002 !important; }
+.product-modal { 
+    z-index: 10000 !important; 
+}
+
+.success-overlay { 
+    z-index: 10001 !important; 
+}
+
+.notification { 
+    z-index: 10002 !important; 
+}
