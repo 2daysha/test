@@ -150,21 +150,13 @@ body {
     flex: 1;
     background: none;
     border: none;
-    position: relative;
 }
 
 .nav-item.active {
     color: #3F75FB;
-}
-
-.nav-item.active::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    width: 4px;
-    height: 4px;
-    background: #3F75FB;
-    border-radius: 50%;
+    background: rgba(63, 117, 251, 0.1);
+    border-radius: 12px 12px 0 0;
+    margin: 0 2px;
 }
 
 .nav-icon { 
@@ -176,7 +168,6 @@ body {
 
 .nav-item.active .nav-icon {
     transform: translateY(-1px);
-    filter: drop-shadow(0 2px 4px rgba(63, 117, 251, 0.2));
 }
 
 .nav-label { 
