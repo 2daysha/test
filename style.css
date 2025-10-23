@@ -125,7 +125,6 @@ body {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(0, 0, 0, 0.1);
-    padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
     z-index: 1000;
 }
 
