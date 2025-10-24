@@ -251,8 +251,36 @@ class LoyaltyProApp {
         });
 
         this.loadUserData();
+        this.setupNavigation();
         this.showPage('home');
     }
+
+    setupNavigation() {
+    const navContainer = document.querySelector('.nav-container');
+    if (!navContainer) return;
+    
+    if (!document.querySelector('.nav-indicator')) {
+        const indicator = document.createElement('div');
+        indicator.className = 'nav-indicator';
+        navContainer.insertBefore(indicator, navContainer.firstChild);
+    }
+    
+    setTimeout(() => this.updateNavIndicator(), 100);
+}
+
+updateNavIndicator() {
+    const activeNav = document.querySelector('.nav-item.active');
+    const indicator = document.querySelector('.nav-indicator');
+    
+    if (!activeNav || !indicator) return;
+    
+    const navRect = activeNav.getBoundingClientRect();
+    const containerRect = activeNav.parentElement.getBoundingClientRect();
+    
+    indicator.style.width = `${navRect.width}px`;
+    indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
+}
+
 
     saveUserData() {
         localStorage.setItem('userData', JSON.stringify(this.userData));
@@ -595,31 +623,7 @@ class LoyaltyProApp {
         }
     }
 
-    async createOrder(orderData) {
-    try {
-        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(orderData)
-        });
-        
-        if (response.ok) {
-            const result = await response.json();
-            this.showNotification('Успех', 'Заказ создан!', 'success');
-            this.cart = []; // Очищаем корзину
-            localStorage.removeItem('cart');
-            this.loadCart(); // Обновляем вид корзины
-            return result;
-        } else {
-            const error = await response.json();
-            this.showNotification('Ошибка', error.detail || 'Ошибка создания заказа', 'error');
-        }
-    } catch (error) {
-        console.error('Ошибка создания заказа:', error);
-        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
-    }
-}
-
+    
     addToCart(productGuid) {
         if (!this.isAuthenticated) {
             this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
@@ -850,7 +854,7 @@ class LoyaltyProApp {
         console.error('Ошибка при создании заказа:', error);
         this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
     }
-    }
+}
 
     loadProfile() {
         const container = document.getElementById('page-cart');
