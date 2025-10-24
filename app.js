@@ -603,14 +603,20 @@ class LoyaltyProApp {
             body: JSON.stringify(orderData)
         });
         
-        if (response.status === 201) {
-            return await response.json();
-        } else if (response.status === 400) {
+        if (response.ok) {
+            const result = await response.json();
+            this.showNotification('Успех', 'Заказ создан!', 'success');
+            this.cart = []; // Очищаем корзину
+            localStorage.removeItem('cart');
+            this.loadCart(); // Обновляем вид корзины
+            return result;
+        } else {
             const error = await response.json();
-            this.showNotification('Ошибка', error.detail || 'Недостаточно товара', 'error');
+            this.showNotification('Ошибка', error.detail || 'Ошибка создания заказа', 'error');
         }
     } catch (error) {
         console.error('Ошибка создания заказа:', error);
+        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
     }
 }
 
