@@ -281,7 +281,6 @@ updateNavIndicator() {
     indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
 }
 
-
     saveUserData() {
         localStorage.setItem('userData', JSON.stringify(this.userData));
         localStorage.setItem('participant', JSON.stringify(this.participant));
@@ -306,18 +305,21 @@ updateNavIndicator() {
     }
 
     showPage(page) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-        const pageEl = document.getElementById(`page-${page}`);
-        if (pageEl) pageEl.classList.add('active');
+    const pageEl = document.getElementById(`page-${page}`);
+    if (pageEl) pageEl.classList.add('active');
 
-        const navItem = document.querySelector(`[data-page="${page}"]`);
-        if (navItem) navItem.classList.add('active');
+    const navItem = document.querySelector(`[data-page="${page}"]`);
+    if (navItem) navItem.classList.add('active');
 
-        this.currentPage = page;
-        this.onPageChange(page);
-    }
+    this.currentPage = page;
+    
+    setTimeout(() => this.updateNavIndicator(), 10);
+    
+    this.onPageChange(page);
+}
 
     onPageChange(page) {
         switch (page) {
