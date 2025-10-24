@@ -119,20 +119,27 @@ body {
 
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #ffffff;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     z-index: 1000;
+    padding: 8px;
+    min-width: 300px;
+    max-width: 400px;
 }
 
 .nav-container {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: 60px;
-    max-width: 500px;
+    height: 52px;
     margin: 0 auto;
+    position: relative;
 }
 
 .nav-item {
@@ -141,16 +148,34 @@ body {
     align-items: center;
     justify-content: center;
     color: #666;
-    gap: 2px;
+    gap: 4px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     flex: 1;
     background: none;
     border: none;
+    position: relative;
+    z-index: 2;
+    padding: 8px 12px;
+    border-radius: 30px;
+}
+
+/* Активный индикатор (двигающийся фон) */
+.nav-indicator {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    height: 36px;
+    background: #3F75FB;
+    border-radius: 30px;
+    box-shadow: 0 4px 16px rgba(63, 117, 251, 0.3);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 1;
 }
 
 .nav-item.active {
-    color: #3F75FB;
+    color: #ffffff;
+    transform: translateY(-2px);
 }
 
 .nav-icon { 
@@ -161,18 +186,78 @@ body {
 }
 
 .nav-item.active .nav-icon {
-    transform: translateY(-1px);
+    transform: scale(1.1) translateY(-1px);
 }
 
 .nav-label { 
-    font-size: 10px; 
-    font-weight: 500; 
+    font-size: 9px; 
+    font-weight: 600; 
     text-transform: uppercase; 
-    letter-spacing: 0.2px; 
+    letter-spacing: 0.3px; 
+    transition: all 0.3s ease;
+    opacity: 0.8;
+}
+
+.nav-item.active .nav-label {
+    opacity: 1;
+    transform: translateY(1px);
 }
 
 .nav-item:active { 
-    transform: scale(0.92); 
+    transform: scale(0.95); 
+}
+
+.nav-item.active:active {
+    transform: scale(0.95) translateY(-2px);
+}
+
+/* Анимация появления навигации */
+.bottom-nav {
+    animation: navSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes navSlideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Анимация переключения страниц */
+.page {
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page:not(.active) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.page.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Эффект для мобильных устройств */
+@media (max-width: 480px) {
+    .bottom-nav {
+        bottom: 16px;
+        min-width: 280px;
+        max-width: 350px;
+    }
+    
+    .nav-item {
+        padding: 6px 10px;
+    }
+    
+    .nav-indicator {
+        height: 34px;
+    }
 }
 
 /* Категории */
@@ -1333,64 +1418,6 @@ body {
     color: #666666;
 }
 
-/* Стили навигации */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #3F75FB;
-    border-top: 1px solid #3F75FB;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    z-index: 1000;
-}
-
-.nav-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: 70px;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    height: 100%;
-    cursor: pointer;
-    gap: 4px;
-    color: white;
-    background: none;
-    border: none;
-    transition: all 0.3s ease;
-    border-radius: 16px 16px 0 0;
-}
-
-.nav-item.active {
-    color: #3F75FB;
-    background: white;
-}
-
-.nav-icon {
-    width: 22px;
-    height: 22px;
-    fill: currentColor;
-    transition: all 0.3s ease;
-}
-
-.nav-item.active .nav-icon {
-    transform: translateY(-2px);
-}
-
-.nav-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
 
 /* Категории */
 .categories {
