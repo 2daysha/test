@@ -210,15 +210,23 @@ class LoyaltyProApp {
     }
 
     async loadProductCategories() {
-        try {
-            const response = await fetch(`${this.baseURL}/api/telegram/product-categories/`, {
-                method: 'GET',
-                headers: this.getAuthHeaders()
-            });
-            if (response.ok) this.categories = await response.json();
-        } catch (error) {
-            console.error('Load categories error:', error);
+    try {
+        const response = await fetch(`${this.baseURL}/api/telegram/product-categories/`, {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+        
+        if (response.status === 401) {
+            this.showAuthPage();
+            return;
         }
+        
+        if (response.ok) {
+            this.categories = await response.json();
+        }
+    } catch (err) {
+        console.error('Ошибка загрузки категорий:', err);
+    }
     }
 
     showAuthPage() {
@@ -587,6 +595,25 @@ class LoyaltyProApp {
         }
     }
 
+    async createOrder(orderData) {
+    try {
+        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(orderData)
+        });
+        
+        if (response.status === 201) {
+            return await response.json();
+        } else if (response.status === 400) {
+            const error = await response.json();
+            this.showNotification('Ошибка', error.detail || 'Недостаточно товара', 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка создания заказа:', error);
+    }
+}
+
     addToCart(productGuid) {
         if (!this.isAuthenticated) {
             this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
@@ -755,54 +782,68 @@ class LoyaltyProApp {
     }
 
     async checkoutCart() {
-        if (!this.isAuthenticated) {
-            this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
+    if (!this.isAuthenticated) {
+        this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
+        return;
+    }
+
+    if (!this.userPhone) {
+        this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
+        return;
+    }
+
+    try {
+        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        if (this.participant?.balance < totalAmount) {
+            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
             return;
         }
 
-        if (!this.userPhone) {
-            this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
-            return;
-        }
+        const orderData = {
+            items: this.cart.map(item => ({
+                product: item.guid,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
 
-        try {
-            const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        console.log('Отправляем заказ:', orderData);
+
+        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(orderData)
+        });
+
+        if (response.status === 201) {
+            const result = await response.json();
             
-            if (this.participant?.balance < totalAmount) {
-                this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
-                return;
-            }
-
-            const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-                method: 'POST',
-                headers: this.getAuthHeaders(),
-                body: JSON.stringify({
-                    items: this.cart.map(item => ({
-                        product_guid: item.guid,
-                        quantity: item.quantity,
-                        price: item.price
-                    }))
-                })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                if (result.success) {
-                    this.cart = [];
-                    localStorage.removeItem('cart');
-                    this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-                    
-                    await this.checkTelegramLink();
-                    this.loadCart();
-                } else {
-                    this.showNotification('Ошибка', result.message || 'Ошибка при создании заказа', 'error');
-                }
-            } else {
-                this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
-            }
-        } catch (error) {
-            this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+            this.cart = [];
+            localStorage.removeItem('cart');
+            
+            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+            
+            await this.checkTelegramLink();
+            this.loadCart();
+            
+        } else if (response.status === 400) {
+            const errorData = await response.json();
+            const errorMessage = errorData.detail || 'Ошибка при создании заказа';
+            this.showNotification('Ошибка', errorMessage, 'error');
+            
+        } else if (response.status === 401) {
+            this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
+            await this.checkAuthentication();
+            
+        } else {
+            this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
         }
+        
+    } catch (error) {
+        console.error('Ошибка при создании заказа:', error);
+        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+    }
     }
 
     loadProfile() {
