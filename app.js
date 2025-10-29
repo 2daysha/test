@@ -544,7 +544,6 @@ updateNavIndicator() {
 
         const noProductsMessage = grid.querySelector('.no-products-message');
         
-        // Очищаем grid (сохраняя сообщение)
         const messageToKeep = grid.querySelector('.no-products-message');
         grid.innerHTML = '';
         if (messageToKeep) {
@@ -577,58 +576,55 @@ updateNavIndicator() {
     }
 
     updateProductGrid(category) {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput && searchInput.value.trim() !== '') {
-            searchInput.value = '';
-            const searchClear = document.getElementById('search-clear');
-            if (searchClear) searchClear.style.display = 'none';
-        }
-
-        const grid = document.getElementById('products-grid');
-        if (!grid) return;
-
-        const products = category === 'all'
-            ? this.products
-            : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
-
-        const noProductsMessage = grid.querySelector('.no-products-message');
-        
-        const messageToKeep = grid.querySelector('.no-products-message');
-        grid.innerHTML = '';
-        if (messageToKeep) {
-            grid.appendChild(messageToKeep);
-        }
-        
-        if (products.length === 0) {
-            noProductsMessage.style.display = 'flex';
-            noProductsMessage.textContent = 'Нет товаров в этой категории';
-        } else {
-            noProductsMessage.style.display = 'none';
-            
-            products.forEach(p => {
-                // Проверяем доступность товара
-                const isUnavailable = !p.is_available || 
-                                    (p.stock !== undefined && p.stock !== null && p.stock < 1);
-                
-                const productCard = document.createElement('div');
-                productCard.className = `product-card ${isUnavailable ? 'unavailable' : ''}`;
-                
-                if (!isUnavailable) {
-                    productCard.onclick = () => this.openProductModal(p.guid);
-                }
-                
-                productCard.innerHTML = `
-                    <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
-                    <span class="product-category">${p.category?.name || 'Без категории'}</span>
-                    <h3>${p.name}</h3>
-                    <p>${p.stock || ''}</p>
-                    <div class="product-price">${p.price} бонусов</div>
-                    ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
-                `;
-                grid.appendChild(productCard);
-            });
-        }
+    const searchInput = document.getElementById('search-input');
+    if (searchInput && searchInput.value.trim() !== '') {
+        searchInput.value = '';
+        const searchClear = document.getElementById('search-clear');
+        if (searchClear) searchClear.style.display = 'none';
     }
+
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
+
+    const products = category === 'all'
+        ? this.products
+        : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
+
+    const noProductsMessage = grid.querySelector('.no-products-message');
+    const messageToKeep = grid.querySelector('.no-products-message');
+    grid.innerHTML = '';
+    if (messageToKeep) {
+        grid.appendChild(messageToKeep);
+    }
+    
+    if (products.length === 0) {
+        noProductsMessage.style.display = 'flex';
+        noProductsMessage.textContent = 'Нет товаров в этой категории';
+    } else {
+        noProductsMessage.style.display = 'none';
+        
+        products.forEach(p => {
+            const isUnavailable = !p.is_available;
+            
+            const productCard = document.createElement('div');
+            productCard.className = `product-card ${isUnavailable ? 'unavailable' : ''}`;
+            
+            if (!isUnavailable) {
+                productCard.onclick = () => this.openProductModal(p.guid);
+            }
+            
+            productCard.innerHTML = `
+                <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
+                <span class="product-category">${p.category?.name || 'Без категории'}</span>
+                <h3>${p.name}</h3>
+                <p>${p.stock || ''}</p>
+                <div class="product-price">${p.price} бонусов</div>
+                ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
+            `;
+            grid.appendChild(productCard);
+        });
+    }
+}
 
    addToCart(productGuid) {
     if (!this.isAuthenticated) {
@@ -639,10 +635,7 @@ updateNavIndicator() {
     const product = this.products.find(p => p.guid === productGuid);
     if (!product) return;
 
-    const isUnavailable = !product.is_available || 
-                         (product.stock !== undefined && product.stock !== null && product.stock < 1);
-    
-    if (isUnavailable) {
+    if (!product.is_available) {
         this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
         return;
     }
@@ -733,44 +726,41 @@ updateNavIndicator() {
     }
 
     openProductModal(productGuid) {
-        const product = this.products.find(p => p.guid === productGuid);
-        if (!product) return;
+    const product = this.products.find(p => p.guid === productGuid);
+    if (!product) return;
 
-        const modal = document.getElementById('product-modal');
-        if (!modal) return;
+    const modal = document.getElementById('product-modal');
+    if (!modal) return;
 
-        document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
-        document.getElementById('modal-product-image').alt = product.name;
-        document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
-        document.getElementById('modal-product-name').textContent = product.name;
-        document.getElementById('modal-product-stock').textContent = product.stock || '';
-        document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
-        document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+    document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
+    document.getElementById('modal-product-image').alt = product.name;
+    document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
+    document.getElementById('modal-product-name').textContent = product.name;
+    document.getElementById('modal-product-stock').textContent = product.stock || '';
+    document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
+    document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
 
-        const addToCartBtn = document.getElementById('modal-add-to-cart');
-        
-        const isUnavailable = !product.is_available || 
-                            (product.stock !== undefined && product.stock !== null && product.stock < 1);
-        
-        if (isUnavailable) {
-            addToCartBtn.textContent = 'Недоступно';
-            addToCartBtn.disabled = true;
-            addToCartBtn.style.background = '#ccc';
-            addToCartBtn.style.cursor = 'not-allowed';
-        } else {
-            addToCartBtn.textContent = 'Добавить в корзину';
-            addToCartBtn.disabled = false;
-            addToCartBtn.style.background = '#3F75FB';
-            addToCartBtn.style.cursor = 'pointer';
-            addToCartBtn.onclick = () => {
-                this.addToCart(product.guid);
-                this.closeProductModal();
-            };
-        }
-
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+    const addToCartBtn = document.getElementById('modal-add-to-cart');
+    
+    if (!product.is_available) {
+        addToCartBtn.textContent = 'Недоступно';
+        addToCartBtn.disabled = true;
+        addToCartBtn.style.background = '#ccc';
+        addToCartBtn.style.cursor = 'not-allowed';
+    } else {
+        addToCartBtn.textContent = 'Добавить в корзину';
+        addToCartBtn.disabled = false;
+        addToCartBtn.style.background = '#3F75FB';
+        addToCartBtn.style.cursor = 'pointer';
+        addToCartBtn.onclick = () => {
+            this.addToCart(product.guid);
+            this.closeProductModal();
+        };
     }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 
     closeProductModal() {
         const modal = document.getElementById('product-modal');
@@ -805,7 +795,7 @@ updateNavIndicator() {
         this.loadCart();
     }
 
-    async checkoutCart() {
+    checkoutCart() {
     if (!this.isAuthenticated) {
         this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
         return;
@@ -816,59 +806,123 @@ updateNavIndicator() {
         return;
     }
 
-    try {
-        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
-        if (this.participant?.balance < totalAmount) {
-            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
-            return;
-        }
-
-        const orderData = {
-            items: this.cart.map(item => ({
-                product: item.guid,
-                quantity: item.quantity,
-                price: item.price
-            }))
-        };
-
-        console.log('Отправляем заказ:', orderData);
-
-        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(orderData)
-        });
-
-        if (response.status === 201) {
-            const result = await response.json();
-            
-            this.cart = [];
-            localStorage.removeItem('cart');
-            
-            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-            
-            await this.checkTelegramLink();
-            this.loadCart();
-            
-        } else if (response.status === 400) {
-            const errorData = await response.json();
-            const errorMessage = errorData.detail || 'Ошибка при создании заказа';
-            this.showNotification('Ошибка', errorMessage, 'error');
-            
-        } else if (response.status === 401) {
-            this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
-            await this.checkAuthentication();
-            
-        } else {
-            this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
-        }
-        
-    } catch (error) {
-        console.error('Ошибка при создании заказа:', error);
-        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+    if (this.cart.length === 0) {
+        this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
+        return;
     }
+    this.showConfirmOrderPage();
 }
+    showConfirmOrderPage() {
+    this.showPage('confirm-order');
+    this.renderConfirmOrder();
+}
+
+    renderConfirmOrder() {
+        const container = document.getElementById('page-confirm-order');
+        if (!container) return;
+
+        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const userBalance = this.participant?.balance || 0;
+        const balanceAfter = userBalance - totalAmount;
+
+        const itemsContainer = document.getElementById('confirm-order-items');
+        if (itemsContainer) {
+            itemsContainer.innerHTML = this.cart.map(item => `
+                <div class="confirm-order-item">
+                    <div class="confirm-item-info">
+                        <h4>${item.name}</h4>
+                        <p>${item.category?.name || 'Без категории'}</p>
+                    </div>
+                    <div class="confirm-item-details">
+                        <span class="confirm-item-quantity">${item.quantity} шт. × ${item.price} бон.</span>
+                        <span class="confirm-item-total">${item.price * item.quantity} бон.</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('confirm-items-total').textContent = `${totalAmount} бонусов`;
+        document.getElementById('confirm-total-amount').textContent = `${totalAmount} бонусов`;
+        document.getElementById('confirm-user-balance').textContent = `${userBalance} бонусов`;
+        document.getElementById('confirm-balance-after').textContent = `${balanceAfter} бонусов`;
+
+        const balanceInfo = document.querySelector('.balance-info');
+        if (balanceInfo) {
+            if (balanceAfter < 0) {
+                balanceInfo.classList.add('insufficient-balance');
+            } else {
+                balanceInfo.classList.remove('insufficient-balance');
+            }
+        }
+
+        const confirmBtn = document.querySelector('.confirm-order-btn');
+        if (confirmBtn) {
+            if (balanceAfter < 0) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = '❌ Недостаточно бонусов';
+                confirmBtn.style.background = '#ccc';
+            } else {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = '✅ Подтвердить и оплатить';
+                confirmBtn.style.background = '#3F75FB';
+            }
+        }
+    }
+
+    async processOrder() {
+        try {
+            const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (this.participant?.balance < totalAmount) {
+                this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+                return;
+            }
+
+            const orderData = {
+                items: this.cart.map(item => ({
+                    product: item.guid,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+
+            console.log('Отправляем заказ:', orderData);
+
+            const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(orderData)
+            });
+
+            if (response.status === 201) {
+                const result = await response.json();
+                
+                this.cart = [];
+                localStorage.removeItem('cart');
+                
+                this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+                
+                await this.checkTelegramLink();
+                this.showPage('home');
+                
+            } else if (response.status === 400) {
+                const errorData = await response.json();
+                const errorMessage = errorData.detail || 'Ошибка при создании заказа';
+                this.showNotification('Ошибка', errorMessage, 'error');
+                
+            } else if (response.status === 401) {
+                this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
+                await this.checkAuthentication();
+                
+            } else {
+                this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
+            }
+            
+        } catch (error) {
+            console.error('Ошибка при создании заказа:', error);
+            this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+        }
+    }
 
     loadProfile() {
         const container = document.getElementById('page-cart');
