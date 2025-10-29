@@ -861,58 +861,72 @@ updateNavIndicator() {
         return;
     }
 
-    try {
-        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
-        if (this.participant?.balance < totalAmount) {
-            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
-            return;
-        }
-
-        const orderData = {
-            items: this.cart.map(item => ({
-                product: item.guid,
-                quantity: item.quantity,
-                price: item.price
-            }))
-        };
-
-        console.log('Отправляем заказ:', orderData);
-
-        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(orderData)
-        });
-
-        if (response.status === 201) {
-            const result = await response.json();
-            
-            this.cart = [];
-            localStorage.removeItem('cart');
-            
-            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-            
-            await this.checkTelegramLink();
-            this.loadCart();
-            
-        } else if (response.status === 400) {
-            const errorData = await response.json();
-            const errorMessage = errorData.detail || 'Ошибка при создании заказа';
-            this.showNotification('Ошибка', errorMessage, 'error');
-            
-        } else if (response.status === 401) {
-            this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
-            await this.checkAuthentication();
-            
-        } else {
-            this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
-        }
-        
-    } catch (error) {
-        console.error('Ошибка при создании заказа:', error);
-        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+    if (this.cart.length === 0) {
+        this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
+        return;
     }
+
+    const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const userBalance = this.participant?.balance || 0;
+    
+    if (userBalance < totalAmount) {
+        this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+        return;
+    }
+
+    this.showConfirmDialog(totalAmount, userBalance);
+}
+
+showConfirmDialog(totalAmount, userBalance) {
+    const balanceAfter = userBalance - totalAmount;
+    const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog-overlay';
+    dialog.innerHTML = `
+        <div class="confirm-dialog">
+            <div class="confirm-dialog-header">
+                <h3>Подтверждение заказа</h3>
+                <button class="dialog-close" onclick="this.closest('.confirm-dialog-overlay').remove()">×</button>
+            </div>
+            
+            <div class="confirm-dialog-content">
+                <div class="order-summary">
+                    <p>Вы уверены, что хотите оплатить заказ?</p>
+                    <div class="order-details">
+                        <div class="detail-line">
+                            <span>Товаров:</span>
+                            <span>${totalItems} шт.</span>
+                        </div>
+                        <div class="detail-line">
+                            <span>Сумма:</span>
+                            <span>${totalAmount} бонусов</span>
+                        </div>
+                        <div class="detail-line">
+                            <span>Баланс после оплаты:</span>
+                            <span class="balance-after">${balanceAfter} бонусов</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="confirm-dialog-actions">
+                <button class="btn-confirm" onclick="app.processOrder(); this.closest('.confirm-dialog-overlay').remove()">
+                    ✅ Да, оплатить
+                </button>
+                <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
+                    ❌ Отмена
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+    
+    // Анимация появления
+    setTimeout(() => {
+        dialog.classList.add('active');
+    }, 10);
 }
 
     loadProfile() {
