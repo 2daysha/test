@@ -130,54 +130,6 @@
             </div>
         </nav>
     </div>
-    <!-- Страница подтверждения заказа -->
-    <div id="page-confirm-order" class="page">
-        <div class="confirm-order-container">
-            <div class="confirm-header">
-                <h1>Подтверждение заказа</h1>
-                <span class="cart-count" id="confirm-items-count">—</span>
-            </div>
-            
-            <div class="cart-list">
-                <div id="confirm-order-items">
-                    <div class="loading">Загрузка товаров...</div>
-                </div>
-            </div>
-            
-            <div class="cart-total animate-card">
-                <div class="cart-total-header">
-                    <div class="total-info">
-                        <h3 class="cart-total-title">Итого к оплате</h3>
-                        <p class="total-items" id="confirm-total-items">—</p>
-                    </div>
-                    <div class="cart-total-amount">
-                        <span class="cart-total-price" id="confirm-total-amount">—</span>
-                        <span class="cart-total-currency">бонусов</span>
-                    </div>
-                </div>
-                
-                <div class="balance-info">
-                    <div class="balance-line">
-                        <span>Ваш баланс:</span>
-                        <span id="confirm-user-balance">—</span>
-                    </div>
-                    <div class="balance-line">
-                        <span>После оплаты:</span>
-                        <span id="confirm-balance-after">—</span>
-                    </div>
-                </div>
-                
-                <div class="confirm-actions">
-                    <button class="checkout-btn animate-btn confirm-order-btn" onclick="app.processOrder()" disabled>
-                        <span class="checkout-text">Загрузка...</span>
-                    </button>
-                    <button class="btn-secondary" onclick="app.showPage('catalog')">
-                        Вернуться в корзину
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
     <script>
         window.APP_CONFIG = {
             API_URL: "http://localhost:3001"

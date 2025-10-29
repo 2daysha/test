@@ -319,10 +319,6 @@ updateNavIndicator() {
     setTimeout(() => this.updateNavIndicator(), 10);
     
     this.onPageChange(page);
-    
-    if (page === 'confirm-order') {
-        setTimeout(() => this.renderConfirmOrder(), 50);
-    }
 }
 
     onPageChange(page) {
@@ -729,6 +725,61 @@ updateNavIndicator() {
         `;
     }
 
+    async processOrder() {
+    try {
+        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        if (this.participant?.balance < totalAmount) {
+            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+            return;
+        }
+
+        const orderData = {
+            items: this.cart.map(item => ({
+                product: item.guid,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
+
+        console.log('Отправляем заказ:', orderData);
+
+        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(orderData)
+        });
+
+        if (response.status === 201) {
+            const result = await response.json();
+            
+            this.cart = [];
+            localStorage.removeItem('cart');
+            
+            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+            
+            await this.checkTelegramLink();
+            this.loadCart();
+            
+        } else if (response.status === 400) {
+            const errorData = await response.json();
+            const errorMessage = errorData.detail || 'Ошибка при создании заказа';
+            this.showNotification('Ошибка', errorMessage, 'error');
+            
+        } else if (response.status === 401) {
+            this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
+            await this.checkAuthentication();
+            
+        } else {
+            this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Ошибка при создании заказа:', error);
+        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+    }
+}
+
     openProductModal(productGuid) {
     const product = this.products.find(p => p.guid === productGuid);
     if (!product) return;
@@ -799,7 +850,7 @@ updateNavIndicator() {
         this.loadCart();
     }
 
-    checkoutCart() {
+    async checkoutCart() {
     if (!this.isAuthenticated) {
         this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
         return;
@@ -810,133 +861,59 @@ updateNavIndicator() {
         return;
     }
 
-    if (this.cart.length === 0) {
-        this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
-        return;
-    }
-    this.showConfirmOrderPage();
-}
-    showConfirmOrderPage() {
-    this.showPage('confirm-order');
-    
-    setTimeout(() => {
-        this.renderConfirmOrder();
-    }, 50);
-}
-
-    renderConfirmOrder() {
-    console.log('renderConfirmOrder called');
-    console.log('Cart:', this.cart);
-    console.log('Participant:', this.participant);
-    
-    const itemsContainer = document.getElementById('confirm-order-items');
-    if (!itemsContainer) {
-        console.error('Items container not found!');
-        return;
-    }
-
-    const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const userBalance = this.participant?.balance || 0;
-    const balanceAfter = userBalance - totalAmount;
-
-    console.log('Total:', totalAmount, 'Balance:', userBalance, 'After:', balanceAfter);
-
-    itemsContainer.innerHTML = this.cart.map(item => `
-        <div class="confirm-order-item">
-            <div class="item-name">${item.name}</div>
-            <div class="item-details">
-                <span class="item-quantity">${item.quantity} шт × ${item.price}</span>
-                <span class="item-price">${item.price * item.quantity} бон.</span>
-            </div>
-        </div>
-    `).join('');
-
-    const totalElement = document.getElementById('confirm-total-amount');
-    const balanceElement = document.getElementById('confirm-user-balance');
-    const afterElement = document.getElementById('confirm-balance-after');
-    
-    if (totalElement) totalElement.textContent = `${totalAmount} бон.`;
-    if (balanceElement) balanceElement.textContent = `${userBalance} бон.`;
-    if (afterElement) afterElement.textContent = `${balanceAfter} бон.`;
-
-    const confirmBtn = document.querySelector('.confirm-order-btn');
-    if (confirmBtn) {
-        if (balanceAfter < 0) {
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<span class="btn-icon">❌</span> Недостаточно бонусов';
-            confirmBtn.style.background = '#e74c3c';
-        } else {
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = '<span class="btn-icon">✅</span> Подтвердить заказ';
-            confirmBtn.style.background = '#3F75FB';
+    try {
+        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        if (this.participant?.balance < totalAmount) {
+            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+            return;
         }
-    }
 
-    // Добавляем класс для отрицательного баланса
-    const balanceAfterLine = document.querySelector('.balance-after-line');
-    if (balanceAfterLine) {
-        if (balanceAfter < 0) {
-            balanceAfterLine.style.color = '#e74c3c';
-        } else {
-            balanceAfterLine.style.color = '#27ae60';
-        }
-    }
-}
+        const orderData = {
+            items: this.cart.map(item => ({
+                product: item.guid,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        };
 
-    async processOrder() {
-        try {
-            const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        console.log('Отправляем заказ:', orderData);
+
+        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(orderData)
+        });
+
+        if (response.status === 201) {
+            const result = await response.json();
             
-            if (this.participant?.balance < totalAmount) {
-                this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
-                return;
-            }
-
-            const orderData = {
-                items: this.cart.map(item => ({
-                    product: item.guid,
-                    quantity: item.quantity,
-                    price: item.price
-                }))
-            };
-
-            console.log('Отправляем заказ:', orderData);
-
-            const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-                method: 'POST',
-                headers: this.getAuthHeaders(),
-                body: JSON.stringify(orderData)
-            });
-
-            if (response.status === 201) {
-                const result = await response.json();
-                
-                this.cart = [];
-                localStorage.removeItem('cart');
-                
-                this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-                
-                await this.checkTelegramLink();
-                this.showPage('home');
-                
-            } else if (response.status === 400) {
-                const errorData = await response.json();
-                const errorMessage = errorData.detail || 'Ошибка при создании заказа';
-                this.showNotification('Ошибка', errorMessage, 'error');
-                
-            } else if (response.status === 401) {
-                this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
-                await this.checkAuthentication();
-                
-            } else {
-                this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
-            }
+            this.cart = [];
+            localStorage.removeItem('cart');
             
-        } catch (error) {
-            console.error('Ошибка при создании заказа:', error);
-            this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
+            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+            
+            await this.checkTelegramLink();
+            this.loadCart();
+            
+        } else if (response.status === 400) {
+            const errorData = await response.json();
+            const errorMessage = errorData.detail || 'Ошибка при создании заказа';
+            this.showNotification('Ошибка', errorMessage, 'error');
+            
+        } else if (response.status === 401) {
+            this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
+            await this.checkAuthentication();
+            
+        } else {
+            this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
         }
+        
+    } catch (error) {
+        console.error('Ошибка при создании заказа:', error);
+        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
     }
+}
 
     loadProfile() {
         const container = document.getElementById('page-cart');

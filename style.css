@@ -1575,6 +1575,171 @@ body {
     color: #666666;
 }
 
+/* Диалог подтверждения заказа */
+.confirm-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.confirm-dialog-overlay.active {
+    opacity: 1;
+}
+
+.confirm-dialog {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.confirm-dialog-overlay.active .confirm-dialog {
+    transform: scale(1);
+}
+
+.confirm-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 0;
+    margin-bottom: 16px;
+}
+
+.confirm-dialog-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+    margin: 0;
+}
+
+.dialog-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.dialog-close:hover {
+    background: #f5f5f5;
+}
+
+.confirm-dialog-content {
+    padding: 0 24px;
+}
+
+.order-summary p {
+    color: #666;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 15px;
+}
+
+.order-details {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.detail-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.detail-line:last-child {
+    margin-bottom: 0;
+}
+
+.balance-after {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.confirm-dialog-actions {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-confirm,
+.btn-cancel {
+    padding: 16px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-confirm {
+    background: #3F75FB;
+    color: white;
+}
+
+.btn-confirm:active {
+    background: #2a5fd8;
+    transform: scale(0.98);
+}
+
+.btn-cancel {
+    background: #f8f9fa;
+    color: #666;
+    border: 2px solid #e9ecef;
+}
+
+.btn-cancel:active {
+    background: #e9ecef;
+    transform: scale(0.98);
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .confirm-dialog-overlay {
+        padding: 16px;
+    }
+    
+    .confirm-dialog-header {
+        padding: 16px 20px 0;
+    }
+    
+    .confirm-dialog-content {
+        padding: 0 20px;
+    }
+    
+    .confirm-dialog-actions {
+        padding: 16px 20px 20px;
+    }
+}
+
 /* Исправление темного фона корзины */
 #page-catalog { 
     background: #ffffff !important; 
@@ -1678,240 +1843,4 @@ body {
     .categories-dropdown { margin: 0 12px 12px; }
     .categories-toggle { padding: 10px 14px; font-size: 14px; }
     .category-item { padding: 10px 14px; font-size: 13px; }
-}
-
-/* Страница подтверждения заказа */
-.confirm-order-container {
-    padding: 16px;
-    max-width: 400px;
-    margin: 0 auto;
-    min-height: calc(100vh - 120px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.confirm-order-card {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 360px;
-}
-
-.confirm-header {
-    text-align: center;
-    margin-bottom: 24px;
-}
-
-.confirm-header h2 {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0 0 8px 0;
-}
-
-.confirm-subtitle {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
-}
-
-/* Список товаров */
-.order-items {
-    margin-bottom: 20px;
-}
-
-.items-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 12px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.items-list {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.confirm-order-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f8f8f8;
-}
-
-.confirm-order-item:last-child {
-    border-bottom: none;
-}
-
-.item-name {
-    font-size: 14px;
-    color: #333;
-    font-weight: 500;
-    flex: 1;
-    margin-right: 12px;
-}
-
-.item-details {
-    text-align: right;
-    min-width: 80px;
-}
-
-.item-quantity {
-    font-size: 12px;
-    color: #666;
-    display: block;
-    margin-bottom: 2px;
-}
-
-.item-price {
-    font-size: 14px;
-    color: #333;
-    font-weight: 600;
-}
-
-/* Итоги */
-.order-totals {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-}
-
-.total-line,
-.balance-line,
-.balance-after-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.total-line {
-    font-weight: 700;
-    font-size: 16px;
-    color: #1a1a1a;
-    margin-bottom: 12px;
-}
-
-.balance-line {
-    color: #666;
-}
-
-.balance-after-line {
-    color: #3F75FB;
-    font-weight: 600;
-    margin-bottom: 0;
-}
-.loading-text {
-    text-align: center;
-    color: #999;
-    font-style: italic;
-    padding: 20px;
-}
-/* Кнопки */
-.confirm-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.btn-primary,
-.btn-secondary {
-    padding: 16px 20px;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-primary {
-    background: #3F75FB;
-    color: white;
-}
-
-.btn-primary:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.btn-secondary {
-    background: #f8f9fa;
-    color: #666;
-    border: 1px solid #e9ecef;
-}
-
-.btn-primary:active:not(:disabled),
-.btn-secondary:active {
-    transform: scale(0.98);
-}
-
-.btn-icon {
-    font-size: 14px;
-}
-
-/* Анимации */
-#page-confirm-order {
-    animation: slideInUp 0.3s ease;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Полоса прокрутки */
-.items-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.items-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 2px;
-}
-
-.items-list::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 2px;
-}
-
-.items-list::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    .confirm-order-container {
-        padding: 12px;
-    }
-    
-    .confirm-order-card {
-        padding: 20px;
-    }
-    
-    .confirm-header h2 {
-        font-size: 18px;
-    }
 }
