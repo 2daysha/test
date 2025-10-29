@@ -1729,10 +1729,17 @@ body {
     --tg-theme-section-bg-color: #e5e5e5 !important;
 }
 
-/* Исправление уведомления успеха */
-.success-overlay { 
-    background: rgba(255, 255, 255, 0.98) !important; 
-    z-index: 10001 !important; 
+/* Принудительное позиционирование по центру */
+.success-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 10000 !important;
 }
 
 .success-overlay-content { 

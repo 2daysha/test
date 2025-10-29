@@ -979,29 +979,38 @@ showConfirmDialog(totalAmount, userBalance) {
     }
 
     showSuccessOverlay(title, message) {
-        const overlay = document.createElement('div');
-        overlay.className = 'success-overlay show';
-        overlay.innerHTML = `
-            <div class="success-checkmark">
-                <div class="check-icon">
-                    <span class="icon-line line-tip"></span>
-                    <span class="icon-line line-long"></span>
-                    <div class="icon-circle"></div>
-                    <div class="icon-fix"></div>
-                </div>
-            </div>
-            <div class="success-overlay-content">
-                <div class="success-overlay-title">${title}</div>
-                <div class="success-overlay-message">${message}</div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        
-        setTimeout(() => {
-            overlay.classList.remove('show');
-            setTimeout(() => overlay.remove(), 300);
-        }, 3000);
+    const oldOverlay = document.querySelector('.success-overlay');
+    if (oldOverlay) {
+        oldOverlay.remove();
     }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay';
+    overlay.innerHTML = `
+        <div class="success-overlay-content">
+            <div class="success-checkmark">
+                <div class="check-icon"></div>
+            </div>
+            <div class="success-overlay-title">${title}</div>
+            <div class="success-overlay-message">${message}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => {
+        overlay.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        overlay.classList.remove('show');
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.remove();
+            }
+        }, 300);
+    }, 3000);
+}
 }
 
 window.app = new LoyaltyProApp();
