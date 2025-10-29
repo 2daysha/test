@@ -912,10 +912,10 @@ showConfirmDialog(totalAmount, userBalance) {
             
             <div class="confirm-dialog-actions">
                 <button class="btn-confirm" onclick="app.processOrder(); this.closest('.confirm-dialog-overlay').remove()">
-                    ✅ Да, оплатить
+                    Да, оплатить
                 </button>
                 <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
-                    ❌ Отмена
+                    Отмена
                 </button>
             </div>
         </div>
@@ -953,7 +953,6 @@ showConfirmDialog(totalAmount, userBalance) {
                     <span class="stat-label">В корзине</span>
                 </div>
             </div>
-            <button class="tariff-btn animate-btn">Тарифы</button>
             <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">Поддержка</button>
         `;
     }
