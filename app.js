@@ -593,7 +593,6 @@ updateNavIndicator() {
 
         const noProductsMessage = grid.querySelector('.no-products-message');
         
-        // Очищаем grid (сохраняя сообщение)
         const messageToKeep = grid.querySelector('.no-products-message');
         grid.innerHTML = '';
         if (messageToKeep) {
@@ -607,9 +606,14 @@ updateNavIndicator() {
             noProductsMessage.style.display = 'none';
             
             products.forEach(p => {
+                // Проверяем доступность товара
+                const isUnavailable = !p.is_available || 
+                                    (p.stock !== undefined && p.stock !== null && p.stock < 1);
+                
                 const productCard = document.createElement('div');
-                productCard.className = `product-card ${!p.is_available ? 'unavailable' : ''}`;
-                if (p.is_available) {
+                productCard.className = `product-card ${isUnavailable ? 'unavailable' : ''}`;
+                
+                if (!isUnavailable) {
                     productCard.onclick = () => this.openProductModal(p.guid);
                 }
                 
@@ -619,37 +623,40 @@ updateNavIndicator() {
                     <h3>${p.name}</h3>
                     <p>${p.stock || ''}</p>
                     <div class="product-price">${p.price} бонусов</div>
+                    ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
                 `;
                 grid.appendChild(productCard);
             });
         }
     }
 
-    
-    addToCart(productGuid) {
-        if (!this.isAuthenticated) {
-            this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
-            return;
-        }
-
-        const product = this.products.find(p => p.guid === productGuid);
-        if (!product) return;
-
-        if (!product.is_available) {
-            this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
-            return;
-        }
-
-        const existing = this.cart.find(i => i.guid === productGuid);
-        if (existing) {
-            existing.quantity++;
-        } else {
-            this.cart.push({ ...product, quantity: 1 });
-        }
-
-        localStorage.setItem('cart', JSON.stringify(this.cart));
-        this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
+   addToCart(productGuid) {
+    if (!this.isAuthenticated) {
+        this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
+        return;
     }
+
+    const product = this.products.find(p => p.guid === productGuid);
+    if (!product) return;
+
+    const isUnavailable = !product.is_available || 
+                         (product.stock !== undefined && product.stock !== null && product.stock < 1);
+    
+    if (isUnavailable) {
+        this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
+        return;
+    }
+
+    const existing = this.cart.find(i => i.guid === productGuid);
+    if (existing) {
+        existing.quantity++;
+    } else {
+        this.cart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem('cart', JSON.stringify(this.cart));
+    this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
+}
 
     loadCart() {
         const container = document.getElementById('page-catalog');
@@ -742,14 +749,19 @@ updateNavIndicator() {
 
         const addToCartBtn = document.getElementById('modal-add-to-cart');
         
-        if (!product.is_available) {
+        const isUnavailable = !product.is_available || 
+                            (product.stock !== undefined && product.stock !== null && product.stock < 1);
+        
+        if (isUnavailable) {
             addToCartBtn.textContent = 'Недоступно';
             addToCartBtn.disabled = true;
             addToCartBtn.style.background = '#ccc';
+            addToCartBtn.style.cursor = 'not-allowed';
         } else {
             addToCartBtn.textContent = 'Добавить в корзину';
             addToCartBtn.disabled = false;
             addToCartBtn.style.background = '#3F75FB';
+            addToCartBtn.style.cursor = 'pointer';
             addToCartBtn.onclick = () => {
                 this.addToCart(product.guid);
                 this.closeProductModal();
