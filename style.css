@@ -1056,7 +1056,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: white;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1072,7 +1073,7 @@ body {
 }
 
 .success-overlay-content {
-    background: #f8f9fa;;
+    background: #f8f9fa !important;
     border-radius: 20px;
     padding: 40px 30px;
     text-align: center;
@@ -1080,8 +1081,8 @@ body {
     width: 100%;
     transform: scale(0.8);
     transition: transform 0.3s ease;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
-    border: 1px solid #e5e5e5;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15) !important;
+    border: 2px solid #e5e5e5 !important;
 }
 
 .success-overlay.show .success-overlay-content {
