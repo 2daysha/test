@@ -200,7 +200,6 @@ body {
     transform: scale(0.95) translateY(-2px);
 }
 
-/* Анимация появления навигации */
 .bottom-nav {
     animation: navSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -208,7 +207,7 @@ body {
 @keyframes navSlideUp {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(100px);
+        transform: translateX(-50%) translateY(20px);
     }
     to {
         opacity: 1;
@@ -216,21 +215,33 @@ body {
     }
 }
 
-/* Анимация переключения страниц */
 .page {
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: 
+        transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .page:not(.active) {
     opacity: 0;
     pointer-events: none;
+    transform: translateX(10%);
 }
 
 .page.active {
     opacity: 1;
     pointer-events: all;
+    transform: translateX(0);
 }
+
+.page[data-page="home"]:not(.active) { transform: translateX(-10%); }
+.page[data-page="catalog"]:not(.active) { transform: translateX(10%); }
+.page[data-page="cart"]:not(.active) { transform: translateX(10%); }
 
 /* Эффект для мобильных устройств */
 @media (max-width: 480px) {

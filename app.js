@@ -199,7 +199,6 @@ class LoyaltyProApp {
             });
             if (response.ok) {
                 this.products = await response.json();
-                // После загрузки товаров обновляем отображение если на странице товаров
                 if (this.currentPage === 'home') {
                     this.updateProductGrid('all');
                 }
@@ -267,18 +266,35 @@ class LoyaltyProApp {
     
     setTimeout(() => this.updateNavIndicator(), 100);
 }
+switchPage(pageId) {
+    // Скрыть все страницы
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Показать выбранную страницу
+    document.getElementById(`page-${pageId}`).classList.add('active');
+    
+    // Обновить навигацию
+    this.updateNavIcons(pageId);
+    this.updateNavIndicator();
+}
 
-updateNavIndicator() {
-    const activeNav = document.querySelector('.nav-item.active');
-    const indicator = document.querySelector('.nav-indicator');
+updateNavIcons(activePage) {
+    const navItems = document.querySelectorAll('.nav-item');
     
-    if (!activeNav || !indicator) return;
-    
-    const navRect = activeNav.getBoundingClientRect();
-    const containerRect = activeNav.parentElement.getBoundingClientRect();
-    
-    indicator.style.width = `${navRect.width}px`;
-    indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
+    navItems.forEach(item => {
+        const page = item.dataset.page;
+        const icon = item.querySelector('svg');
+        
+        if (page === activePage) {
+            icon.src = `icons/${page}_dark.svg`;
+            item.classList.add('active');
+        } else {
+            icon.src = `icons/${page}_light.svg`;
+            item.classList.remove('active');
+        }
+    });
 }
 
     saveUserData() {
