@@ -285,7 +285,7 @@ updateNavIcons(activePage) {
     
     navItems.forEach(item => {
         const page = item.dataset.page;
-        const icon = item.querySelector('svg');
+        const icon = item.querySelector('svg'); 
         
         if (page === activePage) {
             icon.src = `icons/${page}_dark.svg`;
@@ -295,6 +295,19 @@ updateNavIcons(activePage) {
             item.classList.remove('active');
         }
     });
+}
+
+updateNavIndicator() {
+    const activeNav = document.querySelector('.nav-item.active');
+    const indicator = document.querySelector('.nav-indicator');
+    
+    if (!activeNav || !indicator) return;
+    
+    const navRect = activeNav.getBoundingClientRect();
+    const containerRect = activeNav.parentElement.getBoundingClientRect();
+    
+    indicator.style.width = `${navRect.width}px`;
+    indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
 }
 
     saveUserData() {
