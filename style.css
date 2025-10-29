@@ -219,32 +219,19 @@ body {
 }
 
 .page {
-    transition: 
-        transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .page:not(.active) {
     opacity: 0;
     pointer-events: none;
-    transform: translateX(10%);
 }
 
 .page.active {
     opacity: 1;
     pointer-events: all;
-    transform: translateX(0);
 }
-
-.page[data-page="home"]:not(.active) { transform: translateX(-10%); }
-.page[data-page="catalog"]:not(.active) { transform: translateX(10%); }
-.page[data-page="cart"]:not(.active) { transform: translateX(10%); }
 
 /* Эффект для мобильных устройств */
 @media (max-width: 480px) {
@@ -1380,7 +1367,18 @@ body {
         font-size: 16px;
     }
 }
+body {
+    font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    line-height: 1.4;
+}
 
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 /* Шапка */
 .header {
     background: #ffffff;
