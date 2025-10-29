@@ -9,6 +9,9 @@ body {
     background-color: #ffffff;
     color: #000000;
     line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    padding-top: env(safe-area-inset-top);
 }
 
 .app {
@@ -1376,19 +1379,6 @@ body {
     .success-overlay-message {
         font-size: 16px;
     }
-}
-    
-body {
-    font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background-color: #ffffff;
-    color: #000000;
-    line-height: 1.4;
-}
-
-.app {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 /* Шапка */
