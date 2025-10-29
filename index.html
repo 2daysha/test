@@ -130,87 +130,50 @@
             </div>
         </nav>
     </div>
-    <!-- Добавьте после существующих страниц -->
-<div id="page-confirm-order" class="page">
-    <div class="confirm-order-container">
-        <div class="confirm-order-header">
-            <h2>Подтверждение заказа</h2>
-            <p>Проверьте информацию перед оплатой</p>
-        </div>
-        
-        <div class="order-summary">
-            <div class="order-items-list">
-                <h3>Товары в заказе:</h3>
-                <div id="confirm-order-items">
-                    <!-- Товары будут добавляться динамически -->
-                </div>
-            </div>
-            
-            <div class="order-total-section">
-                <div class="order-total-line">
-                    <span>Товары:</span>
-                    <span id="confirm-items-total">0 бонусов</span>
-                </div>
-                <div class="order-total-line final">
-                    <span>Итого к оплате:</span>
-                    <span id="confirm-total-amount">0 бонусов</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="balance-info">
-            <p>Ваш баланс: <strong id="confirm-user-balance">0</strong> бонусов</p>
-            <p id="balance-after-payment">После оплаты: <strong id="confirm-balance-after">0</strong> бонусов</p>
-        </div>
-        
-        <div class="confirm-actions">
-            <button class="confirm-btn confirm-order-btn" onclick="app.processOrder()">
-                ✅ Подтвердить и оплатить
-            </button>
-            <button class="confirm-btn cancel-order-btn" onclick="app.showPage('catalog')">
-                ✏️ Вернуться к редактированию
-            </button>
-        </div>
-    </div>
-</div>
+    <!-- Страница подтверждения заказа -->
     <div id="page-confirm-order" class="page">
         <div class="confirm-order-container">
-            <div class="confirm-order-header">
-                <h2>Подтверждение заказа</h2>
-                <p>Проверьте информацию перед оплатой</p>
-            </div>
-            
-            <div class="order-summary">
-                <div class="order-items-list">
-                    <h3>Товары в заказе:</h3>
-                    <div id="confirm-order-items">
+            <div class="confirm-order-card">
+                <div class="confirm-header">
+                    <h2>Подтверждение заказа</h2>
+                    <p class="confirm-subtitle">Проверьте детали перед оплатой</p>
+                </div>
+                
+                <div class="order-items">
+                    <div class="items-header">
+                        <span>Товары</span>
+                        <span>Сумма</span>
+                    </div>
+                    <div class="items-list" id="confirm-order-items">
+                        <div class="loading-text">Загрузка...</div>
                     </div>
                 </div>
                 
-                <div class="order-total-section">
-                    <div class="order-total-line">
-                        <span>Товары:</span>
-                        <span id="confirm-items-total">0 бонусов</span>
+                <div class="order-totals">
+                    <div class="total-line">
+                        <span>Итого:</span>
+                        <span id="confirm-total-amount">—</span>
                     </div>
-                    <div class="order-total-line final">
-                        <span>Итого к оплате:</span>
-                        <span id="confirm-total-amount">0 бонусов</span>
+                    <div class="balance-line">
+                        <span>Ваш баланс:</span>
+                        <span id="confirm-user-balance">—</span>
+                    </div>
+                    <div class="balance-after-line">
+                        <span>После оплаты:</span>
+                        <span id="confirm-balance-after">—</span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="balance-info">
-                <p>Ваш баланс: <strong id="confirm-user-balance">0</strong> бонусов</p>
-                <p id="balance-after-payment">После оплаты: <strong id="confirm-balance-after">0</strong> бонусов</p>
-            </div>
-            
-            <div class="confirm-actions">
-                <button class="confirm-btn confirm-order-btn" onclick="app.processOrder()">
-                    ✅ Подтвердить и оплатить
-                </button>
-                <button class="confirm-btn cancel-order-btn" onclick="app.showPage('catalog')">
-                    ✏️ Вернуться к редактированию
-                </button>
+                
+                <div class="confirm-actions">
+                    <button class="btn-primary confirm-order-btn" onclick="app.processOrder()" disabled>
+                        <span class="btn-icon">⏳</span>
+                        Загрузка...
+                    </button>
+                    <button class="btn-secondary" onclick="app.showPage('catalog')">
+                        <span class="btn-icon">←</span>
+                        Вернуться
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -319,6 +319,10 @@ updateNavIndicator() {
     setTimeout(() => this.updateNavIndicator(), 10);
     
     this.onPageChange(page);
+    
+    if (page === 'confirm-order') {
+        setTimeout(() => this.renderConfirmOrder(), 50);
+    }
 }
 
     onPageChange(page) {
@@ -814,60 +818,70 @@ updateNavIndicator() {
 }
     showConfirmOrderPage() {
     this.showPage('confirm-order');
-    this.renderConfirmOrder();
+    
+    setTimeout(() => {
+        this.renderConfirmOrder();
+    }, 50);
 }
 
     renderConfirmOrder() {
-        const container = document.getElementById('page-confirm-order');
-        if (!container) return;
+    console.log('renderConfirmOrder called');
+    console.log('Cart:', this.cart);
+    console.log('Participant:', this.participant);
+    
+    const itemsContainer = document.getElementById('confirm-order-items');
+    if (!itemsContainer) {
+        console.error('Items container not found!');
+        return;
+    }
 
-        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const userBalance = this.participant?.balance || 0;
-        const balanceAfter = userBalance - totalAmount;
+    const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const userBalance = this.participant?.balance || 0;
+    const balanceAfter = userBalance - totalAmount;
 
-        const itemsContainer = document.getElementById('confirm-order-items');
-        if (itemsContainer) {
-            itemsContainer.innerHTML = this.cart.map(item => `
-                <div class="confirm-order-item">
-                    <div class="confirm-item-info">
-                        <h4>${item.name}</h4>
-                        <p>${item.category?.name || 'Без категории'}</p>
-                    </div>
-                    <div class="confirm-item-details">
-                        <span class="confirm-item-quantity">${item.quantity} шт. × ${item.price} бон.</span>
-                        <span class="confirm-item-total">${item.price * item.quantity} бон.</span>
-                    </div>
-                </div>
-            `).join('');
-        }
+    console.log('Total:', totalAmount, 'Balance:', userBalance, 'After:', balanceAfter);
 
-        document.getElementById('confirm-items-total').textContent = `${totalAmount} бонусов`;
-        document.getElementById('confirm-total-amount').textContent = `${totalAmount} бонусов`;
-        document.getElementById('confirm-user-balance').textContent = `${userBalance} бонусов`;
-        document.getElementById('confirm-balance-after').textContent = `${balanceAfter} бонусов`;
+    itemsContainer.innerHTML = this.cart.map(item => `
+        <div class="confirm-order-item">
+            <div class="item-name">${item.name}</div>
+            <div class="item-details">
+                <span class="item-quantity">${item.quantity} шт × ${item.price}</span>
+                <span class="item-price">${item.price * item.quantity} бон.</span>
+            </div>
+        </div>
+    `).join('');
 
-        const balanceInfo = document.querySelector('.balance-info');
-        if (balanceInfo) {
-            if (balanceAfter < 0) {
-                balanceInfo.classList.add('insufficient-balance');
-            } else {
-                balanceInfo.classList.remove('insufficient-balance');
-            }
-        }
+    const totalElement = document.getElementById('confirm-total-amount');
+    const balanceElement = document.getElementById('confirm-user-balance');
+    const afterElement = document.getElementById('confirm-balance-after');
+    
+    if (totalElement) totalElement.textContent = `${totalAmount} бон.`;
+    if (balanceElement) balanceElement.textContent = `${userBalance} бон.`;
+    if (afterElement) afterElement.textContent = `${balanceAfter} бон.`;
 
-        const confirmBtn = document.querySelector('.confirm-order-btn');
-        if (confirmBtn) {
-            if (balanceAfter < 0) {
-                confirmBtn.disabled = true;
-                confirmBtn.textContent = '❌ Недостаточно бонусов';
-                confirmBtn.style.background = '#ccc';
-            } else {
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = '✅ Подтвердить и оплатить';
-                confirmBtn.style.background = '#3F75FB';
-            }
+    const confirmBtn = document.querySelector('.confirm-order-btn');
+    if (confirmBtn) {
+        if (balanceAfter < 0) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="btn-icon">❌</span> Недостаточно бонусов';
+            confirmBtn.style.background = '#e74c3c';
+        } else {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<span class="btn-icon">✅</span> Подтвердить заказ';
+            confirmBtn.style.background = '#3F75FB';
         }
     }
+
+    // Добавляем класс для отрицательного баланса
+    const balanceAfterLine = document.querySelector('.balance-after-line');
+    if (balanceAfterLine) {
+        if (balanceAfter < 0) {
+            balanceAfterLine.style.color = '#e74c3c';
+        } else {
+            balanceAfterLine.style.color = '#27ae60';
+        }
+    }
+}
 
     async processOrder() {
         try {
