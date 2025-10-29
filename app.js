@@ -267,15 +267,12 @@ class LoyaltyProApp {
     setTimeout(() => this.updateNavIndicator(), 100);
 }
 switchPage(pageId) {
-    // Скрыть все страницы
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
     
-    // Показать выбранную страницу
     document.getElementById(`page-${pageId}`).classList.add('active');
     
-    // Обновить навигацию
     this.updateNavIcons(pageId);
     this.updateNavIndicator();
 }
@@ -283,17 +280,9 @@ switchPage(pageId) {
 updateNavIcons(activePage) {
     const navItems = document.querySelectorAll('.nav-item');
     
-    navItems.forEach(item => {
-        const page = item.dataset.page;
-        const icon = item.querySelector('svg'); 
-        
-        if (page === activePage) {
-            icon.src = `icons/${page}_dark.svg`;
-            item.classList.add('active');
-        } else {
-            icon.src = `icons/${page}_light.svg`;
-            item.classList.remove('active');
-        }
+        navItems.forEach(item => {
+            const isActive = item.classList.contains('active');
+            const icons = item.querySelectorAll('.nav-icon'); 
     });
 }
 
@@ -346,7 +335,8 @@ updateNavIndicator() {
     this.currentPage = page;
     
     setTimeout(() => this.updateNavIndicator(), 10);
-    
+
+    this.updateNavIcons();
     this.onPageChange(page);
 }
 
