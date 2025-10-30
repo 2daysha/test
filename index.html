@@ -36,9 +36,7 @@
             <div id="page-home" class="page">
                 <div class="search-container">
                     <div class="search-box">
-                        <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                        </svg>
+                        <img src="icons/search.svg" alt="Главная" class="search-icon">
                         <input type="text" class="search-input" id="search-input" placeholder="Поиск товаров...">
                         <button class="search-clear" id="search-clear" style="display: none;">×</button>
                     </div>
@@ -97,7 +95,40 @@
             
             <!-- Страница Корзина -->
             <div id="page-catalog" class="page">
-                <div class="loading">Загрузка корзины...</div>
+                <div class="cart-header">
+                    <h1>Корзина</h1>
+                    <span class="cart-count" id="cart-count">0 товара</span>
+                </div>
+                
+                <div class="cart-list" id="cart-list">
+                    <!-- Содержимое корзины будет добавляться динамически -->
+                </div>
+                
+                <div class="cart-total animate-card" id="cart-total" style="display: none;">
+                    <div class="cart-total-header">
+                        <div class="total-info">
+                            <h3 class="cart-total-title">Итого к оплате</h3>
+                            <p class="total-items" id="total-items-text">0 товара на сумму</p>
+                        </div>
+                        <div class="cart-total-amount">
+                            <span class="cart-total-price" id="cart-total-price">0</span>
+                            <span class="cart-total-currency">бонусов</span>
+                        </div>
+                    </div>
+                    <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
+                        <span class="checkout-text">Перейти к оплате</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Пустая корзина -->
+            <div id="empty-cart" class="empty-cart" style="display: none;">
+                <div class="empty-cart-icon">😔</div>
+                <h2>Ваша корзина пуста</h2>
+                <p>Добавьте товары из каталога</p>
+                <button class="back-to-catalog" onclick="app.showPage('home')">
+                    Вернуться в каталог
+                </button>
             </div>
 
             <!-- Диалог подтверждения заказа -->
@@ -125,6 +156,21 @@
                                     <span id="dialog-balance-after" class="balance-after">0 бонусов</span>
                                 </div>
                             </div>
+                            
+                            <!-- Поле для комментария -->
+                            <div class="comment-section">
+                                <label for="order-comment">Комментарий к заказу (необязательно):</label>
+                                <textarea 
+                                    id="order-comment" 
+                                    class="comment-input" 
+                                    placeholder="Например: Привезите побыстрее, позвоните перед доставкой..."
+                                    rows="3"
+                                    maxlength="500"
+                                ></textarea>
+                                <div class="comment-counter">
+                                    <span id="comment-chars">0</span>/500 символов
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -138,7 +184,7 @@
                     </div>
                 </div>
             </div>
-            
+
            <!-- Страница Профиль -->
             <div id="page-cart" class="page">
                 <div class="profile-info animate-card">

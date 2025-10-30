@@ -1638,25 +1638,53 @@ body {
 }
 
 /* Исправление темного фона корзины */
-#page-catalog { 
-    background: #ffffff !important; 
+#page-catalog {
+    display: none; /* Скрываем по умолчанию, показываем через JS */
 }
 
-.cart-list { 
-    background: transparent !important; 
+.empty-cart {
+    display: none; /* Скрываем по умолчанию, показываем через JS */
+    text-align: center;
+    padding: 60px 20px;
 }
 
-.cart-item { 
-    background: white !important; 
-    border: 1px solid #e5e5e5 !important;
+.empty-cart-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
 }
 
-.cart-item-left, .cart-item-right { 
-    background: transparent !important; 
+.empty-cart h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 8px;
 }
 
-.empty-cart { 
-    background: transparent !important; 
+.empty-cart p {
+    font-size: 16px;
+    color: #666666;
+    margin-bottom: 24px;
+}
+
+.back-to-catalog {
+    background: #3F75FB;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-to-catalog:hover {
+    background: #2a5fd8;
+}
+
+.back-to-catalog:active {
+    transform: scale(0.98);
 }
 
 /* Убираем все темные переменные Telegram */
@@ -2161,4 +2189,46 @@ body {
         font-size: 16px;
         padding: 6px;
     }
+}
+
+/* Стили для секции комментария */
+.comment-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.comment-section label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.comment-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: #3F75FB;
+}
+
+.comment-input::placeholder {
+    color: #999;
+}
+
+.comment-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
 }
