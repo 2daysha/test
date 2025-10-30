@@ -980,7 +980,7 @@ showConfirmDialog(totalAmount, userBalance) {
                 </div>
                 
                 <!-- Кнопка истории заказов -->
-                <button class="orders-history-btn animate-btn" onclick="app.showOrdersPage()">
+                <button class="orders-history-btn" onclick="app.showOrdersPage()">
                     <span class="orders-history-icon">📦</span>
                     История заказов
                 </button>
@@ -990,12 +990,12 @@ showConfirmDialog(totalAmount, userBalance) {
                 </button>
             `;
         }
+
         showOrdersPage() {
             this.showPage('orders');
             this.loadOrders();
         }
 
-        // Метод загрузки заказов
         async loadOrders() {
             const container = document.getElementById('orders-list');
             if (!container) return;
@@ -1021,9 +1021,6 @@ showConfirmDialog(totalAmount, userBalance) {
                             <div class="empty-orders-icon">❌</div>
                             <h2>Ошибка загрузки</h2>
                             <p>Попробуйте позже</p>
-                            <button class="back-to-catalog" onclick="app.showPage('cart')">
-                                Назад в профиль
-                            </button>
                         </div>
                     `;
                 }
@@ -1035,15 +1032,11 @@ showConfirmDialog(totalAmount, userBalance) {
                         <div class="empty-orders-icon">❌</div>
                         <h2>Ошибка загрузки</h2>
                         <p>Попробуйте позже</p>
-                        <button class="back-to-catalog" onclick="app.showPage('cart')">
-                            Назад в профиль
-                        </button>
                     </div>
                 `;
             }
         }
 
-        // Метод отрисовки заказов
         renderOrders() {
             const container = document.getElementById('orders-list');
             if (!container) return;
@@ -1054,9 +1047,6 @@ showConfirmDialog(totalAmount, userBalance) {
                         <div class="empty-orders-icon">📦</div>
                         <h2>Заказов пока нет</h2>
                         <p>Совершите свой первый заказ в каталоге</p>
-                        <button class="back-to-catalog" onclick="app.showPage('home')">
-                            Перейти в каталог
-                        </button>
                     </div>
                 `;
                 return;
@@ -1068,7 +1058,7 @@ showConfirmDialog(totalAmount, userBalance) {
             );
 
             container.innerHTML = sortedOrders.map(order => `
-                <div class="order-card animate-card">
+                <div class="order-card">
                     <div class="order-header">
                         <div class="order-info">
                             <h3>Заказ #${order.id || order.guid?.slice(-8) || 'N/A'}</h3>
