@@ -36,7 +36,9 @@
             <div id="page-home" class="page">
                 <div class="search-container">
                     <div class="search-box">
-                        <img src="icons/search.svg" alt="Поиск" class="search-icon">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
                         <input type="text" class="search-input" id="search-input" placeholder="Поиск товаров...">
                         <button class="search-clear" id="search-clear" style="display: none;">×</button>
                     </div>
@@ -51,6 +53,7 @@
                     </button>
                     <div class="categories-menu" id="categories-menu">
                         <div class="categories-list" id="categories-list">
+                            <!-- Категории будут добавляться динамически -->
                         </div>
                     </div>
                 </div>
@@ -94,123 +97,47 @@
             
             <!-- Страница Корзина -->
             <div id="page-catalog" class="page">
-                <div class="cart-header">
-                    <h1>Корзина</h1>
-                    <span class="cart-count" id="cart-count">0 товара</span>
+                <div class="loading">Загрузка корзины...</div>
+            </div>
+            
+           <!-- Страница Профиль -->
+            <div id="page-cart" class="page">
+                <div class="profile-info animate-card">
+                    <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
+                    <p><strong>Логин:</strong> ${username}</p>
+                    <p><strong>Телефон:</strong> ${phone}</p>
                 </div>
-                
-                <div class="cart-list" id="cart-list">
-                </div>
-                
-                <div class="cart-total animate-card" id="cart-total" style="display: none;">
-                    <div class="cart-total-header">
-                        <div class="total-info">
-                            <h3 class="cart-total-title">Итого к оплате</h3>
-                            <p class="total-items" id="total-items-text">0 товара на сумму</p>
-                        </div>
-                        <div class="cart-total-amount">
-                            <span class="cart-total-price" id="cart-total-price">0</span>
-                            <span class="cart-total-currency"></span>
-                        </div>
+                <div class="profile-stats">
+                    <div class="stat-card animate-card">
+                        <span class="stat-value">${balance}</span>
+                        <span class="stat-label">Бонусы</span>
                     </div>
-                    <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
-                        <span class="checkout-text">Перейти к оплате</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Пустая корзина (отдельный блок) -->
-            <div id="empty-cart" class="empty-cart" style="display: none;">
-                <div class="empty-cart-icon">😔</div>
-                <h2>Ваша корзина пуста</h2>
-                <p>Добавьте товары из каталога</p>
-                <button class="back-to-catalog" onclick="app.showPage('home')">
-                    Вернуться в каталог
-                </button>
-            </div>
-
-            <!-- Страница Профиль -->
-            <div id="page-profile" class="page">
-                <div class="profile-info animate-card" id="profile-info">
-                </div>
-                <div class="profile-stats" id="profile-stats">
+                    <div class="stat-card animate-card">
+                        <span class="stat-value">${cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                        <span class="stat-label">В корзине</span>
+                    </div>
                 </div>
                 
                 <!-- Кнопка истории заказов -->
-                <button class="orders-history-btn" onclick="app.showOrdersPage()">
+                <button class="orders-history-btn animate-btn" onclick="app.showOrdersPage()">
                     История заказов
                 </button>
                 
-                <button class="support-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
+                <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
                     Поддержка
                 </button>
             </div>
 
-            <!-- Страница История заказов -->
+            <!-- Новая страница История заказов -->
             <div id="page-orders" class="page">
                 <div class="orders-header">
-                    <button class="back-button" onclick="app.showPage('profile')">← Назад</button> <!-- Изменил на profile -->
+                    <button class="back-button" onclick="app.showPage('cart')">← Назад</button>
                     <h1>История заказов</h1>
                 </div>
                 <div class="orders-list" id="orders-list">
                     <div class="loading">Загрузка заказов...</div>
                 </div>
             </div>
-
-            <!-- Диалог подтверждения заказа -->
-            <div id="confirm-dialog-overlay" class="confirm-dialog-overlay" style="display: none;">
-                <div class="confirm-dialog">
-                    <div class="confirm-dialog-header">
-                        <h3>Подтверждение заказа</h3>
-                        <button class="dialog-close" onclick="app.closeConfirmDialog()">×</button>
-                    </div>
-                    
-                    <div class="confirm-dialog-content">
-                        <div class="order-summary">
-                            <p>Вы уверены, что хотите оплатить заказ?</p>
-                            <div class="order-details">
-                                <div class="detail-line">
-                                    <span>Товаров:</span>
-                                    <span id="dialog-total-items">0 шт.</span>
-                                </div>
-                                <div class="detail-line">
-                                    <span>Сумма:</span>
-                                    <span id="dialog-total-amount">0</span>
-                                </div>
-                                <div class="detail-line">
-                                    <span>Баланс после оплаты:</span>
-                                    <span id="dialog-balance-after" class="balance-after">0</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Поле для комментария -->
-                            <div class="comment-section">
-                                <label for="order-comment">Комментарий к заказу (необязательно):</label>
-                                <textarea 
-                                    id="order-comment" 
-                                    class="comment-input" 
-                                    placeholder="Например: Привезите побыстрее, позвоните перед доставкой..."
-                                    rows="3"
-                                    maxlength="500"
-                                ></textarea>
-                                <div class="comment-counter">
-                                    <span id="comment-chars">0</span>/500 символов
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="confirm-dialog-actions">
-                        <button class="btn-confirm" onclick="app.processOrder()">
-                            Да, оплатить
-                        </button>
-                        <button class="btn-cancel" onclick="app.closeConfirmDialog()">
-                            Отмена
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
 
         <!-- Навигация -->
         <nav class="bottom-nav" style="display: none;">
@@ -229,7 +156,7 @@
                         <img src="icons/cart_dark.svg" alt="Корзина" class="nav-icon nav-icon-dark">
                     </div>
                 </button>
-                <button class="nav-item" data-page="profile">
+                <button class="nav-item" data-page="cart">
                     <div class="nav-icon-bg"></div>
                     <div class="nav-icon-container">
                         <img src="icons/profile_light.svg" alt="Профиль" class="nav-icon nav-icon-light">
@@ -238,8 +165,6 @@
                 </button>
             </div>
         </nav>
-    </div>
-
     <script>
         window.APP_CONFIG = {
             API_URL: "http://localhost:3001"

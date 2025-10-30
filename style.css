@@ -1480,7 +1480,7 @@ body {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.6);
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10000;
@@ -1638,53 +1638,25 @@ body {
 }
 
 /* Исправление темного фона корзины */
-#page-catalog {
-    display: none; /* Скрываем по умолчанию, показываем через JS */
+#page-catalog { 
+    background: #ffffff !important; 
 }
 
-.empty-cart {
-    display: none; /* Скрываем по умолчанию, показываем через JS */
-    text-align: center;
-    padding: 60px 20px;
+.cart-list { 
+    background: transparent !important; 
 }
 
-.empty-cart-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-    opacity: 0.3;
+.cart-item { 
+    background: white !important; 
+    border: 1px solid #e5e5e5 !important;
 }
 
-.empty-cart h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #000000;
-    margin-bottom: 8px;
+.cart-item-left, .cart-item-right { 
+    background: transparent !important; 
 }
 
-.empty-cart p {
-    font-size: 16px;
-    color: #666666;
-    margin-bottom: 24px;
-}
-
-.back-to-catalog {
-    background: #3F75FB;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.back-to-catalog:hover {
-    background: #2a5fd8;
-}
-
-.back-to-catalog:active {
-    transform: scale(0.98);
+.empty-cart { 
+    background: transparent !important; 
 }
 
 /* Убираем все темные переменные Telegram */
@@ -1972,9 +1944,6 @@ body {
     padding: 8px;
     border-radius: 8px;
     transition: background 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .back-button:hover {
@@ -2025,7 +1994,6 @@ body {
 .order-date {
     font-size: 14px;
     color: #666666;
-    margin-bottom: 4px;
 }
 
 .order-status {
@@ -2034,27 +2002,21 @@ body {
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
-    white-space: nowrap;
 }
 
-.status-new {
-    background: rgba(0, 123, 255, 0.1);
-    color: #007bff;
+.status-completed {
+    background: rgba(52, 199, 89, 0.1);
+    color: #34C759;
 }
 
-.status-accepted {
-    background: rgba(255, 193, 7, 0.1);
-    color: #ffc107;
-}
-
-.status-done {
-    background: rgba(40, 167, 69, 0.1);
-    color: #28a745;
+.status-pending {
+    background: rgba(255, 149, 0, 0.1);
+    color: #FF9500;
 }
 
 .status-cancelled {
-    background: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
 }
 
 .order-items {
@@ -2071,7 +2033,6 @@ body {
 
 .order-item:last-child {
     border-bottom: none;
-    margin-bottom: 0;
 }
 
 .item-name {
@@ -2084,7 +2045,6 @@ body {
     font-size: 14px;
     color: #666666;
     margin: 0 12px;
-    white-space: nowrap;
 }
 
 .item-price {
@@ -2093,28 +2053,13 @@ body {
     color: #3F75FB;
     min-width: 80px;
     text-align: right;
-    white-space: nowrap;
-}
-
-.order-comment {
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-    padding: 8px 0;
-    border-top: 1px solid #f8f8f8;
-    margin-bottom: 8px;
-}
-
-.order-comment strong {
-    color: #000;
-    font-style: normal;
 }
 
 .order-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 8px;
+    padding-top: 12px;
     border-top: 1px solid #f0f0f0;
 }
 
@@ -2122,6 +2067,11 @@ body {
     font-size: 16px;
     font-weight: 700;
     color: #3F75FB;
+}
+
+.order-id {
+    font-size: 12px;
+    color: #999999;
 }
 
 .empty-orders {
@@ -2153,7 +2103,6 @@ body {
     .order-header {
         flex-direction: column;
         gap: 8px;
-        align-items: flex-start;
     }
     
     .order-status {
@@ -2180,55 +2129,4 @@ body {
         padding: 14px 20px;
         font-size: 16px;
     }
-    
-    .orders-header {
-        gap: 12px;
-    }
-    
-    .back-button {
-        font-size: 16px;
-        padding: 6px;
-    }
-}
-
-/* Стили для секции комментария */
-.comment-section {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #f0f0f0;
-}
-
-.comment-section label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 8px;
-}
-
-.comment-input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-    transition: border-color 0.2s ease;
-}
-
-.comment-input:focus {
-    outline: none;
-    border-color: #3F75FB;
-}
-
-.comment-input::placeholder {
-    color: #999;
-}
-
-.comment-counter {
-    text-align: right;
-    font-size: 12px;
-    color: #666;
-    margin-top: 4px;
 }
