@@ -1052,7 +1052,6 @@ showConfirmDialog(totalAmount, userBalance) {
                 return;
             }
 
-            // Сортируем заказы по дате (новые сверху)
             const sortedOrders = [...this.orders].sort((a, b) => 
                 new Date(b.created_at) - new Date(a.created_at)
             );
