@@ -30,12 +30,14 @@ class LoyaltyProApp {
 
         tg.expand();
 
-        if (tg.disableClosingConfirmation) {
-            tg.disableClosingConfirmation();
+        if (tg.enableClosingConfirmation) {
+            tg.enableClosingConfirmation();
         }
 
         this.loadUserDataFromStorage();
         await this.checkAuthentication();
+
+        this.setupNavigation();
     }
 
     // Централизованная проверка аутентификации
@@ -261,43 +263,63 @@ class LoyaltyProApp {
     if (!document.querySelector('.nav-indicator')) {
         const indicator = document.createElement('div');
         indicator.className = 'nav-indicator';
-        navContainer.insertBefore(indicator, navContainer.firstChild);
+        navContainer.appendChild(indicator);
     }
     
-    setTimeout(() => this.updateNavIndicator(), 100);
-}
-switchPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const targetPage = e.currentTarget.dataset.page;
+            this.showPage(targetPage);
+        });
     });
     
-    document.getElementById(`page-${pageId}`).classList.add('active');
-    
-    this.updateNavIcons(pageId);
-    this.updateNavIndicator();
+    setTimeout(() => {
+        this.updateNavIndicator();
+        this.updateNavIcons();
+    }, 100);
 }
 
-updateNavIcons(activePage) {
-    const navItems = document.querySelectorAll('.nav-item');
-    
+    switchPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+        });
+        
+        document.getElementById(`page-${pageId}`).classList.add('active');
+        
+        this.updateNavIcons(pageId);
+        this.updateNavIndicator();
+    }
+
+    updateNavIcons(activePage = null) {
+        const navItems = document.querySelectorAll('.nav-item');
+        const currentActivePage = activePage || this.currentPage;
+        
         navItems.forEach(item => {
-            const isActive = item.classList.contains('active');
-            const icons = item.querySelectorAll('.nav-icon'); 
-    });
-}
+            const page = item.dataset.page;
+            const icon = item.querySelector('img.nav-icon');
+            
+            if (!icon) return;
+            
+            if (page === currentActivePage) {
+                icon.src = `icons/${page}_dark.svg`;
+            } else {
+                icon.src = `icons/${page}_light.svg`;
+            }
+        });
+    }
 
-updateNavIndicator() {
-    const activeNav = document.querySelector('.nav-item.active');
-    const indicator = document.querySelector('.nav-indicator');
-    
-    if (!activeNav || !indicator) return;
-    
-    const navRect = activeNav.getBoundingClientRect();
-    const containerRect = activeNav.parentElement.getBoundingClientRect();
-    
-    indicator.style.width = `${navRect.width}px`;
-    indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
-}
+    updateNavIndicator() {
+        const activeNav = document.querySelector('.nav-item.active');
+        const indicator = document.querySelector('.nav-indicator');
+        
+        if (!activeNav || !indicator) return;
+        
+        const navRect = activeNav.getBoundingClientRect();
+        const containerRect = activeNav.parentElement.getBoundingClientRect();
+        
+        indicator.style.width = `${navRect.width}px`;
+        indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
+    }
 
     saveUserData() {
         localStorage.setItem('userData', JSON.stringify(this.userData));
@@ -323,36 +345,23 @@ updateNavIndicator() {
     }
 
     showPage(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
+    const navItem = document.querySelector(`[data-page="${page}"]`);
+    if (navItem) navItem.classList.add('active');
+    
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const pageEl = document.getElementById(`page-${page}`);
     if (pageEl) pageEl.classList.add('active');
 
-    const navItem = document.querySelector(`[data-page="${page}"]`);
-    if (navItem) navItem.classList.add('active');
-
     this.currentPage = page;
     
-    setTimeout(() => this.updateNavIndicator(), 10);
-
-    this.updateNavIcons();
+    setTimeout(() => {
+        this.updateNavIndicator();
+        this.updateNavIcons(page);
+    }, 50);
+    
     this.onPageChange(page);
 }
-
-    onPageChange(page) {
-        switch (page) {
-            case 'home': 
-                this.renderProducts(); 
-                break;
-            case 'catalog': 
-                this.loadCart(); 
-                break;
-            case 'cart': 
-                this.loadProfile(); 
-                break;
-        }
-    }
 
     loadUserData() {
         const tgUser = tg?.initDataUnsafe?.user;
