@@ -105,26 +105,31 @@
                 <div class="loading">Загрузка профиля...</div>
             </div>
         </main>
-        <nav class="bottom-nav">
-            <div class="nav-container">
-                <button class="nav-item active" data-page="home">
-                <div class="nav-icon-bg"></div>
-                <img src="icons/home_light.svg" class="nav-icon nav-icon-light">
-                <img src="icons/home_dark.svg" class="nav-icon nav-icon-dark">
-            </button>
-                <button class="nav-item" data-page="catalog">
-                <div class="nav-icon-bg"></div>
-                <img src="icons/cart_light.svg" class="nav-icon nav-icon-light">
-                <img src="icons/cart_dark.svg" class="nav-icon nav-icon-dark">
-            </button>
-                <button class="nav-item" data-page="cart">
-                <div class="nav-icon-bg"></div>
-                <img src="icons/profile_light.svg" class="nav-icon nav-icon-light">
-                <img src="icons/profile_dark.svg" class="nav-icon nav-icon-dark">
-            </button>
-        </div>
-    </nav>
-
+        <nav class="bottom-nav" style="display: none;">
+    <div class="nav-container">
+        <button class="nav-item active" data-page="home">
+            <div class="nav-icon-bg"></div>
+            <div class="nav-icon-container">
+                <img src="icons/home_light.svg" alt="Главная" class="nav-icon nav-icon-light">
+                <img src="icons/home_dark.svg" alt="Главная" class="nav-icon nav-icon-dark">
+            </div>
+        </button>
+        <button class="nav-item" data-page="catalog">
+            <div class="nav-icon-bg"></div>
+            <div class="nav-icon-container">
+                <img src="icons/cart_light.svg" alt="Корзина" class="nav-icon nav-icon-light">
+                <img src="icons/cart_dark.svg" alt="Корзина" class="nav-icon nav-icon-dark">
+            </div>
+        </button>
+        <button class="nav-item" data-page="cart">
+            <div class="nav-icon-bg"></div>
+            <div class="nav-icon-container">
+                <img src="icons/profile_light.svg" alt="Профиль" class="nav-icon nav-icon-light">
+                <img src="icons/profile_dark.svg" alt="Профиль" class="nav-icon nav-icon-dark">
+            </div>
+        </button>
+    </div>
+</nav>
     <script>
         window.APP_CONFIG = {
             API_URL: "http://localhost:3001"

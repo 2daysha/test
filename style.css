@@ -1816,20 +1816,29 @@ body {
   transform: translate(-50%, -50%) scale(1);
 }
 
+/* Контейнер для иконок */
+.nav-icon-container {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
 /* Иконки */
 .nav-icon {
   width: 24px;
   height: 24px;
-  z-index: 2; /* Иконки НАД кружком */
   transition: all 0.3s ease;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* Светлые иконки (по умолчанию скрыты) */
 .nav-icon-light {
-  position: absolute;
-  top: 0;
-  left: 0;
   opacity: 0;
   transform: scale(0.8);
 }
@@ -1874,9 +1883,12 @@ body {
     width: 42px;
     height: 42px;
   }
+  .nav-icon-container {
+    width: 22px;
+    height: 22px;
+  }
   .nav-icon {
     width: 22px;
     height: 22px;
   }
 }
-
