@@ -761,10 +761,11 @@ setupNavigation() {
 
         const orderData = {
             items: this.cart.map(item => ({
-                product: item.guid,
+                product: item,
                 quantity: item.quantity,
                 price: item.price
-            }))
+            })),
+            commentary: ""
         };
 
         console.log('Отправляем заказ:', orderData);
@@ -781,7 +782,7 @@ setupNavigation() {
             this.cart = [];
             localStorage.removeItem('cart');
             
-            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+            this.showSuccessOverlay('Успешно!', 'Заказ создан!');
             
             await this.checkTelegramLink();
             this.loadCart();

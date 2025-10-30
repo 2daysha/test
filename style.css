@@ -1944,6 +1944,9 @@ body {
     padding: 8px;
     border-radius: 8px;
     transition: background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .back-button:hover {
@@ -1994,6 +1997,7 @@ body {
 .order-date {
     font-size: 14px;
     color: #666666;
+    margin-bottom: 4px;
 }
 
 .order-status {
@@ -2002,6 +2006,7 @@ body {
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .status-new {
@@ -2045,6 +2050,7 @@ body {
 
 .order-item:last-child {
     border-bottom: none;
+    margin-bottom: 0;
 }
 
 .item-name {
@@ -2057,6 +2063,7 @@ body {
     font-size: 14px;
     color: #666666;
     margin: 0 12px;
+    white-space: nowrap;
 }
 
 .item-price {
@@ -2065,6 +2072,7 @@ body {
     color: #3F75FB;
     min-width: 80px;
     text-align: right;
+    white-space: nowrap;
 }
 
 .order-footer {
@@ -2079,11 +2087,6 @@ body {
     font-size: 16px;
     font-weight: 700;
     color: #3F75FB;
-}
-
-.order-id {
-    font-size: 12px;
-    color: #999999;
 }
 
 .empty-orders {
@@ -2115,6 +2118,7 @@ body {
     .order-header {
         flex-direction: column;
         gap: 8px;
+        align-items: flex-start;
     }
     
     .order-status {
@@ -2140,5 +2144,14 @@ body {
     .orders-history-btn {
         padding: 14px 20px;
         font-size: 16px;
+    }
+    
+    .orders-header {
+        gap: 12px;
+    }
+    
+    .back-button {
+        font-size: 16px;
+        padding: 6px;
     }
 }
