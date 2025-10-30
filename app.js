@@ -225,7 +225,7 @@ class LoyaltyProApp {
             this.categories = await response.json();
         }
     } catch (err) {
-        console.error('Ошибка загрузки категорий:', err);
+        console.error('Ошибка загрузки категорий', err);
     }
     }
 
