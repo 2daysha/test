@@ -268,18 +268,20 @@ class LoyaltyProApp {
     setTimeout(() => this.updateNavIndicator(), 100);
 }
 
-updateNavIndicator() {
-    const activeNav = document.querySelector('.nav-item.active');
-    const indicator = document.querySelector('.nav-indicator');
-    
-    if (!activeNav || !indicator) return;
-    
-    const navRect = activeNav.getBoundingClientRect();
-    const containerRect = activeNav.parentElement.getBoundingClientRect();
-    
-    indicator.style.width = `${navRect.width}px`;
-    indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
-}
+    updateNavIndicator() {
+        const activeNav = document.querySelector('.nav-item.active');
+        const indicator = document.querySelector('.nav-indicator');
+        
+        if (!activeNav || !indicator) return;
+        
+        const navRect = activeNav.getBoundingClientRect();
+        const containerRect = activeNav.parentElement.getBoundingClientRect();
+        
+        indicator.style.width = `${navRect.width}px`;
+        indicator.style.transform = `translateX(${navRect.left - containerRect.left}px)`;
+        
+        indicator.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    }
 
     saveUserData() {
         localStorage.setItem('userData', JSON.stringify(this.userData));
@@ -305,22 +307,22 @@ updateNavIndicator() {
     }
 
     showPage(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    const pageEl = document.getElementById(`page-${page}`);
-    if (pageEl) pageEl.classList.add('active');
+        const pageEl = document.getElementById(`page-${page}`);
+        if (pageEl) pageEl.classList.add('active');
 
-    const navItem = document.querySelector(`[data-page="${page}"]`);
-    if (navItem) navItem.classList.add('active');
+        const navItem = document.querySelector(`[data-page="${page}"]`);
+        if (navItem) navItem.classList.add('active');
 
-    this.currentPage = page;
+        this.currentPage = page;
+        
+        setTimeout(() => this.updateNavIndicator(), 10);
+        
+        this.onPageChange(page);
+    }
     
-    setTimeout(() => this.updateNavIndicator(), 10);
-    
-    this.onPageChange(page);
-}
-
     onPageChange(page) {
         switch (page) {
             case 'home': 
