@@ -232,7 +232,7 @@ class LoyaltyProApp {
     showAuthPage() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-auth').classList.add('active');
-        document.querySelector('.bottom-nav').style.display = 'none';
+        //document.querySelector('.bottom-nav').style.display = 'none';
         document.querySelector('.app').classList.remove('authenticated');
 
         const requestBtn = document.getElementById('request-phone-btn');
@@ -322,7 +322,7 @@ class LoyaltyProApp {
         
         this.onPageChange(page);
     }
-    
+
     onPageChange(page) {
         switch (page) {
             case 'home': 
