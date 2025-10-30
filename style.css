@@ -1892,3 +1892,241 @@ body {
     height: 22px;
   }
 }
+
+/* === СТИЛИ ДЛЯ КНОПКИ ИСТОРИИ ЗАКАЗОВ === */
+
+.orders-history-btn {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px 24px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.orders-history-btn:hover {
+    background: #f8f8f8;
+    border-color: #3F75FB;
+}
+
+.orders-history-btn:active {
+    transform: scale(0.98);
+}
+
+.orders-history-icon {
+    font-size: 20px;
+}
+
+/* === СТИЛИ СТРАНИЦЫ ИСТОРИИ ЗАКАЗОВ === */
+
+.orders-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 0 4px;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #3F75FB;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.back-button:hover {
+    background: #f0f0f0;
+}
+
+.orders-header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0;
+}
+
+.orders-list {
+    margin-bottom: 20px;
+}
+
+.order-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 4px;
+}
+
+.order-date {
+    font-size: 14px;
+    color: #666666;
+}
+
+.order-status {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-completed {
+    background: rgba(52, 199, 89, 0.1);
+    color: #34C759;
+}
+
+.status-pending {
+    background: rgba(255, 149, 0, 0.1);
+    color: #FF9500;
+}
+
+.status-cancelled {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+}
+
+.order-items {
+    margin-bottom: 12px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f8f8;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    flex: 1;
+    font-size: 14px;
+    color: #000000;
+}
+
+.item-quantity {
+    font-size: 14px;
+    color: #666666;
+    margin: 0 12px;
+}
+
+.item-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #3F75FB;
+    min-width: 80px;
+    text-align: right;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.order-total {
+    font-size: 16px;
+    font-weight: 700;
+    color: #3F75FB;
+}
+
+.order-id {
+    font-size: 12px;
+    color: #999999;
+}
+
+.empty-orders {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-orders-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-orders h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 8px;
+}
+
+.empty-orders p {
+    font-size: 16px;
+    color: #666666;
+    margin-bottom: 24px;
+}
+
+/* Мобильная адаптация */
+@media (max-width: 480px) {
+    .order-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .order-status {
+        align-self: flex-start;
+    }
+    
+    .order-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .item-quantity, .item-price {
+        margin-left: 0;
+    }
+    
+    .order-footer {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    
+    .orders-history-btn {
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+}

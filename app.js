@@ -4,6 +4,7 @@ class LoyaltyProApp {
     constructor() {
         this.currentPage = 'home';
         this.cart = [];
+        this.orders = [];
         this.userData = null;
         this.products = [];
         this.categories = [];
@@ -953,34 +954,184 @@ showConfirmDialog(totalAmount, userBalance) {
     }, 10);
 }
 
-    loadProfile() {
-        const container = document.getElementById('page-cart');
-        if (!container) return;
+        loadProfile() {
+            const container = document.getElementById('page-cart');
+            if (!container) return;
 
-        const { firstName, lastName, username } = this.userData || {};
-        const balance = this.participant?.balance || 0;
-        const phone = this.userPhone ? this.formatPhoneNumber(this.userPhone) : 'Не привязан';
+            const { firstName, lastName, username } = this.userData || {};
+            const balance = this.participant?.balance || 0;
+            const phone = this.userPhone ? this.formatPhoneNumber(this.userPhone) : 'Не привязан';
 
-        container.innerHTML = `
-            <div class="profile-info animate-card">
-                <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
-                <p><strong>Логин:</strong> ${username}</p>
-                <p><strong>Телефон:</strong> ${phone}</p>
-            </div>
-            <div class="profile-stats">
-                <div class="stat-card animate-card">
-                    <span class="stat-value">${balance}</span>
-                    <span class="stat-label">Бонусы</span>
+            container.innerHTML = `
+                <div class="profile-info animate-card">
+                    <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
+                    <p><strong>Логин:</strong> ${username}</p>
+                    <p><strong>Телефон:</strong> ${phone}</p>
                 </div>
-                <div class="stat-card animate-card">
-                    <span class="stat-value">${this.cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
-                    <span class="stat-label">В корзине</span>
+                <div class="profile-stats">
+                    <div class="stat-card animate-card">
+                        <span class="stat-value">${balance}</span>
+                        <span class="stat-label">Бонусы</span>
+                    </div>
+                    <div class="stat-card animate-card">
+                        <span class="stat-value">${this.cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                        <span class="stat-label">В корзине</span>
+                    </div>
                 </div>
-            </div>
-            <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">Поддержка</button>
-        `;
-    }
+                
+                <!-- Кнопка истории заказов -->
+                <button class="orders-history-btn animate-btn" onclick="app.showOrdersPage()">
+                    <span class="orders-history-icon">📦</span>
+                    История заказов
+                </button>
+                
+                <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
+                    Поддержка
+                </button>
+            `;
+        }
+        showOrdersPage() {
+            this.showPage('orders');
+            this.loadOrders();
+        }
 
+        // Метод загрузки заказов
+        async loadOrders() {
+            const container = document.getElementById('orders-list');
+            if (!container) return;
+
+            container.innerHTML = '<div class="loading">Загрузка заказов...</div>';
+
+            try {
+                const response = await fetch(`${this.baseURL}/api/telegram/orders/`, {
+                    method: 'GET',
+                    headers: this.getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    this.orders = await response.json();
+                    this.renderOrders();
+                } else if (response.status === 401) {
+                    this.showNotification('Ошибка', 'Требуется авторизация', 'error');
+                    this.showAuthPage();
+                } else {
+                    this.showNotification('Ошибка', 'Не удалось загрузить заказы', 'error');
+                    container.innerHTML = `
+                        <div class="empty-orders">
+                            <div class="empty-orders-icon">❌</div>
+                            <h2>Ошибка загрузки</h2>
+                            <p>Попробуйте позже</p>
+                            <button class="back-to-catalog" onclick="app.showPage('cart')">
+                                Назад в профиль
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Load orders error:', error);
+                this.showNotification('Ошибка', 'Ошибка при загрузке заказов', 'error');
+                container.innerHTML = `
+                    <div class="empty-orders">
+                        <div class="empty-orders-icon">❌</div>
+                        <h2>Ошибка загрузки</h2>
+                        <p>Попробуйте позже</p>
+                        <button class="back-to-catalog" onclick="app.showPage('cart')">
+                            Назад в профиль
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Метод отрисовки заказов
+        renderOrders() {
+            const container = document.getElementById('orders-list');
+            if (!container) return;
+
+            if (!this.orders || this.orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-orders">
+                        <div class="empty-orders-icon">📦</div>
+                        <h2>Заказов пока нет</h2>
+                        <p>Совершите свой первый заказ в каталоге</p>
+                        <button class="back-to-catalog" onclick="app.showPage('home')">
+                            Перейти в каталог
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Сортируем заказы по дате (новые сверху)
+            const sortedOrders = [...this.orders].sort((a, b) => 
+                new Date(b.created_at) - new Date(a.created_at)
+            );
+
+            container.innerHTML = sortedOrders.map(order => `
+                <div class="order-card animate-card">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Заказ #${order.id || order.guid?.slice(-8) || 'N/A'}</h3>
+                            <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
+                        </div>
+                        <div class="order-status status-${order.status || 'pending'}">
+                            ${this.getStatusText(order.status)}
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        ${order.items ? order.items.map(item => `
+                            <div class="order-item">
+                                <span class="item-name">${item.product_name || item.name || 'Товар'}</span>
+                                <span class="item-quantity">${item.quantity} шт.</span>
+                                <span class="item-price">${(item.price * item.quantity)} бонусов</span>
+                            </div>
+                        `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
+                    </div>
+                    
+                    <div class="order-footer">
+                        <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
+                        <div class="order-id">ID: ${order.guid || order.id}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Вспомогательные методы
+        formatOrderDate(dateString) {
+            if (!dateString) return 'Дата не указана';
+            
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                return 'Неверная дата';
+            }
+        }
+
+        getStatusText(status) {
+            const statusMap = {
+                'completed': 'Выполнен',
+                'pending': 'В обработке',
+                'cancelled': 'Отменен',
+                'processing': 'Обрабатывается',
+                'shipped': 'Отправлен',
+                'delivered': 'Доставлен'
+            };
+            return statusMap[status] || 'В обработке';
+        }
+
+        calculateOrderTotal(order) {
+            if (!order.items) return 0;
+            return order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+        }
+    
     formatPhoneNumber(phone) {
         return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 ($2) $3-$4-$5');
     }
@@ -1003,38 +1154,37 @@ showConfirmDialog(totalAmount, userBalance) {
     }
 
     showSuccessOverlay(title, message) {
-    const oldOverlay = document.querySelector('.success-overlay');
-    if (oldOverlay) {
-        oldOverlay.remove();
-    }
+        const oldOverlay = document.querySelector('.success-overlay');
+        if (oldOverlay) {
+            oldOverlay.remove();
+        }
 
-    const overlay = document.createElement('div');
-    overlay.className = 'success-overlay';
-    overlay.innerHTML = `
-        <div class="success-overlay-content">
-            <div class="success-checkmark">
-                <div class="check-icon"></div>
+        const overlay = document.createElement('div');
+        overlay.className = 'success-overlay';
+        overlay.innerHTML = `
+            <div class="success-overlay-content">
+                <div class="success-checkmark">
+                    <div class="check-icon"></div>
+                </div>
+                <div class="success-overlay-title">${title}</div>
+                <div class="success-overlay-message">${message}</div>
             </div>
-            <div class="success-overlay-title">${title}</div>
-            <div class="success-overlay-message">${message}</div>
-        </div>
-    `;
-    
-    document.body.appendChild(overlay);
-    
-    setTimeout(() => {
-        overlay.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        overlay.classList.remove('show');
+        `;
+        
+        document.body.appendChild(overlay);
+        
         setTimeout(() => {
-            if (overlay.parentNode) {
-                overlay.remove();
-            }
-        }, 300);
-    }, 3000);
+            overlay.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
 }
-}
-
 window.app = new LoyaltyProApp();
