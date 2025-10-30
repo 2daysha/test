@@ -247,8 +247,13 @@ class LoyaltyProApp {
         document.querySelector('.app').classList.add('authenticated');
 
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.onclick = (e) => this.navigateTo(e.currentTarget.dataset.page);
-        });
+            item.addEventListener('click', e => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                this.showPage(e.currentTarget.dataset.page);
+                this.updateNavIndicator?.();
+            });
+            });
 
         const bottomNav = document.querySelector('.bottom-nav');
         bottomNav.style.display = 'flex';
