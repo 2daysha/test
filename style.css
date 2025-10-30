@@ -1707,7 +1707,14 @@ body {
 /*Строка поиска*/
 .search-container { padding: 0 16px 16px; }
 .search-box { position: relative; display: flex; align-items: center; background: #f8f8f8; border-radius: 12px; padding: 8px 16px; border: 1px solid #e5e5e5; }
-.search-icon { width: 18px; height: 18px; color: #666; margin-right: 8px; flex-shrink: 0; }
+.search-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  display: block;
+  filter: invert(40%) brightness(0.4);
+}
 .search-input { flex: 1; border: none; background: transparent; font-size: 16px; color: #000; outline: none; }
 .search-input::placeholder { color: #999; }
 .search-clear { background: none; border: none; font-size: 20px; color: #666; cursor: pointer; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
