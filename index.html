@@ -100,36 +100,72 @@
                 <div class="loading">Загрузка корзины...</div>
             </div>
             
-            <!-- Страница Профиль -->
+           <!-- Страница Профиль -->
             <div id="page-cart" class="page">
-                <div class="loading">Загрузка профиля...</div>
+                <div class="profile-info animate-card">
+                    <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
+                    <p><strong>Логин:</strong> ${username}</p>
+                    <p><strong>Телефон:</strong> ${phone}</p>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-card animate-card">
+                        <span class="stat-value">${balance}</span>
+                        <span class="stat-label">Бонусы</span>
+                    </div>
+                    <div class="stat-card animate-card">
+                        <span class="stat-value">${cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                        <span class="stat-label">В корзине</span>
+                    </div>
+                </div>
+                
+                <!-- Кнопка истории заказов -->
+                <button class="orders-history-btn animate-btn" onclick="app.showOrdersPage()">
+                    <span class="orders-history-icon">📦</span>
+                    История заказов
+                </button>
+                
+                <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
+                    Поддержка
+                </button>
             </div>
-        </main>
+
+            <!-- Новая страница История заказов -->
+            <div id="page-orders" class="page">
+                <div class="orders-header">
+                    <button class="back-button" onclick="app.showPage('cart')">Назад</button>
+                    <h1>История заказов</h1>
+                </div>
+                <div class="orders-list" id="orders-list">
+                    <div class="loading">Загрузка заказов...</div>
+                </div>
+            </div>
+
+        <!-- Навигация -->
         <nav class="bottom-nav" style="display: none;">
-    <div class="nav-container">
-        <button class="nav-item active" data-page="home">
-            <div class="nav-icon-bg"></div>
-            <div class="nav-icon-container">
-                <img src="icons/home_light.svg" alt="Главная" class="nav-icon nav-icon-light">
-                <img src="icons/home_dark.svg" alt="Главная" class="nav-icon nav-icon-dark">
+            <div class="nav-container">
+                <button class="nav-item active" data-page="home">
+                    <div class="nav-icon-bg"></div>
+                    <div class="nav-icon-container">
+                        <img src="icons/home_light.svg" alt="Главная" class="nav-icon nav-icon-light">
+                        <img src="icons/home_dark.svg" alt="Главная" class="nav-icon nav-icon-dark">
+                    </div>
+                </button>
+                <button class="nav-item" data-page="catalog">
+                    <div class="nav-icon-bg"></div>
+                    <div class="nav-icon-container">
+                        <img src="icons/cart_light.svg" alt="Корзина" class="nav-icon nav-icon-light">
+                        <img src="icons/cart_dark.svg" alt="Корзина" class="nav-icon nav-icon-dark">
+                    </div>
+                </button>
+                <button class="nav-item" data-page="cart">
+                    <div class="nav-icon-bg"></div>
+                    <div class="nav-icon-container">
+                        <img src="icons/profile_light.svg" alt="Профиль" class="nav-icon nav-icon-light">
+                        <img src="icons/profile_dark.svg" alt="Профиль" class="nav-icon nav-icon-dark">
+                    </div>
+                </button>
             </div>
-        </button>
-        <button class="nav-item" data-page="catalog">
-            <div class="nav-icon-bg"></div>
-            <div class="nav-icon-container">
-                <img src="icons/cart_light.svg" alt="Корзина" class="nav-icon nav-icon-light">
-                <img src="icons/cart_dark.svg" alt="Корзина" class="nav-icon nav-icon-dark">
-            </div>
-        </button>
-        <button class="nav-item" data-page="cart">
-            <div class="nav-icon-bg"></div>
-            <div class="nav-icon-container">
-                <img src="icons/profile_light.svg" alt="Профиль" class="nav-icon nav-icon-light">
-                <img src="icons/profile_dark.svg" alt="Профиль" class="nav-icon nav-icon-dark">
-            </div>
-        </button>
-    </div>
-</nav>
+        </nav>
     <script>
         window.APP_CONFIG = {
             API_URL: "http://localhost:3001"
