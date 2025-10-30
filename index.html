@@ -99,6 +99,45 @@
             <div id="page-catalog" class="page">
                 <div class="loading">Загрузка корзины...</div>
             </div>
+
+            <!-- Диалог подтверждения заказа -->
+            <div id="confirm-dialog-overlay" class="confirm-dialog-overlay" style="display: none;">
+                <div class="confirm-dialog">
+                    <div class="confirm-dialog-header">
+                        <h3>Подтверждение заказа</h3>
+                        <button class="dialog-close" onclick="app.closeConfirmDialog()">×</button>
+                    </div>
+                    
+                    <div class="confirm-dialog-content">
+                        <div class="order-summary">
+                            <p>Вы уверены, что хотите оплатить заказ?</p>
+                            <div class="order-details">
+                                <div class="detail-line">
+                                    <span>Товаров:</span>
+                                    <span id="dialog-total-items">0 шт.</span>
+                                </div>
+                                <div class="detail-line">
+                                    <span>Сумма:</span>
+                                    <span id="dialog-total-amount">0 бонусов</span>
+                                </div>
+                                <div class="detail-line">
+                                    <span>Баланс после оплаты:</span>
+                                    <span id="dialog-balance-after" class="balance-after">0 бонусов</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="confirm-dialog-actions">
+                        <button class="btn-confirm" onclick="app.processOrder()">
+                            Да, оплатить
+                        </button>
+                        <button class="btn-cancel" onclick="app.closeConfirmDialog()">
+                            Отмена
+                        </button>
+                    </div>
+                </div>
+            </div>
             
            <!-- Страница Профиль -->
             <div id="page-cart" class="page">

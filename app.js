@@ -776,13 +776,15 @@ setupNavigation() {
             body: JSON.stringify(orderData)
         });
 
-        if (response.status === 201) {
+         if (response.status === 201) {
             const result = await response.json();
             
             this.cart = [];
             localStorage.removeItem('cart');
             
-            this.showSuccessOverlay('Успешно!', 'Заказ создан!');
+            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+            
+            this.closeConfirmDialog();
             
             await this.checkTelegramLink();
             this.loadCart();
@@ -903,57 +905,30 @@ setupNavigation() {
     this.showConfirmDialog(totalAmount, userBalance);
 }
 
-showConfirmDialog(totalAmount, userBalance) {
-    const balanceAfter = userBalance - totalAmount;
-    const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+        showConfirmDialog(totalAmount, userBalance) {
+            const balanceAfter = userBalance - totalAmount;
+            const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
 
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog-overlay';
-    dialog.innerHTML = `
-        <div class="confirm-dialog">
-            <div class="confirm-dialog-header">
-                <h3>Подтверждение заказа</h3>
-                <button class="dialog-close" onclick="this.closest('.confirm-dialog-overlay').remove()">×</button>
-            </div>
-            
-            <div class="confirm-dialog-content">
-                <div class="order-summary">
-                    <p>Вы уверены, что хотите оплатить заказ?</p>
-                    <div class="order-details">
-                        <div class="detail-line">
-                            <span>Товаров:</span>
-                            <span>${totalItems} шт.</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Сумма:</span>
-                            <span>${totalAmount} бонусов</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Баланс после оплаты:</span>
-                            <span class="balance-after">${balanceAfter} бонусов</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="confirm-dialog-actions">
-                <button class="btn-confirm" onclick="app.processOrder(); this.closest('.confirm-dialog-overlay').remove()">
-                    Да, оплатить
-                </button>
-                <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
-                    Отмена
-                </button>
-            </div>
-        </div>
-    `;
+            document.getElementById('dialog-total-items').textContent = `${totalItems} шт.`;
+            document.getElementById('dialog-total-amount').textContent = `${totalAmount} бонусов`;
+            document.getElementById('dialog-balance-after').textContent = `${balanceAfter} бонусов`;
 
-    document.body.appendChild(dialog);
-    
-    // Анимация появления
-    setTimeout(() => {
-        dialog.classList.add('active');
-    }, 10);
-}
+            const dialog = document.getElementById('confirm-dialog-overlay');
+            dialog.style.display = 'flex';
+            
+            // Анимация появления
+            setTimeout(() => {
+                dialog.classList.add('active');
+            }, 10);
+        }
+
+        closeConfirmDialog() {
+        const dialog = document.getElementById('confirm-dialog-overlay');
+        dialog.classList.remove('active');
+        setTimeout(() => {
+            dialog.style.display = 'none';
+        }, 300);
+    }
 
         loadProfile() {
             const container = document.getElementById('page-cart');
@@ -1053,7 +1028,6 @@ showConfirmDialog(totalAmount, userBalance) {
                 return;
             }
 
-            // Сортируем заказы по дате (новые сверху)
             const sortedOrders = [...this.orders].sort((a, b) => 
                 new Date(b.created_at) - new Date(a.created_at)
             );
@@ -1064,7 +1038,6 @@ showConfirmDialog(totalAmount, userBalance) {
                         <div class="order-info">
                             <h3>Заказ ${order.order_number}</h3>
                             <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
-                            ${order.commentary ? `<div class="order-comment">${order.commentary}</div>` : ''}
                         </div>
                         <div class="order-status status-${order.order_status}">
                             ${this.getStatusText(order.order_status)}
@@ -1080,6 +1053,12 @@ showConfirmDialog(totalAmount, userBalance) {
                             </div>
                         `).join('')}
                     </div>
+                    
+                    ${order.commentary ? `
+                        <div class="order-comment">
+                            <strong>Комментарий:</strong> ${order.commentary}
+                        </div>
+                    ` : ''}
                     
                     <div class="order-footer">
                         <div class="order-total">Итого: ${this.calculateOrderTotal(order)} бонусов</div>
@@ -1174,4 +1153,5 @@ showConfirmDialog(totalAmount, userBalance) {
         }, 3000);
     }
 }
+
 window.app = new LoyaltyProApp();
