@@ -188,6 +188,10 @@ class LoyaltyProApp {
         localStorage.removeItem('userData');
         localStorage.removeItem('participant');
         localStorage.removeItem('cart');
+
+        const nav = document.querySelector('.bottom-nav');
+        if (nav) nav.style.display = 'none';
+        
         this.setAuthState('unauthenticated');
     }
 
@@ -243,21 +247,14 @@ class LoyaltyProApp {
 
     showMainApp() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelector('.bottom-nav').style.display = 'flex';
         document.querySelector('.app').classList.add('authenticated');
 
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', e => {
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                this.showPage(e.currentTarget.dataset.page);
-                this.updateNavIndicator?.();
-            });
-            });
+        const nav = document.querySelector('.bottom-nav');
+        if (nav) nav.style.display = 'flex';
 
-        const bottomNav = document.querySelector('.bottom-nav');
-        bottomNav.style.display = 'flex';
-        bottomNav.classList.add('show');
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.onclick = (e) => this.navigateTo(e.currentTarget.dataset.page);
+        });
 
         this.loadUserData();
         this.setupNavigation();
