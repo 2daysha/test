@@ -593,7 +593,7 @@ setupNavigation() {
                     <span class="product-category">${p.category?.name || 'Без категории'}</span>
                     <h3>${p.name}</h3>
                     <p>${p.stock || ''}</p>
-                    <div class="product-price">${p.price} бонусов</div>
+                    <div class="product-price">${p.price}</div>
                 `;
                 grid.appendChild(productCard);
             });
@@ -643,7 +643,7 @@ setupNavigation() {
                 <span class="product-category">${p.category?.name || 'Без категории'}</span>
                 <h3>${p.name}</h3>
                 <p>${p.stock || ''}</p>
-                <div class="product-price">${p.price} бонусов</div>
+                <div class="product-price">${p.price} </div>
                 ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
             `;
             grid.appendChild(productCard);
@@ -738,7 +738,7 @@ setupNavigation() {
             const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
             if (this.participant?.balance < totalAmount) {
-                this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+                this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
                 return;
             }
 
@@ -808,7 +808,7 @@ setupNavigation() {
         document.getElementById('modal-product-name').textContent = product.name;
         document.getElementById('modal-product-stock').textContent = product.stock || '';
         document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
-        document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+        document.getElementById('modal-product-price').textContent = `${product.price}`;
 
         const addToCartBtn = document.getElementById('modal-add-to-cart');
         
@@ -885,7 +885,7 @@ setupNavigation() {
         const userBalance = this.participant?.balance || 0;
         
         if (userBalance < totalAmount) {
-            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+            this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
             return;
         }
 
@@ -1044,7 +1044,7 @@ setupNavigation() {
                             <div class="order-item">
                                 <span class="item-name">${item.product.name}</span>
                                 <span class="item-quantity">${item.quantity} шт.</span>
-                                <span class="item-price">${item.price * item.quantity} бонусов</span>
+                                <span class="item-price">${item.price * item.quantity} </span>
                             </div>
                         `).join('')}
                     </div>
@@ -1056,7 +1056,7 @@ setupNavigation() {
                     ` : ''}
                     
                     <div class="order-footer">
-                        <div class="order-total">Итого: ${this.calculateOrderTotal(order)} бонусов</div>
+                        <div class="order-total">Итого: ${this.calculateOrderTotal(order)} </div>
                     </div>
                 </div>
             `).join('');

@@ -36,7 +36,7 @@
             <div id="page-home" class="page">
                 <div class="search-container">
                     <div class="search-box">
-                        <img src="icons/search.svg" alt="Главная" class="search-icon">
+                        <img src="icons/search.svg" alt="Поиск" class="search-icon">
                         <input type="text" class="search-input" id="search-input" placeholder="Поиск товаров...">
                         <button class="search-clear" id="search-clear" style="display: none;">×</button>
                     </div>
@@ -51,7 +51,6 @@
                     </button>
                     <div class="categories-menu" id="categories-menu">
                         <div class="categories-list" id="categories-list">
-                            <!-- Категории будут добавляться динамически -->
                         </div>
                     </div>
                 </div>
@@ -101,7 +100,6 @@
                 </div>
                 
                 <div class="cart-list" id="cart-list">
-                    <!-- Содержимое корзины будет добавляться динамически -->
                 </div>
                 
                 <div class="cart-total animate-card" id="cart-total" style="display: none;">
@@ -112,7 +110,7 @@
                         </div>
                         <div class="cart-total-amount">
                             <span class="cart-total-price" id="cart-total-price">0</span>
-                            <span class="cart-total-currency">бонусов</span>
+                            <span class="cart-total-currency"></span>
                         </div>
                     </div>
                     <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
@@ -121,7 +119,7 @@
                 </div>
             </div>
 
-            <!-- Пустая корзина -->
+            <!-- Пустая корзина (отдельный блок) -->
             <div id="empty-cart" class="empty-cart" style="display: none;">
                 <div class="empty-cart-icon">😔</div>
                 <h2>Ваша корзина пуста</h2>
@@ -129,6 +127,34 @@
                 <button class="back-to-catalog" onclick="app.showPage('home')">
                     Вернуться в каталог
                 </button>
+            </div>
+
+            <!-- Страница Профиль -->
+            <div id="page-profile" class="page">
+                <div class="profile-info animate-card" id="profile-info">
+                </div>
+                <div class="profile-stats" id="profile-stats">
+                </div>
+                
+                <!-- Кнопка истории заказов -->
+                <button class="orders-history-btn" onclick="app.showOrdersPage()">
+                    История заказов
+                </button>
+                
+                <button class="support-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
+                    Поддержка
+                </button>
+            </div>
+
+            <!-- Страница История заказов -->
+            <div id="page-orders" class="page">
+                <div class="orders-header">
+                    <button class="back-button" onclick="app.showPage('profile')">← Назад</button> <!-- Изменил на profile -->
+                    <h1>История заказов</h1>
+                </div>
+                <div class="orders-list" id="orders-list">
+                    <div class="loading">Загрузка заказов...</div>
+                </div>
             </div>
 
             <!-- Диалог подтверждения заказа -->
@@ -149,11 +175,11 @@
                                 </div>
                                 <div class="detail-line">
                                     <span>Сумма:</span>
-                                    <span id="dialog-total-amount">0 бонусов</span>
+                                    <span id="dialog-total-amount">0</span>
                                 </div>
                                 <div class="detail-line">
                                     <span>Баланс после оплаты:</span>
-                                    <span id="dialog-balance-after" class="balance-after">0 бонусов</span>
+                                    <span id="dialog-balance-after" class="balance-after">0</span>
                                 </div>
                             </div>
                             
@@ -184,45 +210,7 @@
                     </div>
                 </div>
             </div>
-
-           <!-- Страница Профиль -->
-            <div id="page-cart" class="page">
-                <div class="profile-info animate-card">
-                    <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
-                    <p><strong>Логин:</strong> ${username}</p>
-                    <p><strong>Телефон:</strong> ${phone}</p>
-                </div>
-                <div class="profile-stats">
-                    <div class="stat-card animate-card">
-                        <span class="stat-value">${balance}</span>
-                        <span class="stat-label">Бонусы</span>
-                    </div>
-                    <div class="stat-card animate-card">
-                        <span class="stat-value">${cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
-                        <span class="stat-label">В корзине</span>
-                    </div>
-                </div>
-                
-                <!-- Кнопка истории заказов -->
-                <button class="orders-history-btn animate-btn" onclick="app.showOrdersPage()">
-                    История заказов
-                </button>
-                
-                <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
-                    Поддержка
-                </button>
-            </div>
-
-            <!-- Новая страница История заказов -->
-            <div id="page-orders" class="page">
-                <div class="orders-header">
-                    <button class="back-button" onclick="app.showPage('cart')">← Назад</button>
-                    <h1>История заказов</h1>
-                </div>
-                <div class="orders-list" id="orders-list">
-                    <div class="loading">Загрузка заказов...</div>
-                </div>
-            </div>
+        </main>
 
         <!-- Навигация -->
         <nav class="bottom-nav" style="display: none;">
@@ -241,7 +229,7 @@
                         <img src="icons/cart_dark.svg" alt="Корзина" class="nav-icon nav-icon-dark">
                     </div>
                 </button>
-                <button class="nav-item" data-page="cart">
+                <button class="nav-item" data-page="profile">
                     <div class="nav-icon-bg"></div>
                     <div class="nav-icon-container">
                         <img src="icons/profile_light.svg" alt="Профиль" class="nav-icon nav-icon-light">
@@ -250,6 +238,8 @@
                 </button>
             </div>
         </nav>
+    </div>
+
     <script>
         window.APP_CONFIG = {
             API_URL: "http://localhost:3001"
