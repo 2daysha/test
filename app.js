@@ -683,7 +683,7 @@ setupNavigation() {
         if (!this.cart || this.cart.length === 0) {
             container.innerHTML = `
                 <div class="empty-cart">
-                    <div class="empty-cart-icon">🛒</div>
+                    <div class="empty-cart-icon">😔</div>
                     <h2>Ваша корзина пуста</h2>
                     <p>Добавьте товары из каталога</p>
                     <button class="back-to-catalog" onclick="app.showPage('home')">
