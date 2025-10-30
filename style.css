@@ -1749,7 +1749,7 @@ body {
     .category-item { padding: 10px 14px; font-size: 13px; }
 }
 
-/* === ПЛАВАЮЩИЙ ОСТРОВОК НАВИГАЦИИ === */
+/* === ПЛАВАЮЩАЯ НАВИГАЦИЯ - ОСТРОВОК === */
 .bottom-nav {
   position: fixed;
   bottom: 20px;
@@ -1757,89 +1757,83 @@ body {
   transform: translateX(-50%);
   background: #ffffff;
   border-radius: 24px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  padding: 8px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 10px 16px;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  width: auto;
   transition: all 0.3s ease;
 }
 
-/* Контейнер с иконками */
 .nav-container {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  gap: 20px;
+  gap: 28px;
 }
 
-/* Кнопки навигации */
+/* Кнопки */
 .nav-item {
   background: none;
   border: none;
   outline: none;
   cursor: pointer;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  border-radius: 16px;
-  transition: all 0.2s ease;
+  padding: 10px;
+  transition: transform 0.25s ease;
 }
 
 .nav-item.active {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
 }
 
-/* Иконки */
+/* --- Иконки --- */
 .nav-icon {
   width: 28px;
   height: 28px;
+  transition: opacity 0.3s ease;
 }
 
-.nav-icon-dark {
+/* по умолчанию — тёмная */
+.nav-icon-light {
   display: none;
 }
 
 .nav-item.active .nav-icon-light {
-  display: none;
-}
-
-.nav-item.active .nav-icon-dark {
   display: block;
 }
 
-/* Индикатор под активной иконкой */
+.nav-item.active .nav-icon-dark {
+  display: none;
+}
+
+/* --- Индикатор-кружочек под активной кнопкой --- */
 .nav-indicator {
   position: absolute;
-  bottom: 0;
-  height: 3px;
-  width: 28px;
+  bottom: 6px;
+  width: 8px;
+  height: 8px;
   background: #3F75FB;
-  border-radius: 2px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Мягкая анимация появления островка */
-.bottom-nav.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.bottom-nav.hide {
-  opacity: 0;
-  transform: translateX(-50%) translateY(50px);
+  border-radius: 50%;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
 }
 
 /* Мобильная адаптация */
 @media (max-width: 480px) {
   .bottom-nav {
     bottom: 16px;
-    padding: 6px 12px;
+    padding: 8px 12px;
     border-radius: 20px;
+  }
+
+  .nav-container {
+    gap: 20px;
   }
 
   .nav-icon {
@@ -1847,7 +1841,22 @@ body {
     height: 24px;
   }
 
-  .nav-container {
-    gap: 14px;
+  .nav-indicator {
+    width: 6px;
+    height: 6px;
+    bottom: 4px;
   }
 }
+
+.bottom-nav {
+  opacity: 0;
+  transform: translate(-50%, 40px);
+  animation: navFloatIn 0.5s ease forwards 0.3s;
+}
+@keyframes navFloatIn {
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+

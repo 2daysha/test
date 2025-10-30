@@ -232,7 +232,7 @@ class LoyaltyProApp {
     showAuthPage() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-auth').classList.add('active');
-        document.querySelector('.bottom-nav').style.display = 'flex';
+        document.querySelector('.bottom-nav').style.display = 'none';
         document.querySelector('.app').classList.remove('authenticated');
 
         const requestBtn = document.getElementById('request-phone-btn');
@@ -275,15 +275,18 @@ class LoyaltyProApp {
     updateNavIndicator() {
         const activeNav = document.querySelector('.nav-item.active');
         const indicator = document.querySelector('.nav-indicator');
-
         if (!activeNav || !indicator) return;
 
-        const width = activeNav.offsetWidth;
-        const left = activeNav.offsetLeft;
+        const navItems = Array.from(document.querySelectorAll('.nav-item'));
+        const activeIndex = navItems.indexOf(activeNav);
 
-        indicator.style.width = `${width * 0.8}px`; // немного меньше ширины иконки
-        indicator.style.transform = `translateX(${left + width * 0.1}px)`; // центрируем
+        const spacing = 28;
+        const itemWidth = activeNav.offsetWidth;
+        const totalOffset = activeIndex * (itemWidth + spacing);
+
+        indicator.style.transform = `translateX(${totalOffset + itemWidth / 2 - 4}px)`;
     }
+
 
 
 
