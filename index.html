@@ -44,13 +44,14 @@
                 
                 <div class="categories-dropdown">
                     <button class="categories-toggle" id="categories-toggle">
-                        <span class="categories-toggle-text">Категории</span>
+                        <span class="categories-toggle-text">Все категории</span>
                         <svg class="categories-arrow" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M7 10l5 5 5-5z"/>
                         </svg>
                     </button>
                     <div class="categories-menu" id="categories-menu">
                         <div class="categories-list" id="categories-list">
+                            <!-- Категории будут загружены динамически -->
                         </div>
                     </div>
                 </div>
@@ -70,12 +71,14 @@
                     
                     <div class="product-modal-left">
                         <img id="modal-product-image" src="" alt="" class="modal-product-image">
+                        <div class="product-availability" id="modal-product-availability">
+                            <!-- Будет заполнено динамически -->
+                        </div>
                     </div>
                     
                     <div class="product-modal-right">
                         <div class="modal-product-category" id="modal-product-category"></div>
                         <h2 id="modal-product-name" class="modal-product-name"></h2>
-                        <p id="modal-product-stock" class="modal-product-stock"></p>
                         
                         <div class="modal-product-description">
                             <h4>Описание</h4>
@@ -83,7 +86,10 @@
                         </div>
                         
                         <div class="modal-product-bottom">
-                            <div class="modal-product-price" id="modal-product-price"></div>
+                            <div class="modal-product-price-container">
+                                <span class="modal-product-price" id="modal-product-price"></span>
+                                <span class="modal-product-currency">баллов</span>
+                            </div>
                             <button id="modal-add-to-cart" class="modal-add-to-cart-btn">
                                 Добавить в корзину
                             </button>
@@ -93,13 +99,14 @@
             </div>
             
             <!-- Страница Корзина -->
-            <div id="page-catalog" class="page">
+            <div id="page-cart" class="page">
                 <div class="cart-header">
                     <h1>Корзина</h1>
                     <span class="cart-count" id="cart-count">0 товара</span>
                 </div>
                 
                 <div class="cart-list" id="cart-list">
+                    <!-- Товары в корзине будут добавлены динамически -->
                 </div>
                 
                 <div class="cart-total animate-card" id="cart-total" style="display: none;">
@@ -110,7 +117,7 @@
                         </div>
                         <div class="cart-total-amount">
                             <span class="cart-total-price" id="cart-total-price">0</span>
-                            <span class="cart-total-currency"></span>
+                            <span class="cart-total-currency">баллов</span>
                         </div>
                     </div>
                     <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
@@ -119,7 +126,7 @@
                 </div>
             </div>
 
-            <!-- Пустая корзина (отдельный блок) -->
+            <!-- Пустая корзина -->
             <div id="empty-cart" class="empty-cart" style="display: none;">
                 <div class="empty-cart-icon">😔</div>
                 <h2>Ваша корзина пуста</h2>
@@ -131,17 +138,25 @@
 
             <!-- Страница Профиль -->
             <div id="page-profile" class="page">
-                <div class="profile-info animate-card" id="profile-info">
-                </div>
-                <div class="profile-stats" id="profile-stats">
+                <div class="profile-header">
+                    <h1>Профиль</h1>
                 </div>
                 
-                <!-- Кнопка истории заказов -->
+                <div class="profile-info animate-card" id="profile-info">
+                    <!-- Данные профиля будут загружены динамически -->
+                </div>
+                
+                <div class="profile-stats" id="profile-stats">
+                    <!-- Статистика будет загружена динамически -->
+                </div>
+                
                 <button class="orders-history-btn" onclick="app.showOrdersPage()">
+                    <span class="btn-icon">📋</span>
                     История заказов
                 </button>
                 
                 <button class="support-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
+                    <span class="btn-icon">💬</span>
                     Поддержка
                 </button>
             </div>
@@ -149,11 +164,20 @@
             <!-- Страница История заказов -->
             <div id="page-orders" class="page">
                 <div class="orders-header">
-                    <button class="back-button" onclick="app.showPage('profile')">← Назад</button> <!-- Изменил на profile -->
+                    <button class="back-button" onclick="app.showPage('profile')">← Назад</button>
                     <h1>История заказов</h1>
                 </div>
                 <div class="orders-list" id="orders-list">
                     <div class="loading">Загрузка заказов...</div>
+                </div>
+                
+                <div class="no-orders" id="no-orders" style="display: none;">
+                    <div class="no-orders-icon">📦</div>
+                    <h3>Заказов пока нет</h3>
+                    <p>Совершите свой первый заказ в каталоге</p>
+                    <button class="back-to-catalog" onclick="app.showPage('home')">
+                        Перейти в каталог
+                    </button>
                 </div>
             </div>
 
@@ -175,15 +199,14 @@
                                 </div>
                                 <div class="detail-line">
                                     <span>Сумма:</span>
-                                    <span id="dialog-total-amount">0</span>
+                                    <span id="dialog-total-amount">0 баллов</span>
                                 </div>
                                 <div class="detail-line">
                                     <span>Баланс после оплаты:</span>
-                                    <span id="dialog-balance-after" class="balance-after">0</span>
+                                    <span id="dialog-balance-after" class="balance-after">0 баллов</span>
                                 </div>
                             </div>
                             
-                            <!-- Поле для комментария -->
                             <div class="comment-section">
                                 <label for="order-comment">Комментарий к заказу (необязательно):</label>
                                 <textarea 
@@ -221,13 +244,16 @@
                         <img src="icons/home_light.svg" alt="Главная" class="nav-icon nav-icon-light">
                         <img src="icons/home_dark.svg" alt="Главная" class="nav-icon nav-icon-dark">
                     </div>
+                    <span class="nav-label">Каталог</span>
                 </button>
-                <button class="nav-item" data-page="catalog">
+                <button class="nav-item" data-page="cart">
                     <div class="nav-icon-bg"></div>
                     <div class="nav-icon-container">
                         <img src="icons/cart_light.svg" alt="Корзина" class="nav-icon nav-icon-light">
                         <img src="icons/cart_dark.svg" alt="Корзина" class="nav-icon nav-icon-dark">
                     </div>
+                    <span class="nav-label">Корзина</span>
+                    <span class="cart-badge" id="cart-badge" style="display: none;">0</span>
                 </button>
                 <button class="nav-item" data-page="profile">
                     <div class="nav-icon-bg"></div>
@@ -235,6 +261,7 @@
                         <img src="icons/profile_light.svg" alt="Профиль" class="nav-icon nav-icon-light">
                         <img src="icons/profile_dark.svg" alt="Профиль" class="nav-icon nav-icon-dark">
                     </div>
+                    <span class="nav-label">Профиль</span>
                 </button>
             </div>
         </nav>
