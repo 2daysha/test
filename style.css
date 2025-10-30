@@ -1749,47 +1749,52 @@ body {
     .category-item { padding: 10px 14px; font-size: 13px; }
 }
 
-/* ==== ОСТРОКОВАЯ НАВИГАЦИЯ ==== */
+/* === ПЛАВАЮЩИЙ ОСТРОВОК НАВИГАЦИИ === */
 .bottom-nav {
   position: fixed;
-  bottom: 24px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: #fff;
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 24px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px 16px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px 12px;
   z-index: 1000;
-  width: fit-content;
+  width: auto;
   transition: all 0.3s ease;
 }
 
+/* Контейнер с иконками */
 .nav-container {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.nav-item {
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin: 0 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 10px;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  gap: 20px;
+}
+
+/* Кнопки навигации */
+.nav-item {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 16px;
+  transition: all 0.2s ease;
 }
 
 .nav-item.active {
   transform: translateY(-4px);
 }
 
+/* Иконки */
 .nav-icon {
   width: 28px;
   height: 28px;
@@ -1807,41 +1812,42 @@ body {
   display: block;
 }
 
+/* Индикатор под активной иконкой */
 .nav-indicator {
   position: absolute;
   bottom: 0;
   height: 3px;
-  width: 32px;
+  width: 28px;
   background: #3F75FB;
   border-radius: 2px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ==== АНИМАЦИЯ ПЕРЕКЛЮЧЕНИЯ СТРАНИЦ ==== */
-.page {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  display: none;
+/* Мягкая анимация появления островка */
+.bottom-nav.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
-.page.active {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
+.bottom-nav.hide {
+  opacity: 0;
+  transform: translateX(-50%) translateY(50px);
 }
 
 /* Мобильная адаптация */
 @media (max-width: 480px) {
   .bottom-nav {
     bottom: 16px;
-    border-radius: 18px;
-    padding: 6px 10px;
+    padding: 6px 12px;
+    border-radius: 20px;
   }
 
   .nav-icon {
     width: 24px;
     height: 24px;
   }
-}
 
+  .nav-container {
+    gap: 14px;
+  }
+}

@@ -232,7 +232,7 @@ class LoyaltyProApp {
     showAuthPage() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-auth').classList.add('active');
-        document.querySelector('.bottom-nav');
+        document.querySelector('.bottom-nav').style.display = 'flex';
         document.querySelector('.app').classList.remove('authenticated');
 
         const requestBtn = document.getElementById('request-phone-btn');
@@ -249,6 +249,10 @@ class LoyaltyProApp {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.onclick = (e) => this.navigateTo(e.currentTarget.dataset.page);
         });
+
+        const bottomNav = document.querySelector('.bottom-nav');
+        bottomNav.style.display = 'flex';
+        bottomNav.classList.add('show');
 
         this.loadUserData();
         this.setupNavigation();
@@ -274,12 +278,13 @@ class LoyaltyProApp {
 
         if (!activeNav || !indicator) return;
 
-        const rect = activeNav.getBoundingClientRect();
-        const containerRect = activeNav.parentElement.getBoundingClientRect();
+        const width = activeNav.offsetWidth;
+        const left = activeNav.offsetLeft;
 
-        indicator.style.width = `${rect.width - 20}px`;
-        indicator.style.transform = `translateX(${rect.left - containerRect.left + 10}px)`;
+        indicator.style.width = `${width * 0.8}px`; // немного меньше ширины иконки
+        indicator.style.transform = `translateX(${left + width * 0.1}px)`; // центрируем
     }
+
 
 
     saveUserData() {
