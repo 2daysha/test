@@ -1052,41 +1052,41 @@ showConfirmDialog(totalAmount, userBalance) {
                 return;
             }
 
+            // Сортируем заказы по дате (новые сверху)
             const sortedOrders = [...this.orders].sort((a, b) => 
                 new Date(b.created_at) - new Date(a.created_at)
             );
 
             container.innerHTML = sortedOrders.map(order => `
-                <div class="order-card">
+                <div class="order-card animate-card">
                     <div class="order-header">
                         <div class="order-info">
-                            <h3>Заказ #${order.id || order.guid?.slice(-8) || 'N/A'}</h3>
+                            <h3>Заказ ${order.order_number}</h3>
                             <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
+                            ${order.commentary ? `<div class="order-comment">${order.commentary}</div>` : ''}
                         </div>
-                        <div class="order-status status-${order.status || 'pending'}">
-                            ${this.getStatusText(order.status)}
+                        <div class="order-status status-${order.order_status}">
+                            ${this.getStatusText(order.order_status)}
                         </div>
                     </div>
                     
                     <div class="order-items">
-                        ${order.items ? order.items.map(item => `
+                        ${order.items.map(item => `
                             <div class="order-item">
-                                <span class="item-name">${item.product_name || item.name || 'Товар'}</span>
+                                <span class="item-name">${item.product.name}</span>
                                 <span class="item-quantity">${item.quantity} шт.</span>
-                                <span class="item-price">${(item.price * item.quantity)} бонусов</span>
+                                <span class="item-price">${item.price * item.quantity} бонусов</span>
                             </div>
-                        `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
+                        `).join('')}
                     </div>
                     
                     <div class="order-footer">
-                        <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
-                        <div class="order-id">ID: ${order.guid || order.id}</div>
+                        <div class="order-total">Итого: ${this.calculateOrderTotal(order)} бонусов</div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // Вспомогательные методы
         formatOrderDate(dateString) {
             if (!dateString) return 'Дата не указана';
             
@@ -1106,18 +1106,15 @@ showConfirmDialog(totalAmount, userBalance) {
 
         getStatusText(status) {
             const statusMap = {
-                'completed': 'Выполнен',
-                'pending': 'В обработке',
-                'cancelled': 'Отменен',
-                'processing': 'Обрабатывается',
-                'shipped': 'Отправлен',
-                'delivered': 'Доставлен'
+                'new': 'Новый',
+                'accepted': 'Принят',
+                'done': 'Выполнен',
+                'cancelled': 'Отменен'
             };
-            return statusMap[status] || 'В обработке';
+            return statusMap[status] || status;
         }
 
         calculateOrderTotal(order) {
-            if (!order.items) return 0;
             return order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
         }
     

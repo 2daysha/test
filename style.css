@@ -2004,19 +2004,31 @@ body {
     text-transform: uppercase;
 }
 
-.status-completed {
-    background: rgba(52, 199, 89, 0.1);
-    color: #34C759;
+.status-new {
+    background: rgba(0, 123, 255, 0.1);
+    color: #007bff;
 }
 
-.status-pending {
-    background: rgba(255, 149, 0, 0.1);
-    color: #FF9500;
+.status-accepted {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.status-done {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
 }
 
 .status-cancelled {
-    background: rgba(255, 59, 48, 0.1);
-    color: #FF3B30;
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.order-comment {
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+    margin-top: 4px;
 }
 
 .order-items {
