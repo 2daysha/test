@@ -261,36 +261,51 @@ class LoyaltyProApp {
         this.showPage('home');
     }
 
-    setupNavigation() {
+setupNavigation() {
     const navContainer = document.querySelector('.nav-container');
     if (!navContainer) return;
     
-    if (!document.querySelector('.nav-indicator')) {
-        const indicator = document.createElement('div');
-        indicator.className = 'nav-indicator';
-        navContainer.insertBefore(indicator, navContainer.firstChild);
-    }
+    const oldIndicator = document.querySelector('.nav-indicator');
+    if (oldIndicator) oldIndicator.remove();
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'nav-indicator';
+    navContainer.appendChild(indicator);
+    
+    this.setupIndicatorStyles();
     
     setTimeout(() => this.updateNavIndicator(), 100);
 }
+
+    setupIndicatorStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .nav-indicator {
+                position: absolute;
+                bottom: -8px;
+                width: 24px;
+                height: 3px;
+                background: #3F75FB;
+                border-radius: 2px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 3;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     updateNavIndicator() {
         const activeNav = document.querySelector('.nav-item.active');
         const indicator = document.querySelector('.nav-indicator');
         if (!activeNav || !indicator) return;
 
-        const navItems = Array.from(document.querySelectorAll('.nav-item'));
-        const activeIndex = navItems.indexOf(activeNav);
-
-        const spacing = 28;
-        const itemWidth = activeNav.offsetWidth;
-        const totalOffset = activeIndex * (itemWidth + spacing);
-
-        indicator.style.transform = `translateX(${totalOffset + itemWidth / 2 - 4}px)`;
+        const navRect = activeNav.getBoundingClientRect();
+        const containerRect = activeNav.parentElement.getBoundingClientRect();
+        
+        const left = navRect.left - containerRect.left + (navRect.width / 2) - 12;
+        
+        indicator.style.left = `${left}px`;
     }
-
-
-
 
     saveUserData() {
         localStorage.setItem('userData', JSON.stringify(this.userData));
