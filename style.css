@@ -1749,38 +1749,54 @@ body {
     .category-item { padding: 10px 14px; font-size: 13px; }
 }
 
+/* ==== ОСТРОКОВАЯ НАВИГАЦИЯ ==== */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   background: #fff;
-  border-top: 1px solid #e5e5e5;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  height: 64px;
+  padding: 8px 12px;
   z-index: 1000;
+  width: fit-content;
+  transition: all 0.3s ease;
 }
 
 .nav-container {
   display: flex;
-  width: 100%;
-  justify-content: space-around;
+  align-items: center;
   position: relative;
 }
 
 .nav-item {
   background: none;
   border: none;
-  outline: none;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px;
   cursor: pointer;
+  margin: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
+  padding: 10px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-item.active {
+  transform: translateY(-4px);
+}
+
+.nav-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.nav-icon-dark {
+  display: none;
 }
 
 .nav-item.active .nav-icon-light {
@@ -1791,21 +1807,41 @@ body {
   display: block;
 }
 
-.nav-icon-dark {
-  display: none;
-}
-
-.nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
 .nav-indicator {
   position: absolute;
   bottom: 0;
   height: 3px;
-  width: 0;
+  width: 32px;
   background: #3F75FB;
   border-radius: 2px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ==== АНИМАЦИЯ ПЕРЕКЛЮЧЕНИЯ СТРАНИЦ ==== */
+.page {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  display: none;
+}
+
+.page.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Мобильная адаптация */
+@media (max-width: 480px) {
+  .bottom-nav {
+    bottom: 16px;
+    border-radius: 18px;
+    padding: 6px 10px;
+  }
+
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
