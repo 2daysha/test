@@ -1773,9 +1773,9 @@ body {
   gap: 32px;
 }
 
-/* Кнопка-иконка */
 .nav-item {
   position: relative;
+  z-index: 0;
   background: none;
   border: none;
   outline: none;
@@ -1788,21 +1788,23 @@ body {
   transition: transform 0.3s ease;
 }
 
-/* Кружок под иконкой */
 .nav-icon-bg {
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.7);
+  opacity: 0;
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: transparent;
+  background: #3F75FB;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
 }
 
-/* Активный кружок */
 .nav-item.active .nav-icon-bg {
-  background: #3F75FB;
-  transform: scale(1);
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 /* Анимация появления */
