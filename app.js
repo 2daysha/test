@@ -932,19 +932,19 @@ setupNavigation() {
                                 <span>Баланс после оплаты:</span>
                                 <span class="balance-after">${balanceAfter} бонусов</span>
                             </div>
-                            <div class="detail-line">
-                                <span>Комментарий:</span>
-                                <input type="text" id="order-comment-input" placeholder="Добавьте комментарий к заказу">
-                            </div>
+                        </div>
+                        <div class="order-commentary-input">
+                            <label>Комментарий к заказу:</label>
+                            <textarea id="order-commentary" placeholder="Введите комментарий"></textarea>
                         </div>
                     </div>
                 </div>
                 
                 <div class="confirm-dialog-actions">
                     <button class="btn-confirm" onclick="
-                        app.commentaryInputValue = document.getElementById('order-comment-input').value;
-                        app.processOrder(); 
-                        this.closest('.confirm-dialog-overlay').remove()
+                        app.commentaryInputValue = document.getElementById('order-commentary').value;
+                        app.processOrder();
+                        this.closest('.confirm-dialog-overlay').remove();
                     ">
                         Да, оплатить
                     </button>
@@ -956,12 +956,8 @@ setupNavigation() {
         `;
 
         document.body.appendChild(dialog);
-        
-        setTimeout(() => {
-            dialog.classList.add('active');
-        }, 10);
+        setTimeout(() => dialog.classList.add('active'), 10);
     }
-
 
 
         loadProfile() {
@@ -1053,7 +1049,7 @@ setupNavigation() {
             }
         }
 
-        renderOrders() {
+       renderOrders() {
             const container = document.getElementById('orders-list');
             if (!container) return;
 
@@ -1076,7 +1072,7 @@ setupNavigation() {
                 <div class="order-card">
                     <div class="order-header">
                         <div class="order-info">
-                            <h3>Заказ #${order.id || order.guid?.slice(-8) || 'N/A'}</h3>
+                            <h3>Заказ #${order.id || (order.guid ? order.guid.slice(-8) : 'N/A')}</h3>
                             <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
                         </div>
                         <div class="order-status status-${order.status || 'pending'}">
@@ -1093,18 +1089,15 @@ setupNavigation() {
                             </div>
                         `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
                     </div>
-
-                    ${order.commentary ? `<div class="order-commentary"><strong>Комментарий:</strong> ${order.commentary}</div>` : ''}
-
+                    
                     <div class="order-footer">
                         <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
-                        <div class="order-id">ID: ${order.guid || order.id}</div>
+                        ${order.commentary ? `<div class="order-commentary"><strong>Комментарий:</strong> ${order.commentary}</div>` : ''}
+                        <div class="order-id">ID: ${order.id || order.guid || 'N/A'}</div>
                     </div>
                 </div>
             `).join('');
         }
-
-
 
         // Вспомогательные методы
         formatOrderDate(dateString) {
