@@ -837,7 +837,7 @@ class LoyaltyProApp {
         document.getElementById('modal-product-name').textContent = product.name;
         document.getElementById('modal-product-stock').textContent = product.stock || '';
         document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
-        document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+        document.getElementById('modal-product-price').textContent = `${product.price}`;
 
         const addToCartBtn = document.getElementById('modal-add-to-cart');
 
@@ -946,11 +946,11 @@ class LoyaltyProApp {
                             </div>
                             <div class="detail-line">
                                 <span>Сумма:</span>
-                                <span>${totalAmount} бонусов</span>
+                                <span>${totalAmount}</span>
                             </div>
                             <div class="detail-line">
                                 <span>Баланс после оплаты:</span>
-                                <span class="balance-after">${balanceAfter} бонусов</span>
+                                <span class="balance-after">${balanceAfter}</span>
                             </div>
                         </div>
                         <div class="order-commentary-input">
@@ -1120,7 +1120,7 @@ class LoyaltyProApp {
                                             <h4 class="order-item-name">${item.product?.name || 'Товар'}</h4>
                                             <div class="order-item-meta">
                                                 <span class="order-item-quantity">Количество: ${item.quantity} шт.</span>
-                                                <span class="order-item-price">${item.price} бонусов</span>
+                                                <span class="order-item-price">${item.price}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1135,7 +1135,7 @@ class LoyaltyProApp {
                             
                             <div class="order-total">
                                 <div class="total-label">Итого:</div>
-                                <div class="total-amount">${totalAmount} бонусов</div>
+                                <div class="total-amount">${totalAmount}</div>
                             </div>
                         </div>
                     `;
