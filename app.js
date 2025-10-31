@@ -758,66 +758,50 @@ setupNavigation() {
     }
 
     async processOrder() {
-    try {
-        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
-        if (this.participant?.balance < totalAmount) {
-            this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
-            return;
-        }
+        try {
+            const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-        const orderData = {
-            commentary: this.commentaryInputValue || "",
-            items: this.cart.map(item => ({
-                product: { guid: item.guid },
-                quantity: item.quantity,
-                price: item.price
-            }))
-        };
-
-        const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(orderData)
-        });
-
-        if (response.status === 201) {
-            const result = await response.json();
-
-            // Добавляем заказ в историю сразу
-            this.orders.unshift(result);
-
-            this.cart = [];
-            localStorage.removeItem('cart');
-
-            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-            
-            await this.checkTelegramLink();
-            this.loadCart();
-
-            // Если на странице истории заказов, обновляем её
-            if (this.currentPage === 'orders') {
-                this.renderOrders();
+            if (this.participant?.balance < totalAmount) {
+                this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
+                return;
             }
 
-        } else if (response.status === 400) {
-            const errorData = await response.json();
-            const errorMessage = errorData.detail || 'Ошибка при создании заказа';
-            this.showNotification('Ошибка', errorMessage, 'error');
+            const orderData = {
+                commentary: this.commentaryInputValue || "",
+                items: this.cart.map(item => ({
+                    product: { guid: item.guid },
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
 
-        } else if (response.status === 401) {
-            this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
-            await this.checkAuthentication();
+            const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
+                method: 'POST',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(orderData)
+            });
 
-        } else {
-            this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
+            if (response.status === 201) {
+                const result = await response.json();
+                
+                this.cart = [];
+                localStorage.removeItem('cart');
+
+                this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+                this.commentaryInputValue = ""; 
+                
+                await this.checkTelegramLink();
+                this.loadCart();
+            } else {
+                const errorData = await response.json();
+                const errorMessage = errorData.detail || 'Ошибка при создании заказа';
+                this.showNotification('Ошибка', errorMessage, 'error');
+            }
+        } catch (error) {
+            console.error('Ошибка при создании заказа:', error);
+            this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
         }
-
-    } catch (error) {
-        console.error('Ошибка при создании заказа:', error);
-        this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
     }
-}
 
     openProductModal(productGuid) {
     const product = this.products.find(p => p.guid === productGuid);
@@ -950,14 +934,20 @@ setupNavigation() {
                             </div>
                             <div class="detail-line">
                                 <span>Комментарий:</span>
-                                <textarea id="order-commentary" placeholder="Введите комментарий к заказу"></textarea>
+                                <input type="text" id="order-comment-input" placeholder="Добавьте комментарий к заказу">
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="confirm-dialog-actions">
-                    <button class="btn-confirm" id="confirm-order-btn">Да, оплатить</button>
+                    <button class="btn-confirm" onclick="
+                        app.commentaryInputValue = document.getElementById('order-comment-input').value;
+                        app.processOrder(); 
+                        this.closest('.confirm-dialog-overlay').remove()
+                    ">
+                        Да, оплатить
+                    </button>
                     <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
                         Отмена
                     </button>
@@ -966,16 +956,12 @@ setupNavigation() {
         `;
 
         document.body.appendChild(dialog);
-
-        setTimeout(() => dialog.classList.add('active'), 10);
-
-        const confirmBtn = dialog.querySelector('#confirm-order-btn');
-        confirmBtn.onclick = () => {
-            this.commentaryInputValue = dialog.querySelector('#order-commentary').value || "";
-            this.processOrder();
-            dialog.remove();
-        };
+        
+        setTimeout(() => {
+            dialog.classList.add('active');
+        }, 10);
     }
+
 
 
         loadProfile() {
@@ -1107,15 +1093,17 @@ setupNavigation() {
                             </div>
                         `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
                     </div>
-                    
+
+                    ${order.commentary ? `<div class="order-commentary"><strong>Комментарий:</strong> ${order.commentary}</div>` : ''}
+
                     <div class="order-footer">
                         <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
-                        <div class="order-commentary"><strong>Комментарий:</strong> ${order.commentary || 'Нет комментария'}</div>
                         <div class="order-id">ID: ${order.guid || order.id}</div>
                     </div>
                 </div>
             `).join('');
         }
+
 
 
         // Вспомогательные методы
