@@ -760,7 +760,7 @@ setupNavigation() {
     async processOrder() {
     try {
         const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
+        
         if (this.participant?.balance < totalAmount) {
             this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
             return;
@@ -784,19 +784,20 @@ setupNavigation() {
         if (response.status === 201) {
             const result = await response.json();
 
-            // Очищаем корзину
+            // Добавляем заказ в историю сразу
+            this.orders.unshift(result);
+
             this.cart = [];
             localStorage.removeItem('cart');
 
-            // Обновляем данные участника (баланс)
-            await this.checkTelegramLink();
-
-            // Показ успешного уведомления
             this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+            
+            await this.checkTelegramLink();
+            this.loadCart();
 
-            // Автоматически обновляем историю заказов, если на странице заказов
+            // Если на странице истории заказов, обновляем её
             if (this.currentPage === 'orders') {
-                await this.loadOrders();
+                this.renderOrders();
             }
 
         } else if (response.status === 400) {
@@ -817,7 +818,6 @@ setupNavigation() {
         this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
     }
 }
-
 
     openProductModal(productGuid) {
     const product = this.products.find(p => p.guid === productGuid);
@@ -919,57 +919,64 @@ setupNavigation() {
     this.showConfirmDialog(totalAmount, userBalance);
 }
 
-showConfirmDialog(totalAmount, userBalance) {
-    const balanceAfter = userBalance - totalAmount;
-    const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+    showConfirmDialog(totalAmount, userBalance) {
+        const balanceAfter = userBalance - totalAmount;
+        const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
 
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog-overlay';
-    dialog.innerHTML = `
-        <div class="confirm-dialog">
-            <div class="confirm-dialog-header">
-                <h3>Подтверждение заказа</h3>
-                <button class="dialog-close" onclick="this.closest('.confirm-dialog-overlay').remove()">×</button>
-            </div>
-            
-            <div class="confirm-dialog-content">
-                <div class="order-summary">
-                    <p>Вы уверены, что хотите оплатить заказ?</p>
-                    <div class="order-details">
-                        <div class="detail-line">
-                            <span>Товаров:</span>
-                            <span>${totalItems} шт.</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Сумма:</span>
-                            <span>${totalAmount}</span>
-                        </div>
-                        <div class="detail-line">
-                            <span>Баланс после оплаты:</span>
-                            <span class="balance-after">${balanceAfter}</span>
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog-overlay';
+        dialog.innerHTML = `
+            <div class="confirm-dialog">
+                <div class="confirm-dialog-header">
+                    <h3>Подтверждение заказа</h3>
+                    <button class="dialog-close" onclick="this.closest('.confirm-dialog-overlay').remove()">×</button>
+                </div>
+                
+                <div class="confirm-dialog-content">
+                    <div class="order-summary">
+                        <p>Вы уверены, что хотите оплатить заказ?</p>
+                        <div class="order-details">
+                            <div class="detail-line">
+                                <span>Товаров:</span>
+                                <span>${totalItems} шт.</span>
+                            </div>
+                            <div class="detail-line">
+                                <span>Сумма:</span>
+                                <span>${totalAmount} бонусов</span>
+                            </div>
+                            <div class="detail-line">
+                                <span>Баланс после оплаты:</span>
+                                <span class="balance-after">${balanceAfter} бонусов</span>
+                            </div>
+                            <div class="detail-line">
+                                <span>Комментарий:</span>
+                                <textarea id="order-commentary" placeholder="Введите комментарий к заказу"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
+                <div class="confirm-dialog-actions">
+                    <button class="btn-confirm" id="confirm-order-btn">Да, оплатить</button>
+                    <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
+                        Отмена
+                    </button>
+                </div>
             </div>
-            
-            <div class="confirm-dialog-actions">
-                <button class="btn-confirm" onclick="app.processOrder(); this.closest('.confirm-dialog-overlay').remove()">
-                    Да, оплатить
-                </button>
-                <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
-                    Отмена
-                </button>
-            </div>
-        </div>
-    `;
+        `;
 
-    document.body.appendChild(dialog);
-    
-    // Анимация появления
-    setTimeout(() => {
-        dialog.classList.add('active');
-    }, 10);
-}
+        document.body.appendChild(dialog);
+
+        setTimeout(() => dialog.classList.add('active'), 10);
+
+        const confirmBtn = dialog.querySelector('#confirm-order-btn');
+        confirmBtn.onclick = () => {
+            this.commentaryInputValue = dialog.querySelector('#order-commentary').value || "";
+            this.processOrder();
+            dialog.remove();
+        };
+    }
+
 
         loadProfile() {
             const container = document.getElementById('page-cart');
@@ -1025,13 +1032,13 @@ showConfirmDialog(totalAmount, userBalance) {
                     headers: this.getAuthHeaders()
                 });
 
-                if (response.ok) {
-                    this.orders = await response.json();
-                    this.renderOrders();
-                } else if (response.status === 401) {
+                if (response.status === 401) {
                     this.showNotification('Ошибка', 'Требуется авторизация', 'error');
                     this.showAuthPage();
-                } else {
+                    return;
+                }
+
+                if (!response.ok) {
                     this.showNotification('Ошибка', 'Не удалось загрузить заказы', 'error');
                     container.innerHTML = `
                         <div class="empty-orders">
@@ -1040,9 +1047,15 @@ showConfirmDialog(totalAmount, userBalance) {
                             <p>Попробуйте позже</p>
                         </div>
                     `;
+                    return;
                 }
+
+                this.orders = await response.json();
+                console.log('Загруженные заказы:', this.orders); // для отладки
+                this.renderOrders();
+
             } catch (error) {
-                console.error('Load orders error:', error);
+                console.error('Ошибка при загрузке заказов:', error);
                 this.showNotification('Ошибка', 'Ошибка при загрузке заказов', 'error');
                 container.innerHTML = `
                     <div class="empty-orders">
@@ -1055,7 +1068,6 @@ showConfirmDialog(totalAmount, userBalance) {
         }
 
         renderOrders() {
-            const orderId = order.id || order.guid;
             const container = document.getElementById('orders-list');
             if (!container) return;
 
@@ -1075,34 +1087,36 @@ showConfirmDialog(totalAmount, userBalance) {
             );
 
             container.innerHTML = sortedOrders.map(order => `
-            <div class="order-card">
-                <div class="order-header">
-                    <div class="order-info">
-                        <h3>Заказ #${order.order_number}</h3>
-                        <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
-                    </div>
-                    <div class="order-status status-${order.order_status}">
-                        ${this.getStatusText(order.order_status)}
-                    </div>
-                </div>
-                
-                <div class="order-items">
-                    ${order.items ? order.items.map(item => `
-                        <div class="order-item">
-                            <span class="item-name">${item.product.name}</span>
-                            <span class="item-quantity">${item.quantity} шт.</span>
-                            <span class="item-price">${(item.price * item.quantity)} средств</span>
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <h3>Заказ #${order.id || order.guid?.slice(-8) || 'N/A'}</h3>
+                            <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
                         </div>
-                    `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
+                        <div class="order-status status-${order.status || 'pending'}">
+                            ${this.getStatusText(order.status)}
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        ${order.items ? order.items.map(item => `
+                            <div class="order-item">
+                                <span class="item-name">${item.product_name || item.name || 'Товар'}</span>
+                                <span class="item-quantity">${item.quantity} шт.</span>
+                                <span class="item-price">${(item.price * item.quantity)} бонусов</span>
+                            </div>
+                        `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
+                    </div>
+                    
+                    <div class="order-footer">
+                        <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
+                        <div class="order-commentary"><strong>Комментарий:</strong> ${order.commentary || 'Нет комментария'}</div>
+                        <div class="order-id">ID: ${order.guid || order.id}</div>
+                    </div>
                 </div>
-                
-                <div class="order-footer">
-                    <div class="order-total">Итого: ${this.calculateOrderTotal(order)} средств</div>
-                    <div class="order-id">ID: ${order.order_number}</div>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
         }
+
 
         // Вспомогательные методы
         formatOrderDate(dateString) {
