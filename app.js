@@ -733,7 +733,12 @@ setupNavigation() {
                     </div>
                 `).join('')}
             </div>
-            
+
+            <div class="cart-commentary">
+                <label for="cart-commentary">Комментарий к заказу:</label>
+                <textarea id="cart-commentary" placeholder="Напишите комментарий к заказу"></textarea>
+            </div>
+
             <div class="cart-total animate-card">
                 <div class="cart-total-header">
                     <div class="total-info">
@@ -755,7 +760,7 @@ setupNavigation() {
     async processOrder() {
     try {
         const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
+
         if (this.participant?.balance < totalAmount) {
             this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
             return;
@@ -770,10 +775,6 @@ setupNavigation() {
             }))
         };
 
-
-
-        console.log('Отправляем заказ:', orderData);
-
         const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
             method: 'POST',
             headers: this.getAuthHeaders(),
@@ -782,33 +783,41 @@ setupNavigation() {
 
         if (response.status === 201) {
             const result = await response.json();
-            
+
+            // Очищаем корзину
             this.cart = [];
             localStorage.removeItem('cart');
-            
-            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-            
+
+            // Обновляем данные участника (баланс)
             await this.checkTelegramLink();
-            this.loadCart();
-            
+
+            // Показ успешного уведомления
+            this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
+
+            // Автоматически обновляем историю заказов, если на странице заказов
+            if (this.currentPage === 'orders') {
+                await this.loadOrders();
+            }
+
         } else if (response.status === 400) {
             const errorData = await response.json();
             const errorMessage = errorData.detail || 'Ошибка при создании заказа';
             this.showNotification('Ошибка', errorMessage, 'error');
-            
+
         } else if (response.status === 401) {
             this.showNotification('Ошибка', 'Ошибка авторизации', 'error');
             await this.checkAuthentication();
-            
+
         } else {
             this.showNotification('Ошибка', 'Ошибка сервера при создании заказа', 'error');
         }
-        
+
     } catch (error) {
         console.error('Ошибка при создании заказа:', error);
         this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
     }
 }
+
 
     openProductModal(productGuid) {
     const product = this.products.find(p => p.guid === productGuid);
@@ -903,7 +912,10 @@ setupNavigation() {
         this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
         return;
     }
-
+    
+    const commentaryInput = document.getElementById('cart-commentary');
+    this.commentaryInputValue = commentaryInput ? commentaryInput.value.trim() : '';
+    
     this.showConfirmDialog(totalAmount, userBalance);
 }
 
