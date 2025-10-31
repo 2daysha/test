@@ -1072,12 +1072,14 @@ body {
     }
 }
 
-/* Профиль */
+/* Заголовок страницы "История заказов" */
 #page-orders h1, #page-orders h2 {
-    font-size: 20px; /* NEW: Уменьшенный заголовок для "Истории заказов" */
-    font-weight: 600;
-    margin-bottom: 20px;
+    font-size: 26px; /* Более крупный, но не огромный заголовок */
+    font-weight: 700;
+    margin-bottom: 24px;
     color: #000000;
+    text-align: center;
+    padding: 0 4px;
 }
 
 #page-cart {
@@ -1086,39 +1088,75 @@ body {
 }
 
 .profile-info {
-    background: #f8f8f8;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border: 1px solid #e5e5e5;
+    background: #ffffff; /* Белый фон */
+    border-radius: 20px; /* Увеличенный радиус */
+    padding: 24px; /* Увеличенный padding */
+    margin-bottom: 24px;
+    border: none;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Легкая, но заметная тень */
+    transition: box-shadow 0.3s ease;
 }
 
-.profile-info h3 { color: #3F75FB; font-weight: 700; font-size: 18px; }
-.profile-info p { font-size: 14px; color: #000000; margin-bottom: 8px; }
+.profile-info:hover {
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+}
+
+.profile-info h3 { 
+    color: #000000; 
+    font-weight: 700; 
+    font-size: 20px; 
+    margin-bottom: 4px;
+}
+
+.profile-info p { 
+    font-size: 15px; 
+    color: #666666; 
+    margin-bottom: 8px; 
+}
+
+/* Сетка статистики */
 .profile-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 16px; /* Увеличенный отступ */
+    margin-top: 20px;
+    margin-bottom: 0;
 }
 
 .support-btn {
-    margin-top: 15px; 
+    margin-top: 20px; 
 }
 
 .stat-card { 
-    background: #f8f8f8; 
+    background: #f8f8f8; /* Легкий серый фон */
     border-radius: 16px; 
-    padding: 16px; 
+    padding: 18px; /* Увеличенный padding */
     text-align: center; 
-    border: 1px solid #e5e5e5; 
+    border: none;
+    box-shadow: none;
+    transition: background 0.2s ease;
 }
+
+.stat-card:hover {
+    background: #f0f0f0;
+}
+
+/* Значение (количество заказов/сумма) - Уменьшено и выделено жирным */
 .stat-value { 
-    font-size: 20px; /* MODIFIED: Уменьшено количество заказов с 24px */
-    font-weight: 700; 
+    font-size: 22px; /* Акцент на значении */
+    font-weight: 800; /* Более жирный шрифт */
     color: #3F75FB; 
+    display: block;
+    margin-bottom: 4px;
 }
-.stat-label { font-size: 12px; color: #999999; margin-top: 4px; }
+
+/* Подпись */
+.stat-label { 
+    font-size: 13px; 
+    color: #999999; 
+    margin-top: 0;
+    font-weight: 500;
+}
 
 .support-btn { 
     background: #3F75FB;
@@ -2194,5 +2232,30 @@ body {
     }
     .cart-total {
         margin-top: 20px;
+    }
+}
+
+/* Мобильная адаптация для статистики */
+@media (max-width: 480px) {
+    .profile-info {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .profile-stats {
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 14px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+    }
+    
+    #page-orders h1, #page-orders h2 {
+        font-size: 22px;
+        margin-bottom: 20px;
     }
 }
