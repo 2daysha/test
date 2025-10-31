@@ -946,11 +946,11 @@ class LoyaltyProApp {
                         </div>
                         <div class="detail-line">
                             <span>Сумма:</span>
-                            <span>${totalAmount} бонусов</span>
+                            <span>${totalAmount}</span>
                         </div>
                         <div class="detail-line">
                             <span>Баланс после оплаты:</span>
-                            <span class="balance-after">${balanceAfter} бонусов</span>
+                            <span class="balance-after">${balanceAfter}</span>
                         </div>
                     </div>
                     <div class="order-commentary-input">
