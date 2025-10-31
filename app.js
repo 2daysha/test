@@ -764,11 +764,12 @@ setupNavigation() {
         const orderData = {
             commentary: this.commentaryInputValue || "",
             items: this.cart.map(item => ({
-                product: item.product ? item.product.guid : item.guid, 
+                product: { guid: item.guid },
                 quantity: item.quantity,
                 price: item.price
             }))
         };
+
 
 
         console.log('Отправляем заказ:', orderData);
