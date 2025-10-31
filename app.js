@@ -595,7 +595,7 @@ setupNavigation() {
                     <span class="product-category">${p.category?.name || 'Без категории'}</span>
                     <h3>${p.name}</h3>
                     <p>${p.stock || ''}</p>
-                    <div class="product-price">${p.price} бонусов</div>
+                    <div class="product-price">${p.price}</div>
                 `;
                 grid.appendChild(productCard);
             });
@@ -645,7 +645,7 @@ setupNavigation() {
                 <span class="product-category">${p.category?.name || 'Без категории'}</span>
                 <h3>${p.name}</h3>
                 <p>${p.stock || ''}</p>
-                <div class="product-price">${p.price} бонусов</div>
+                <div class="product-price">${p.price}</div>
                 ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
             `;
             grid.appendChild(productCard);
@@ -723,7 +723,7 @@ setupNavigation() {
                                     <button class="quantity-btn" onclick="app.updateQuantity('${item.guid}', ${item.quantity + 1})">+</button>
                                 </div>
                                 <div class="item-total">
-                                    <span class="cart-item-price">${item.price * item.quantity} бонусов</span>
+                                    <span class="cart-item-price">${item.price * item.quantity}</span>
                                     <button class="delete-btn" onclick="app.removeFromCart('${item.guid}')">
                                         Удалить
                                     </button>
@@ -742,7 +742,7 @@ setupNavigation() {
                     </div>
                     <div class="cart-total-amount">
                         <span class="cart-total-price">${totalAmount}</span>
-                        <span class="cart-total-currency">бонусов</span>
+                        <span class="cart-total-currency"></span>
                     </div>
                 </div>
                 <button class="checkout-btn animate-btn" onclick="app.checkoutCart()">
@@ -757,18 +757,19 @@ setupNavigation() {
         const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
         if (this.participant?.balance < totalAmount) {
-            this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+            this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
             return;
         }
 
         const orderData = {
             commentary: this.commentaryInputValue || "",
             items: this.cart.map(item => ({
-                product: item.guid,
+                product: item.product ? item.product.guid : item.guid, 
                 quantity: item.quantity,
                 price: item.price
             }))
         };
+
 
         console.log('Отправляем заказ:', orderData);
 
@@ -821,7 +822,7 @@ setupNavigation() {
     document.getElementById('modal-product-name').textContent = product.name;
     document.getElementById('modal-product-stock').textContent = product.stock || '';
     document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
-    document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+    document.getElementById('modal-product-price').textContent = `${product.price}`;
 
     const addToCartBtn = document.getElementById('modal-add-to-cart');
     
@@ -898,7 +899,7 @@ setupNavigation() {
     const userBalance = this.participant?.balance || 0;
     
     if (userBalance < totalAmount) {
-        this.showNotification('Ошибка', 'Недостаточно бонусов для оплаты', 'error');
+        this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
         return;
     }
 
@@ -928,11 +929,11 @@ showConfirmDialog(totalAmount, userBalance) {
                         </div>
                         <div class="detail-line">
                             <span>Сумма:</span>
-                            <span>${totalAmount} бонусов</span>
+                            <span>${totalAmount}</span>
                         </div>
                         <div class="detail-line">
                             <span>Баланс после оплаты:</span>
-                            <span class="balance-after">${balanceAfter} бонусов</span>
+                            <span class="balance-after">${balanceAfter}</span>
                         </div>
                     </div>
                 </div>
@@ -974,7 +975,7 @@ showConfirmDialog(totalAmount, userBalance) {
                 <div class="profile-stats">
                     <div class="stat-card animate-card">
                         <span class="stat-value">${balance}</span>
-                        <span class="stat-label">Бонусы</span>
+                        <span class="stat-label"></span>
                     </div>
                     <div class="stat-card animate-card">
                         <span class="stat-value">${this.cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
@@ -1061,33 +1062,33 @@ showConfirmDialog(totalAmount, userBalance) {
             );
 
             container.innerHTML = sortedOrders.map(order => `
-                <div class="order-card">
-                    <div class="order-header">
-                        <div class="order-info">
-                            <h3>Заказ #${order.id || order.guid?.slice(-8) || 'N/A'}</h3>
-                            <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
-                        </div>
-                        <div class="order-status status-${order.status || 'pending'}">
-                            ${this.getStatusText(order.status)}
-                        </div>
+            <div class="order-card">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Заказ #${order.order_number}</h3>
+                        <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
                     </div>
-                    
-                    <div class="order-items">
-                        ${order.items ? order.items.map(item => `
-                            <div class="order-item">
-                                <span class="item-name">${item.product_name || item.name || 'Товар'}</span>
-                                <span class="item-quantity">${item.quantity} шт.</span>
-                                <span class="item-price">${(item.price * item.quantity)} бонусов</span>
-                            </div>
-                        `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
-                    </div>
-                    
-                    <div class="order-footer">
-                        <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
-                        <div class="order-id">ID: ${order.guid || order.id}</div>
+                    <div class="order-status status-${order.order_status}">
+                        ${this.getStatusText(order.order_status)}
                     </div>
                 </div>
-            `).join('');
+                
+                <div class="order-items">
+                    ${order.items ? order.items.map(item => `
+                        <div class="order-item">
+                            <span class="item-name">${item.product.name}</span>
+                            <span class="item-quantity">${item.quantity} шт.</span>
+                            <span class="item-price">${(item.price * item.quantity)} средств</span>
+                        </div>
+                    `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
+                </div>
+                
+                <div class="order-footer">
+                    <div class="order-total">Итого: ${this.calculateOrderTotal(order)} средств</div>
+                    <div class="order-id">ID: ${order.order_number}</div>
+                </div>
+            </div>
+        `).join('');
         }
 
         // Вспомогательные методы
@@ -1110,15 +1111,14 @@ showConfirmDialog(totalAmount, userBalance) {
 
         getStatusText(status) {
             const statusMap = {
-                'completed': 'Выполнен',
-                'pending': 'В обработке',
-                'cancelled': 'Отменен',
-                'processing': 'Обрабатывается',
-                'shipped': 'Отправлен',
-                'delivered': 'Доставлен'
+                accepted: 'Принят',
+                cancelled: 'Отменён',
+                done: 'Выполнен',
+                new: 'Новый'
             };
-            return statusMap[status] || 'В обработке';
+            return statusMap[status] || 'Неизвестно';
         }
+
 
         calculateOrderTotal(order) {
             if (!order.items) return 0;
