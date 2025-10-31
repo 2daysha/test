@@ -14,6 +14,7 @@ class LoyaltyProApp {
         this.isAuthenticated = false;
         this.isTelegram = !!tg;
         this.authState = 'checking';
+        this.commentaryInputValue = "";
         this.init();
         
         // Исправляем обработчик клавиш
@@ -23,7 +24,6 @@ class LoyaltyProApp {
             }
         };
         document.addEventListener('keydown', this.handleKeyDown);
-
     }
 
     async init() { 
@@ -217,23 +217,23 @@ class LoyaltyProApp {
     }
 
     async loadProductCategories() {
-    try {
-        const response = await fetch(`${this.baseURL}/api/telegram/product-categories/`, {
-            method: 'GET',
-            headers: this.getAuthHeaders()
-        });
-        
-        if (response.status === 401) {
-            this.showAuthPage();
-            return;
+        try {
+            const response = await fetch(`${this.baseURL}/api/telegram/product-categories/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+            
+            if (response.status === 401) {
+                this.showAuthPage();
+                return;
+            }
+            
+            if (response.ok) {
+                this.categories = await response.json();
+            }
+        } catch (err) {
+            console.error('Ошибка загрузки категорий', err);
         }
-        
-        if (response.ok) {
-            this.categories = await response.json();
-        }
-    } catch (err) {
-        console.error('Ошибка загрузки категорий', err);
-    }
     }
 
     showAuthPage() {
@@ -264,21 +264,21 @@ class LoyaltyProApp {
         this.showPage('home');
     }
 
-setupNavigation() {
-    const navContainer = document.querySelector('.nav-container');
-    if (!navContainer) return;
-    
-    const oldIndicator = document.querySelector('.nav-indicator');
-    if (oldIndicator) oldIndicator.remove();
-    
-    const indicator = document.createElement('div');
-    indicator.className = 'nav-indicator';
-    navContainer.appendChild(indicator);
-    
-    this.setupIndicatorStyles();
-    
-    setTimeout(() => this.updateNavIndicator(), 100);
-}
+    setupNavigation() {
+        const navContainer = document.querySelector('.nav-container');
+        if (!navContainer) return;
+        
+        const oldIndicator = document.querySelector('.nav-indicator');
+        if (oldIndicator) oldIndicator.remove();
+        
+        const indicator = document.createElement('div');
+        indicator.className = 'nav-indicator';
+        navContainer.appendChild(indicator);
+        
+        this.setupIndicatorStyles();
+        
+        setTimeout(() => this.updateNavIndicator(), 100);
+    }
 
     setupIndicatorStyles() {
         const style = document.createElement('style');
@@ -361,20 +361,29 @@ setupNavigation() {
             case 'cart': 
                 this.loadProfile(); 
                 break;
+            case 'orders':
+                this.loadOrders();
+                break;
         }
     }
 
     loadUserData() {
         const tgUser = tg?.initDataUnsafe?.user;
         const participant = this.participant;
-        const profile = participant?.telegram_profile || tgUser;
 
-        if (profile) {
+        if (participant) {
             this.userData = {
-                firstName: profile.first_name || 'Пользователь',
-                lastName: profile.last_name || '',
-                username: profile.username ? `@${profile.username}` : 'Не указан',
-                id: profile.id
+                firstName: participant.telegram_profile?.first_name || 'Пользователь',
+                lastName: participant.telegram_profile?.last_name || '',
+                username: participant.telegram_profile?.username ? `@${participant.telegram_profile.username}` : 'Не указан',
+                id: participant.telegram_profile?.id
+            };
+        } else if (tgUser) {
+            this.userData = {
+                firstName: tgUser.first_name || 'Пользователь',
+                lastName: tgUser.last_name || '',
+                username: tgUser.username ? `@${tgUser.username}` : 'Не указан',
+                id: tgUser.id
             };
         } else {
             this.userData = { 
@@ -437,11 +446,14 @@ setupNavigation() {
         if (!categoriesToggle || !categoriesMenu || !categoriesList) return;
 
         // Создаем список категорий
-        const categories = ['all', ...this.categories.map(c => c.slug || c.name.toLowerCase())];
+        const allCategories = [
+            { guid: 'all', name: 'Все товары' },
+            ...this.categories
+        ];
         
-        categoriesList.innerHTML = categories.map(cat => `
-            <button class="category-item ${cat === 'all' ? 'active' : ''}" data-category="${cat}">
-                ${cat === 'all' ? 'Все товары' : (cat[0].toUpperCase() + cat.slice(1))}
+        categoriesList.innerHTML = allCategories.map(cat => `
+            <button class="category-item ${cat.guid === 'all' ? 'active' : ''}" data-category="${cat.guid}">
+                ${cat.name}
             </button>
         `).join('');
 
@@ -534,7 +546,7 @@ setupNavigation() {
             } else {
                 searchClear.style.display = 'none';
                 // Возвращаемся к текущей категории
-                const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+                const activeCategory = document.querySelector('.category-item.active')?.dataset.category || 'all';
                 this.updateProductGrid(activeCategory);
             }
         });
@@ -543,7 +555,7 @@ setupNavigation() {
         searchClear.addEventListener('click', () => {
             searchInput.value = '';
             searchClear.style.display = 'none';
-            const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+            const activeCategory = document.querySelector('.category-item.active')?.dataset.category || 'all';
             this.updateProductGrid(activeCategory);
             searchInput.focus();
         });
@@ -553,7 +565,7 @@ setupNavigation() {
             if (e.key === 'Escape') {
                 searchInput.value = '';
                 searchClear.style.display = 'none';
-                const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+                const activeCategory = document.querySelector('.category-item.active')?.dataset.category || 'all';
                 this.updateProductGrid(activeCategory);
             }
         });
@@ -603,80 +615,80 @@ setupNavigation() {
     }
 
     updateProductGrid(category) {
-    const searchInput = document.getElementById('search-input');
-    if (searchInput && searchInput.value.trim() !== '') {
-        searchInput.value = '';
-        const searchClear = document.getElementById('search-clear');
-        if (searchClear) searchClear.style.display = 'none';
-    }
+        const searchInput = document.getElementById('search-input');
+        if (searchInput && searchInput.value.trim() !== '') {
+            searchInput.value = '';
+            const searchClear = document.getElementById('search-clear');
+            if (searchClear) searchClear.style.display = 'none';
+        }
 
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
+        const grid = document.getElementById('products-grid');
+        if (!grid) return;
 
-    const products = category === 'all'
-        ? this.products
-        : this.products.filter(p => p.category?.slug === category || p.category?.name?.toLowerCase() === category);
+        const products = category === 'all'
+            ? this.products
+            : this.products.filter(p => p.category?.guid === category);
 
-    const noProductsMessage = grid.querySelector('.no-products-message');
-    const messageToKeep = grid.querySelector('.no-products-message');
-    grid.innerHTML = '';
-    if (messageToKeep) {
-        grid.appendChild(messageToKeep);
-    }
-    
-    if (products.length === 0) {
-        noProductsMessage.style.display = 'flex';
-        noProductsMessage.textContent = 'Нет товаров в этой категории';
-    } else {
-        noProductsMessage.style.display = 'none';
+        const noProductsMessage = grid.querySelector('.no-products-message');
+        const messageToKeep = grid.querySelector('.no-products-message');
+        grid.innerHTML = '';
+        if (messageToKeep) {
+            grid.appendChild(messageToKeep);
+        }
         
-        products.forEach(p => {
-            const isUnavailable = !p.is_available;
+        if (products.length === 0) {
+            noProductsMessage.style.display = 'flex';
+            noProductsMessage.textContent = 'Нет товаров в этой категории';
+        } else {
+            noProductsMessage.style.display = 'none';
             
-            const productCard = document.createElement('div');
-            productCard.className = `product-card ${isUnavailable ? 'unavailable' : ''}`;
-            
-            if (!isUnavailable) {
-                productCard.onclick = () => this.openProductModal(p.guid);
-            }
-            
-            productCard.innerHTML = `
-                <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
-                <span class="product-category">${p.category?.name || 'Без категории'}</span>
-                <h3>${p.name}</h3>
-                <p>${p.stock || ''}</p>
-                <div class="product-price">${p.price}</div>
-                ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
-            `;
-            grid.appendChild(productCard);
-        });
-    }
-}
-
-   addToCart(productGuid) {
-    if (!this.isAuthenticated) {
-        this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
-        return;
+            products.forEach(p => {
+                const isUnavailable = !p.is_available;
+                
+                const productCard = document.createElement('div');
+                productCard.className = `product-card ${isUnavailable ? 'unavailable' : ''}`;
+                
+                if (!isUnavailable) {
+                    productCard.onclick = () => this.openProductModal(p.guid);
+                }
+                
+                productCard.innerHTML = `
+                    <img src="${p.image_url || 'placeholder.png'}" alt="${p.name}">
+                    <span class="product-category">${p.category?.name || 'Без категории'}</span>
+                    <h3>${p.name}</h3>
+                    <p>${p.stock || ''}</p>
+                    <div class="product-price">${p.price}</div>
+                    ${isUnavailable ? '<div class="product-unavailable">Недоступно</div>' : ''}
+                `;
+                grid.appendChild(productCard);
+            });
+        }
     }
 
-    const product = this.products.find(p => p.guid === productGuid);
-    if (!product) return;
+    addToCart(productGuid) {
+        if (!this.isAuthenticated) {
+            this.showNotification('Ошибка', 'Для добавления в корзину требуется авторизация', 'error');
+            return;
+        }
 
-    if (!product.is_available) {
-        this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
-        return;
+        const product = this.products.find(p => p.guid === productGuid);
+        if (!product) return;
+
+        if (!product.is_available) {
+            this.showNotification('Недоступно', 'Этот товар временно отсутствует', 'warning');
+            return;
+        }
+
+        const existing = this.cart.find(i => i.guid === productGuid);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            this.cart.push({ ...product, quantity: 1 });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(this.cart));
+        this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
     }
-
-    const existing = this.cart.find(i => i.guid === productGuid);
-    if (existing) {
-        existing.quantity++;
-    } else {
-        this.cart.push({ ...product, quantity: 1 });
-    }
-
-    localStorage.setItem('cart', JSON.stringify(this.cart));
-    this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
-}
 
     loadCart() {
         const container = document.getElementById('page-catalog');
@@ -757,7 +769,7 @@ setupNavigation() {
         `;
     }
 
-        async processOrder() {
+    async processOrder() {
         try {
             // Считаем общую сумму корзины
             const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -767,15 +779,17 @@ setupNavigation() {
                 return;
             }
 
-            // Формируем данные заказа для отправки на сервер
+            // Формируем данные заказа для отправки на сервер - ИСПРАВЛЕННАЯ СТРУКТУРА
             const orderData = {
                 commentary: this.commentaryInputValue || "",
                 items: this.cart.map(item => ({
-                    product: { guid: item.guid },
+                    product: item.guid, // ТОЛЬКО UUID, а не объект
                     quantity: item.quantity,
                     price: item.price
                 }))
             };
+
+            console.log('Отправляемые данные заказа:', orderData);
 
             // Отправка запроса на создание заказа
             const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
@@ -799,10 +813,13 @@ setupNavigation() {
 
                 // Обновляем историю заказов с данными от сервера
                 if (!this.orders) this.orders = [];
-                this.orders.unshift(createdOrder); // добавляем новый заказ в начало истории
+                this.orders.unshift(createdOrder);
 
-                // Если используешь функцию загрузки корзины
+                // Обновляем корзину
                 this.loadCart();
+
+                // Обновляем профиль (баланс)
+                this.loadProfile();
 
             } else {
                 const errorData = await response.json();
@@ -813,13 +830,9 @@ setupNavigation() {
             console.error('Ошибка при создании заказа:', error);
             this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
         }
-
-        this.orders.unshift(createdOrder);
-        this.renderOrders();
     }
 
-
-        openProductModal(productGuid) {
+    openProductModal(productGuid) {
         const product = this.products.find(p => p.guid === productGuid);
         if (!product) return;
 
@@ -890,34 +903,34 @@ setupNavigation() {
     }
 
     async checkoutCart() {
-    if (!this.isAuthenticated) {
-        this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
-        return;
-    }
+        if (!this.isAuthenticated) {
+            this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
+            return;
+        }
 
-    if (!this.userPhone) {
-        this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
-        return;
-    }
+        if (!this.userPhone) {
+            this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
+            return;
+        }
 
-    if (this.cart.length === 0) {
-        this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
-        return;
-    }
+        if (this.cart.length === 0) {
+            this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
+            return;
+        }
 
-    const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const userBalance = this.participant?.balance || 0;
-    
-    if (userBalance < totalAmount) {
-        this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
-        return;
+        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const userBalance = this.participant?.balance || 0;
+        
+        if (userBalance < totalAmount) {
+            this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
+            return;
+        }
+        
+        const commentaryInput = document.getElementById('cart-commentary');
+        this.commentaryInputValue = commentaryInput ? commentaryInput.value.trim() : '';
+        
+        this.showConfirmDialog(totalAmount, userBalance);
     }
-    
-    const commentaryInput = document.getElementById('cart-commentary');
-    this.commentaryInputValue = commentaryInput ? commentaryInput.value.trim() : '';
-    
-    this.showConfirmDialog(totalAmount, userBalance);
-}
 
     showConfirmDialog(totalAmount, userBalance) {
         const balanceAfter = userBalance - totalAmount;
@@ -951,7 +964,7 @@ setupNavigation() {
                         </div>
                         <div class="order-commentary-input">
                             <label>Комментарий к заказу:</label>
-                            <textarea id="order-commentary" placeholder="Введите комментарий"></textarea>
+                            <textarea id="order-commentary" placeholder="Введите комментарий">${this.commentaryInputValue}</textarea>
                         </div>
                     </div>
                 </div>
@@ -975,86 +988,68 @@ setupNavigation() {
         setTimeout(() => dialog.classList.add('active'), 10);
     }
 
+    loadProfile() {
+        const container = document.getElementById('page-cart');
+        if (!container) return;
 
-        loadProfile() {
-            const container = document.getElementById('page-cart');
-            if (!container) return;
+        const { firstName, lastName, username } = this.userData || {};
+        const balance = this.participant?.balance || 0;
+        const phone = this.userPhone ? this.formatPhoneNumber(this.userPhone) : 'Не привязан';
 
-            const { firstName, lastName, username } = this.userData || {};
-            const balance = this.participant?.balance || 0;
-            const phone = this.userPhone ? this.formatPhoneNumber(this.userPhone) : 'Не привязан';
-
-            container.innerHTML = `
-                <div class="profile-info animate-card">
-                    <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
-                    <p><strong>Логин:</strong> ${username}</p>
-                    <p><strong>Телефон:</strong> ${phone}</p>
+        container.innerHTML = `
+            <div class="profile-info animate-card">
+                <p><strong>Имя:</strong> ${firstName} ${lastName}</p>
+                <p><strong>Логин:</strong> ${username}</p>
+                <p><strong>Телефон:</strong> ${phone}</p>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-card animate-card">
+                    <span class="stat-value">${balance}</span>
+                    <span class="stat-label">Баланс</span>
                 </div>
-                <div class="profile-stats">
-                    <div class="stat-card animate-card">
-                        <span class="stat-value">${balance}</span>
-                        <span class="stat-label"></span>
-                    </div>
-                    <div class="stat-card animate-card">
-                        <span class="stat-value">${this.cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
-                        <span class="stat-label">В корзине</span>
-                    </div>
+                <div class="stat-card animate-card">
+                    <span class="stat-value">${this.cart.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                    <span class="stat-label">В корзине</span>
                 </div>
-                
-                <!-- Кнопка истории заказов -->
-                <button class="orders-history-btn" onclick="app.showOrdersPage()">
-                    <span class="orders-history-icon">📦</span>
-                    История заказов
-                </button>
-                
-                <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
-                    Поддержка
-                </button>
-            `;
-        }
+            </div>
+            
+            <!-- Кнопка истории заказов -->
+            <button class="orders-history-btn" onclick="app.showOrdersPage()">
+                <span class="orders-history-icon">📦</span>
+                История заказов
+            </button>
+            
+            <button class="support-btn animate-btn" onclick="app.showNotification('Поддержка','Свяжитесь с поддержкой','info')">
+                Поддержка
+            </button>
+        `;
+    }
 
-        showOrdersPage() {
-            this.showPage('orders');
-            this.loadOrders();
-        }
+    showOrdersPage() {
+        this.showPage('orders');
+        this.loadOrders();
+    }
 
-        async loadOrders() {
-            const container = document.getElementById('orders-list');
-            if (!container) return;
+    async loadOrders() {
+        const container = document.getElementById('page-orders');
+        if (!container) return;
 
-            container.innerHTML = '<div class="loading">Загрузка заказов...</div>';
+        container.innerHTML = '<div class="loading">Загрузка заказов...</div>';
 
-            try {
-                const response = await fetch(`${this.baseURL}/api/telegram/orders/`, {
-                    method: 'GET',
-                    headers: this.getAuthHeaders()
-                });
+        try {
+            const response = await fetch(`${this.baseURL}/api/telegram/orders/`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
 
-                if (response.status === 401) {
-                    this.showNotification('Ошибка', 'Требуется авторизация', 'error');
-                    this.showAuthPage();
-                    return;
-                }
+            if (response.status === 401) {
+                this.showNotification('Ошибка', 'Требуется авторизация', 'error');
+                this.showAuthPage();
+                return;
+            }
 
-                if (!response.ok) {
-                    this.showNotification('Ошибка', 'Не удалось загрузить заказы', 'error');
-                    container.innerHTML = `
-                        <div class="empty-orders">
-                            <div class="empty-orders-icon">❌</div>
-                            <h2>Ошибка загрузки</h2>
-                            <p>Попробуйте позже</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                this.orders = await response.json();
-                console.log('Загруженные заказы:', this.orders); // для отладки
-                this.renderOrders();
-
-            } catch (error) {
-                console.error('Ошибка при загрузке заказов:', error);
-                this.showNotification('Ошибка', 'Ошибка при загрузке заказов', 'error');
+            if (!response.ok) {
+                this.showNotification('Ошибка', 'Не удалось загрузить заказы', 'error');
                 container.innerHTML = `
                     <div class="empty-orders">
                         <div class="empty-orders-icon">❌</div>
@@ -1062,93 +1057,120 @@ setupNavigation() {
                         <p>Попробуйте позже</p>
                     </div>
                 `;
-            }
-        }
-
-       renderOrders() {
-            const ordersContainer = document.getElementById('orders-container');
-            if (!ordersContainer) return;
-
-            ordersContainer.innerHTML = '';
-
-            if (!this.orders || this.orders.length === 0) {
-                ordersContainer.innerHTML = '<p>История заказов пуста</p>';
                 return;
             }
 
-            this.orders.forEach(order => {
-                const orderEl = document.createElement('div');
-                orderEl.classList.add('order-item');
+            this.orders = await response.json();
+            console.log('Загруженные заказы:', this.orders);
+            this.renderOrders();
 
-                const date = new Date(order.created_at).toLocaleString('ru-RU', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+        } catch (error) {
+            console.error('Ошибка при загрузке заказов:', error);
+            this.showNotification('Ошибка', 'Ошибка при загрузке заказов', 'error');
+            container.innerHTML = `
+                <div class="empty-orders">
+                    <div class="empty-orders-icon">❌</div>
+                    <h2>Ошибка загрузки</h2>
+                    <p>Попробуйте позже</p>
+                </div>
+            `;
+        }
+    }
 
-                const itemsHtml = order.items.map(i => `
-                    <div class="order-product">
-                        <img src="${i.product.image_url || 'placeholder.png'}" alt="${i.product.name}" class="order-product-image"/>
-                        <div class="order-product-info">
-                            <strong>${i.product.name}</strong>
-                            <p>${i.product.description || ''}</p>
-                            <p>Категория: ${i.product.category?.name || 'Без категории'}</p>
-                            <p>Количество: ${i.quantity}</p>
-                            <p>Цена: ${i.price} бонусов</p>
+    renderOrders() {
+        const container = document.getElementById('page-orders');
+        if (!container) return;
+
+        if (!this.orders || this.orders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-orders">
+                    <div class="empty-orders-icon">📦</div>
+                    <h2>История заказов пуста</h2>
+                    <p>Здесь появятся ваши заказы</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="orders-header">
+                <h1>История заказов</h1>
+                <span class="orders-count">${this.orders.length} заказа(ов)</span>
+            </div>
+            <div class="orders-list" id="orders-container">
+                ${this.orders.map(order => {
+                    const date = new Date(order.created_at).toLocaleString('ru-RU', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    const totalAmount = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+                    return `
+                        <div class="order-item">
+                            <div class="order-header">
+                                <h3>Заказ #${order.order_number || 'N/A'}</h3>
+                                <span class="order-status ${order.order_status}">${this.getStatusText(order.order_status)}</span>
+                            </div>
+                            <p class="order-date">${date}</p>
+                            <div class="order-items">
+                                ${order.items.map(item => `
+                                    <div class="order-product">
+                                        <div class="order-product-info">
+                                            <strong>${item.product?.name || 'Товар'}</strong>
+                                            <p>Количество: ${item.quantity}</p>
+                                            <p>Цена: ${item.price} бонусов</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${order.commentary ? `<p class="order-commentary"><strong>Комментарий:</strong> ${order.commentary}</p>` : ''}
+                            <div class="order-total">
+                                <strong>Итого: ${totalAmount} бонусов</strong>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
 
-                orderEl.innerHTML = `
-                    <h3>Заказ #${order.order_number || 'N/A'}</h3>
-                    <p>Дата: ${date}</p>
-                    <p>Статус: ${order.order_status || 'Неизвестно'}</p>
-                    <div class="order-items">${itemsHtml}</div>
-                    <p><strong>Итого: ${order.items.reduce((sum, i) => sum + i.price, 0)} бонусов</strong></p>
-                    ${order.commentary ? `<p>Комментарий: ${order.commentary}</p>` : ''}
-                `;
-
-                ordersContainer.appendChild(orderEl);
+    // Вспомогательные методы
+    formatOrderDate(dateString) {
+        if (!dateString) return 'Дата не указана';
+        
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             });
+        } catch (error) {
+            return 'Неверная дата';
         }
+    }
 
+    getStatusText(status) {
+        const statusMap = {
+            accepted: 'Принят',
+            cancelled: 'Отменён',
+            done: 'Выполнен',
+            new: 'Новый'
+        };
+        return statusMap[status] || 'Неизвестно';
+    }
 
-        // Вспомогательные методы
-        formatOrderDate(dateString) {
-            if (!dateString) return 'Дата не указана';
-            
-            try {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('ru-RU', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } catch (error) {
-                return 'Неверная дата';
-            }
-        }
+    calculateOrderTotal(order) {
+        if (!order.items) return 0;
+        return order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
 
-        getStatusText(status) {
-            const statusMap = {
-                accepted: 'Принят',
-                cancelled: 'Отменён',
-                done: 'Выполнен',
-                new: 'Новый'
-            };
-            return statusMap[status] || 'Неизвестно';
-        }
-
-
-        calculateOrderTotal(order) {
-            if (!order.items) return 0;
-            return order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-        }
-    
     formatPhoneNumber(phone) {
         return phone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 ($2) $3-$4-$5');
     }
@@ -1204,4 +1226,5 @@ setupNavigation() {
         }, 3000);
     }
 }
+
 window.app = new LoyaltyProApp();
