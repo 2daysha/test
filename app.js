@@ -690,7 +690,7 @@ class LoyaltyProApp {
         this.showNotification('Добавлено', `Товар "${product.name}" добавлен в корзину`, 'success');
     }
 
-    loadCart() {
+        loadCart() {
         const container = document.getElementById('page-catalog');
         if (!container) return;
 
@@ -744,13 +744,7 @@ class LoyaltyProApp {
                         </div>
                     </div>
                 `).join('')}
-            </div>
-
-            <div class="cart-commentary">
-                <label for="cart-commentary">Комментарий к заказу:</label>
-                <textarea id="cart-commentary" placeholder="Напишите комментарий к заказу"></textarea>
-            </div>
-
+            </div>     
             <div class="cart-total animate-card">
                 <div class="cart-total-header">
                     <div class="total-info">
@@ -771,7 +765,6 @@ class LoyaltyProApp {
 
     async processOrder() {
         try {
-            // Считаем общую сумму корзины
             const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
             if (this.participant?.balance < totalAmount) {
@@ -779,11 +772,10 @@ class LoyaltyProApp {
                 return;
             }
 
-            // Формируем данные заказа для отправки на сервер - ИСПРАВЛЕННАЯ СТРУКТУРА
             const orderData = {
                 commentary: this.commentaryInputValue || "",
                 items: this.cart.map(item => ({
-                    product: item.guid, // ТОЛЬКО UUID, а не объект
+                    product: item.guid,
                     quantity: item.quantity,
                     price: item.price
                 }))
@@ -903,34 +895,33 @@ class LoyaltyProApp {
     }
 
     async checkoutCart() {
-        if (!this.isAuthenticated) {
-            this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
-            return;
-        }
-
-        if (!this.userPhone) {
-            this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
-            return;
-        }
-
-        if (this.cart.length === 0) {
-            this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
-            return;
-        }
-
-        const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const userBalance = this.participant?.balance || 0;
-        
-        if (userBalance < totalAmount) {
-            this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
-            return;
-        }
-        
-        const commentaryInput = document.getElementById('cart-commentary');
-        this.commentaryInputValue = commentaryInput ? commentaryInput.value.trim() : '';
-        
-        this.showConfirmDialog(totalAmount, userBalance);
+    if (!this.isAuthenticated) {
+        this.showNotification('Ошибка', 'Для оплаты требуется авторизация', 'error');
+        return;
     }
+
+    if (!this.userPhone) {
+        this.showNotification('Нужен телефон', 'Для оплаты требуется номер телефона', 'warning');
+        return;
+    }
+
+    if (this.cart.length === 0) {
+        this.showNotification('Корзина пуста', 'Добавьте товары в корзину', 'warning');
+        return;
+    }
+
+    const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const userBalance = this.participant?.balance || 0;
+    
+    if (userBalance < totalAmount) {
+        this.showNotification('Ошибка', 'Недостаточно средств для оплаты', 'error');
+        return;
+    }
+    
+    this.commentaryInputValue = "";
+    
+    this.showConfirmDialog(totalAmount, userBalance);
+}
 
     showConfirmDialog(totalAmount, userBalance) {
         const balanceAfter = userBalance - totalAmount;
@@ -1077,7 +1068,7 @@ class LoyaltyProApp {
         }
     }
 
-    renderOrders() {
+        renderOrders() {
         const container = document.getElementById('page-orders');
         if (!container) return;
 
@@ -1093,11 +1084,11 @@ class LoyaltyProApp {
         }
 
         container.innerHTML = `
-            <div class="orders-header">
+            <div class="page-header">
                 <h1>История заказов</h1>
                 <span class="orders-count">${this.orders.length} заказа(ов)</span>
             </div>
-            <div class="orders-list" id="orders-container">
+            <div class="orders-container" id="orders-container">
                 ${this.orders.map(order => {
                     const date = new Date(order.created_at).toLocaleString('ru-RU', {
                         year: 'numeric',
@@ -1110,26 +1101,41 @@ class LoyaltyProApp {
                     const totalAmount = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
                     return `
-                        <div class="order-item">
+                        <div class="order-card">
                             <div class="order-header">
-                                <h3>Заказ #${order.order_number || 'N/A'}</h3>
-                                <span class="order-status ${order.order_status}">${this.getStatusText(order.order_status)}</span>
+                                <div class="order-info">
+                                    <h3 class="order-number">Заказ #${order.order_number || 'N/A'}</h3>
+                                    <span class="order-status ${order.order_status}">${this.getStatusText(order.order_status)}</span>
+                                </div>
+                                <span class="order-date">${date}</span>
                             </div>
-                            <p class="order-date">${date}</p>
+                            
                             <div class="order-items">
                                 ${order.items.map(item => `
-                                    <div class="order-product">
-                                        <div class="order-product-info">
-                                            <strong>${item.product?.name || 'Товар'}</strong>
-                                            <p>Количество: ${item.quantity}</p>
-                                            <p>Цена: ${item.price} бонусов</p>
+                                    <div class="order-item">
+                                        <div class="order-item-image">
+                                            <img src="${item.product?.image_url || 'placeholder.png'}" alt="${item.product?.name || 'Товар'}">
+                                        </div>
+                                        <div class="order-item-details">
+                                            <h4 class="order-item-name">${item.product?.name || 'Товар'}</h4>
+                                            <div class="order-item-meta">
+                                                <span class="order-item-quantity">Количество: ${item.quantity} шт.</span>
+                                                <span class="order-item-price">${item.price} бонусов</span>
+                                            </div>
                                         </div>
                                     </div>
                                 `).join('')}
                             </div>
-                            ${order.commentary ? `<p class="order-commentary"><strong>Комментарий:</strong> ${order.commentary}</p>` : ''}
+                            
+                            ${order.commentary ? `
+                                <div class="order-commentary">
+                                    <strong>Комментарий:</strong> ${order.commentary}
+                                </div>
+                            ` : ''}
+                            
                             <div class="order-total">
-                                <strong>Итого: ${totalAmount} бонусов</strong>
+                                <div class="total-label">Итого:</div>
+                                <div class="total-amount">${totalAmount} бонусов</div>
                             </div>
                         </div>
                     `;
