@@ -924,60 +924,69 @@ class LoyaltyProApp {
 }
 
     showConfirmDialog(totalAmount, userBalance) {
-        const balanceAfter = userBalance - totalAmount;
-        const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+    const balanceAfter = userBalance - totalAmount;
+    const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
 
-        const dialog = document.createElement('div');
-        dialog.className = 'confirm-dialog-overlay';
-        dialog.innerHTML = `
-            <div class="confirm-dialog">
-                <div class="confirm-dialog-header">
-                    <h3>Подтверждение заказа</h3>
-                    <button class="dialog-close" onclick="this.closest('.confirm-dialog-overlay').remove()">×</button>
-                </div>
-                
-                <div class="confirm-dialog-content">
-                    <div class="order-summary">
-                        <p>Вы уверены, что хотите оплатить заказ?</p>
-                        <div class="order-details">
-                            <div class="detail-line">
-                                <span>Товаров:</span>
-                                <span>${totalItems} шт.</span>
-                            </div>
-                            <div class="detail-line">
-                                <span>Сумма:</span>
-                                <span>${totalAmount}</span>
-                            </div>
-                            <div class="detail-line">
-                                <span>Баланс после оплаты:</span>
-                                <span class="balance-after">${balanceAfter}</span>
-                            </div>
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog-overlay';
+    dialog.innerHTML = `
+        <div class="confirm-dialog">
+            <div class="confirm-dialog-header">
+                <h3>Подтверждение заказа</h3>
+                <button class="dialog-close" onclick="this.closest('.confirm-dialog-overlay').remove()">×</button>
+            </div>
+            
+            <div class="confirm-dialog-content">
+                <div class="order-summary">
+                    <p>Вы уверены, что хотите оплатить заказ?</p>
+                    <div class="order-details">
+                        <div class="detail-line">
+                            <span>Товаров:</span>
+                            <span>${totalItems} шт.</span>
                         </div>
-                        <div class="order-commentary-input">
-                            <label>Комментарий к заказу:</label>
-                            <textarea id="order-commentary" placeholder="Введите комментарий">${this.commentaryInputValue}</textarea>
+                        <div class="detail-line">
+                            <span>Сумма:</span>
+                            <span>${totalAmount} бонусов</span>
+                        </div>
+                        <div class="detail-line">
+                            <span>Баланс после оплаты:</span>
+                            <span class="balance-after">${balanceAfter} бонусов</span>
                         </div>
                     </div>
-                </div>
-                
-                <div class="confirm-dialog-actions">
-                    <button class="btn-confirm" onclick="
-                        app.commentaryInputValue = document.getElementById('order-commentary').value;
-                        app.processOrder();
-                        this.closest('.confirm-dialog-overlay').remove();
-                    ">
-                        Да, оплатить
-                    </button>
-                    <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
-                        Отмена
-                    </button>
+                    <div class="order-commentary-input">
+                        <label>Комментарий к заказу:</label>
+                        <textarea 
+                            id="order-commentary" 
+                            placeholder="Например: пожелания по доставке, особые условия..."
+                        >${this.commentaryInputValue}</textarea>
+                    </div>
                 </div>
             </div>
-        `;
+            
+            <div class="confirm-dialog-actions">
+                <button class="btn-cancel" onclick="this.closest('.confirm-dialog-overlay').remove()">
+                    Отмена
+                </button>
+                <button class="btn-confirm" onclick="
+                    app.commentaryInputValue = document.getElementById('order-commentary').value;
+                    app.processOrder();
+                    this.closest('.confirm-dialog-overlay').remove();
+                ">
+                    Да, оплатить
+                </button>
+            </div>
+        </div>
+    `;
 
-        document.body.appendChild(dialog);
-        setTimeout(() => dialog.classList.add('active'), 10);
-    }
+    document.body.appendChild(dialog);
+    setTimeout(() => dialog.classList.add('active'), 10);
+    
+    // Автофокус на текстовом поле
+    setTimeout(() => {
+        const textarea = dialog.querySelector('#order-commentary');
+        if (textarea) textarea.focus();
+    }, 300);
+}
 
     loadProfile() {
         const container = document.getElementById('page-cart');
