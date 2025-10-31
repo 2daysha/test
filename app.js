@@ -813,6 +813,9 @@ setupNavigation() {
             console.error('Ошибка при создании заказа:', error);
             this.showNotification('Ошибка', 'Не удалось создать заказ', 'error');
         }
+
+        this.orders.unshift(createdOrder);
+        this.renderOrders();
     }
 
 
