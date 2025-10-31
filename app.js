@@ -28,8 +28,10 @@ class LoyaltyProApp {
 
     async init() { 
         if (!this.isTelegram || !tg) return;
-
+        
+        tg.ready();
         tg.expand();
+        tg.onEvent('themeChanged', () => this.applyTheme(tg.themeParams));
 
         if (tg.disableClosingConfirmation) {
             tg.disableClosingConfirmation();
@@ -760,6 +762,7 @@ setupNavigation() {
         }
 
         const orderData = {
+            commentary: this.commentaryInputValue || "",
             items: this.cart.map(item => ({
                 product: item.guid,
                 quantity: item.quantity,
@@ -1038,6 +1041,7 @@ showConfirmDialog(totalAmount, userBalance) {
         }
 
         renderOrders() {
+            const orderId = order.id || order.guid;
             const container = document.getElementById('orders-list');
             if (!container) return;
 
