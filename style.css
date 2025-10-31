@@ -1,13 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100;200;300;400;500;600;700&display=swap&subset=cyrillic');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap&subset=cyrillic');
 * {
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
+    box-sizing: border-box; /* ADDED: Устраняет проблему со смещением на мобильных устройствах, т.к. padding не будет выходить за 100% ширины */
 }
 
 body {
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 400;
     font-size: 16px;
     line-height: 1.5;
@@ -30,13 +31,14 @@ body {
 .logo {
     height: 30px;
     width: auto;
-} /* Обновлено: удалено 'display: block;' из-за последней актуальной версии */
+    display: block;
+}
 
 .header {
     background: #ffffff;
-    border-bottom: 1px solid #e5e5e5; /* Обновлено: с #f0f0f0 на #e5e5e5 */
+    border-bottom: 1px solid #f0f0f0;
     padding: 16px;
-    padding-top: calc(16px + env(safe-area-inset-top, 0px)); /* Обновлено: с var на env */
+    padding-top: calc(16px + var(--tg-safe-area-inset-top, 0px));
     text-align: center;
     position: sticky;
     top: 0;
@@ -78,8 +80,8 @@ body {
     text-align: center;
     max-width: 400px;
     width: 100%;
-    padding: 20px; /* Обновлено: с 40px 20px на 20px */
-    margin: 60px auto 0; /* Обновлено: добавлено центрирование и отступ сверху */
+    padding: 40px 20px;
+    margin: 0 auto; /* MODIFIED: Центрирование по горизонтали */
 }
 
 .auth-content h2 {
@@ -131,8 +133,8 @@ body {
     background: #f8f8f8;
     border: 1px solid #e5e5e5;
     border-radius: 20px;
-    padding: 10px 16px;
-    font-size: 14px;
+    padding: 8px 14px; /* MODIFIED: Уменьшен padding */
+    font-size: 13px; /* MODIFIED: Уменьшен размер шрифта */
     font-weight: 500;
     color: #000000;
     cursor: pointer;
@@ -149,7 +151,8 @@ body {
 /* Сетка товаров */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    /* MODIFIED: 4 фиксированные колонки для ПК/больших экранов */
+    grid-template-columns: repeat(4, 1fr); 
     gap: 20px;
     padding: 20px;
 }
@@ -278,21 +281,21 @@ body {
     margin-bottom: 20px;
 }
 
-/* Элемент корзины */
+/* Элемент корзины - MODIFIED: Более компактный и современный вид */
 .cart-item {
     display: flex;
     gap: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 12px 16px; /* MODIFIED: Уменьшен padding */
+    margin-bottom: 10px; /* MODIFIED: Уменьшен margin */
     background: white;
-    border-radius: 16px;
+    border-radius: 12px; /* MODIFIED: Уменьшен border-radius */
     border: 1px solid #e5e5e5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04); /* MODIFIED: Более легкая тень */
     transition: all 0.2s ease;
 }
 
 .cart-item:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* MODIFIED */
 }
 
 /* Левая часть - изображение */
@@ -519,6 +522,13 @@ body {
 
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
+    /* MODIFIED: 2 колонки для планшетов и мобильных в ландшафтном режиме */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 16px;
+    }
+    
     .modal-content {
         flex-direction: column;
         max-height: 95vh;
@@ -567,6 +577,12 @@ body {
     
     .modal-product-name {
         font-size: 18px;
+    }
+
+    /* MODIFIED: 2 колонки для мобильных устройств */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 10px;
     }
 }
 
@@ -1057,6 +1073,13 @@ body {
 }
 
 /* Профиль */
+#page-orders h1, #page-orders h2 {
+    font-size: 20px; /* NEW: Уменьшенный заголовок для "Истории заказов" */
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #000000;
+}
+
 #page-cart {
     max-width: 500px;
     margin: 0 auto;
@@ -1090,7 +1113,11 @@ body {
     text-align: center; 
     border: 1px solid #e5e5e5; 
 }
-.stat-value { font-size: 24px; font-weight: 700; color: #3F75FB; }
+.stat-value { 
+    font-size: 20px; /* MODIFIED: Уменьшено количество заказов с 24px */
+    font-weight: 700; 
+    color: #3F75FB; 
+}
 .stat-label { font-size: 12px; color: #999999; margin-top: 4px; }
 
 .support-btn { 
@@ -1116,6 +1143,79 @@ body {
 /* Скрываем элементы Telegram в браузере */
 .webapp-control, .tg-webapp-popup { display: none !important; }
 
+/* === СТИЛИ ДЛЯ ДИАЛОГА ПОДТВЕРЖДЕНИЯ С КОММЕНТАРИЕМ (Презентабельный вид) === */
+.confirm-dialog {
+    background: white;
+    border-radius: 20px; /* MODIFIED: Более крупный радиус */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); /* MODIFIED: Улучшенная тень */
+    border: 1px solid #f0f0f0; /* Добавлена тонкая граница */
+    max-width: 450px;
+    width: 90%;
+    position: relative;
+    animation: modalSlideUp 0.3s ease;
+    overflow: hidden;
+}
+
+/* Красивое окошко для комментария */
+.order-commentary-input textarea {
+    width: 100%;
+    min-height: 100px; /* MODIFIED: Увеличенная минимальная высота */
+    padding: 14px 18px; /* MODIFIED: Увеличен padding */
+    border: 1px solid #dcdcdc; /* MODIFIED: Более светлый дефолтный border */
+    border-radius: 16px; /* MODIFIED: Увеличенный радиус */
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.2s ease;
+    background: #f8f8f8;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06); /* Добавлена внутренняя тень */
+}
+
+.order-commentary-input textarea:focus {
+    outline: none;
+    border-color: #3F75FB;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(63, 117, 251, 0.2), inset 0 1px 4px rgba(0,0,0,0.05); /* MODIFIED: Улучшенная тень при фокусе */
+}
+
+/* Модернизированные кнопки в окне подтверждения */
+.btn-confirm, .btn-cancel {
+    padding: 16px 20px;
+    border-radius: 14px; /* MODIFIED: Чуть больший радиус */
+    font-size: 17px; /* MODIFIED: Чуть больший шрифт */
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, #3F75FB 0%, #2B5DCF 100%); /* MODIFIED: Обновленный градиент */
+    color: white;
+    box-shadow: 0 4px 15px rgba(63, 117, 251, 0.4);
+    border: none;
+}
+
+.btn-confirm:hover {
+    background: linear-gradient(135deg, #2B5DCF, #1A47B0);
+    box-shadow: 0 6px 20px rgba(63, 117, 251, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-confirm:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(63, 117, 251, 0.3);
+}
+
+.btn-cancel {
+    background: #ffffff; /* MODIFIED: Белый фон */
+    color: #666;
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.btn-cancel:hover {
+    background: #f0f0f0;
+    border-color: #dcdcdc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
 /* Мобильная адаптация */
 @media (max-width: 480px) {
     .main { 
@@ -1124,7 +1224,8 @@ body {
     }
 
     .products-grid {
-        grid-template-columns: 1fr;
+        /* MODIFIED: 2 фиксированные колонки для мобильных */
+        grid-template-columns: repeat(2, 1fr); 
         gap: 10px;
     }
 
@@ -1152,41 +1253,52 @@ body {
         font-size: 13px;
     }
 
-    /* Адаптация корзины для мобильных */
+    /* Адаптация корзины для мобильных - MODIFIED: Не громоздкий, строчный вид */
     .cart-item {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row; /* MODIFIED: Изменено на строку для компактности */
+        align-items: center;
         gap: 12px;
+        padding: 12px;
     }
 
     .cart-item-left img {
-        width: 100%;
-        height: 120px;
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+    }
+    
+
+    .cart-item-right {
+        min-width: 0;
     }
 
     .cart-item-bottom {
         width: 100%;
-        flex-direction: column;
+        flex-direction: row;
         gap: 12px;
-        align-items: flex-start;
+        align-items: center;
+        margin-top: 8px;
     }
 
     .quantity-controls {
-        align-self: stretch;
-        justify-content: center;
+        align-self: flex-start;
+        justify-content: flex-start;
     }
 
     .item-total {
-        width: 100%;
+        width: auto;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
+        margin-left: auto;
     }
 
     .delete-btn {
-        align-self: stretch;
+        align-self: center;
         text-align: center;
         justify-content: center;
+        padding: 6px 10px;
+        font-size: 11px;
     }
 
     .cart-header {
@@ -1226,93 +1338,25 @@ body {
     }
 }
 
-/* === СТИЛИ ТОВАРОВ (обновленные) === */
+/* === СТИЛИ ТОВАРОВ (Общие стили) === */
 
 /* ==== Изображения товаров ==== */
 /* В карточках каталога */
-.product-card img, .cart-item img {
+.product-card img {
     width: 100%;
     height: auto;
     max-height: 140px;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 8px;
     margin-bottom: 8px;
 }
 /* В карточке корзины */
-.cart-image-url {
+.cart-item-left img {
     width: 80px;
     height: 80px;
     object-fit: cover;
     border-radius: 12px;
-    margin-right: 12px;
     flex-shrink: 0;
-}
-
-/* Переопределения стилей: */
-.product-card p {
-    font-size: 13px;
-    color: #666666;
-    margin-bottom: 12px;
-    flex: 1; /* Обновлено: добавлен flex: 1; и изменен margin-bottom */
-}
-
-.product-price {
-    font-size: 16px; /* Обновлено: с 15px на 16px */
-    font-weight: 700;
-    color: #3F75FB;
-    margin-top: auto;
-}
-
-.cart-item { 
-    display: flex; 
-    align-items: center; 
-    background: var(--tg-theme-secondary-bg-color, #f8f8f8); 
-    border-radius: 16px; 
-    padding: 12px; 
-    margin-bottom: 10px; 
-    border: 1px solid var(--tg-theme-section-bg-color, #e5e5e5); 
-}
-
-.cart-item-left img { 
-    width: 70px; 
-    height: 70px; 
-    border-radius: 10px; 
-    object-fit: cover; 
-}
-
-.cart-item-right { 
-    flex: 1; 
-    margin-left: 12px; 
-}
-
-.cart-item-bottom { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-
-.product-card { 
-    background: white; 
-    border-radius: 16px; /* Обновлено: с 8px на 16px */
-    border: 1px solid #e5e5e5; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
-    padding: 12px; 
-    transition: all 0.2s ease; 
-    cursor: pointer; 
-    display: flex; 
-    flex-direction: column; 
-    text-align: left; /* Обновлено: с center на left */
-} 
-
-/* Адаптация для мобильных */
-@media (max-width: 480px) { 
-    .product-card img { 
-        height: 120px; 
-    } 
-    .cart-image-url { 
-        width: 64px; 
-        height: 64px; 
-    } 
 }
 
 /* Выравнивание элементов корзины */
@@ -1349,6 +1393,8 @@ body {
     align-items: center;
     z-index: 1000;
     transition: all 0.3s ease;
+    /* Учет безопасных зон Telegram */
+    bottom: calc(20px + var(--tg-safe-area-inset-bottom, 0px));
 }
 
 .nav-container { 
@@ -1471,7 +1517,7 @@ body {
     }
 }
 
-/* === СТИЛИ СТРАНИЦЫ ЗАКАЗОВ === */
+/* === СТИЛИ СТРАНИЦЫ ЗАКАЗОВ (ИСТОРИЯ ЗАКАЗОВ) === */
 .orders-container { 
     max-width: 800px;
     margin: 0 auto;
@@ -1479,7 +1525,7 @@ body {
 }
 
 .page-header { 
-    font-size: 24px;
+    font-size: 20px; /* MODIFIED: Уменьшен размер заголовка */
     font-weight: 700;
     color: #000000;
     margin-bottom: 20px;
@@ -1668,59 +1714,7 @@ body {
     font-size: 20px;
 }
 
-/* Мобильная адаптация */
-@media (max-width: 480px) {
-    .orders-container { 
-        padding: 16px;
-    }
-    .order-card { 
-        padding: 16px;
-        margin-bottom: 12px;
-    }
-    .order-header { 
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
-    }
-    .order-status { 
-        align-self: flex-start;
-    }
-    .order-item { 
-        padding: 10px 0;
-    }
-    .order-item-image { 
-        width: 50px;
-        height: 50px;
-        margin-right: 12px;
-    }
-    .order-item-name { 
-        font-size: 15px;
-    }
-    .order-item-meta { 
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-    .order-total { 
-        font-size: 16px;
-    }
-    .orders-history-btn { 
-        padding: 14px 20px;
-        font-size: 16px;
-    }
-    .page-header { 
-        padding: 16px;
-    }
-}
-
-/* Анимации */
-.order-card { animation: fadeIn 0.3s ease-out; }
-.order-card:nth-child(1) { animation-delay: 0.1s; }
-.order-card:nth-child(2) { animation-delay: 0.2s; }
-.order-card:nth-child(3) { animation-delay: 0.3s; }
-.order-card:nth-child(4) { animation-delay: 0.4s; }
-
-/* === СТИЛИ ДЛЯ ДИАЛОГА ПОДТВЕРЖДЕНИЯ С КОММЕНТАРИЕМ === */
+/* === СТИЛИ ДЛЯ ДИАЛОГА ПОДТВЕРЖДЕНИЯ С КОММЕНТАРИЕМ (Презентабельный вид) === */
 .confirm-dialog-overlay { 
     position: fixed;
     top: 0;
@@ -1746,10 +1740,14 @@ body {
 
 .confirm-dialog { 
     background: white;
-    border-radius: 16px;
-    max-width: 400px;
-    width: 100%;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 20px; /* MODIFIED: Более крупный радиус */
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); /* MODIFIED: Улучшенная тень */
+    border: 1px solid #f0f0f0; /* Добавлена тонкая граница */
+    max-width: 450px;
+    width: 90%;
+    position: relative;
+    animation: modalSlideUp 0.3s ease;
+    overflow: hidden;
     transform: translateY(20px);
     transition: transform 0.3s ease;
 }
@@ -1766,7 +1764,7 @@ body {
 }
 
 .confirm-dialog-title { 
-    font-size: 18px;
+    font-size: 20px; /* MODIFIED: Чуть увеличен для презентабельности */
     font-weight: 700;
     color: #000;
 }
@@ -1832,6 +1830,32 @@ body {
     color: #27ae60; 
 }
 
+/* Красивое окошко для комментария */
+.order-commentary-input {
+    margin-bottom: 20px;
+}
+
+.order-commentary-input textarea {
+    width: 100%;
+    min-height: 100px; /* MODIFIED: Увеличенная минимальная высота */
+    padding: 14px 18px; /* MODIFIED: Увеличен padding */
+    border: 1px solid #dcdcdc; /* MODIFIED: Более светлый дефолтный border */
+    border-radius: 16px; /* MODIFIED: Увеличенный радиус */
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.2s ease;
+    background: #f8f8f8;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06); /* Добавлена внутренняя тень */
+}
+
+.order-commentary-input textarea:focus {
+    outline: none;
+    border-color: #3F75FB;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(63, 117, 251, 0.2), inset 0 1px 4px rgba(0,0,0,0.05); /* MODIFIED: Улучшенная тень при фокусе */
+}
+
 .confirm-dialog-actions { 
     padding: 20px 24px 24px;
     display: flex;
@@ -1842,81 +1866,47 @@ body {
 .btn-confirm, .btn-cancel { 
     padding: 16px 20px;
     border: none;
-    border-radius: 12px;
-    font-size: 16px;
+    border-radius: 14px; /* MODIFIED: Чуть больший радиус */
+    font-size: 17px; /* MODIFIED: Чуть больший шрифт */
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-confirm { 
-    background: linear-gradient(135deg, #3F75FB, #2B5DCF); /* Обновлено: изменен градиент и добавлена тень */
+    background: linear-gradient(135deg, #3F75FB 0%, #2B5DCF 100%); /* MODIFIED: Обновленный градиент */
     color: white;
-    box-shadow: 0 2px 8px rgba(63, 117, 251, 0.3);
+    box-shadow: 0 4px 15px rgba(63, 117, 251, 0.4);
+    border: none;
 }
 
 .btn-confirm:hover { 
     background: linear-gradient(135deg, #2B5DCF, #1A47B0);
-    box-shadow: 0 4px 12px rgba(63, 117, 251, 0.4);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(63, 117, 251, 0.5);
+    transform: translateY(-2px);
 }
 
 .btn-confirm:active { 
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(63, 117, 251, 0.3);
 }
 
 .btn-cancel { 
-    background: #f8f9fa; 
+    background: #ffffff; /* MODIFIED: Белый фон */
     color: #666; 
-    border: 1px solid #e9ecef; /* Обновлено: с 2px на 1px */
+    border: 1px solid #e5e5e5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .btn-cancel:hover { 
-    background: #e9ecef; 
-    border-color: #dee2e6;
+    background: #f0f0f0; 
+    border-color: #dcdcdc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .btn-cancel:active { 
     transform: scale(0.98); 
-}
-
-/* Мобильная адаптация */
-@media (max-width: 480px) { 
-    .confirm-dialog-overlay { 
-        padding: 16px;
-    }
-    .confirm-dialog-header { 
-        padding: 16px 20px 0;
-    }
-    .confirm-dialog-content { 
-        padding: 0 20px;
-    }
-    .confirm-dialog-actions { 
-        padding: 16px 20px 20px;
-    }
-}
-
-/* Исправление темного фона корзины */
-#page-catalog { background: #ffffff !important; } 
-.cart-list { background: transparent !important; } 
-.cart-item { background: white !important; border: 1px solid #e5e5e5 !important; } 
-.cart-item-left, .cart-item-right { background: transparent !important; } 
-.empty-cart { background: transparent !important; } 
-
-/* Убираем все темные переменные Telegram */
-.cart-item { 
-    background: white !important; 
-    --tg-theme-secondary-bg-color: white !important; 
-    --tg-theme-section-bg-color: #e5e5e5 !important; 
-} 
-
-/* Принудительное позиционирование по центру */
-.success-overlay { 
-    position: fixed !important; 
-    top: 0 !important; 
-    left: 0 !important; 
-    right: 0 !important; 
-    bottom: 0 !important; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 /* === СТИЛИ ДЛЯ ПОИСКА (Search) === */
@@ -2085,4 +2075,124 @@ body {
     background: rgba(63, 117, 251, 0.1);
     color: #3F75FB;
     font-weight: 600;
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 480px) {
+    .main { 
+        padding: 12px; 
+        padding-bottom: 70px; 
+    }
+
+    /* FIX: 2 фиксированных столбца на мобильных */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .product-card {
+        padding: 10px;
+    }
+
+    .product-card.unavailable::after {
+        font-size: 14px;
+        padding: 8px 12px;
+        transform: translate(-50%, -50%) rotate(-12deg);
+        letter-spacing: 0.5px;
+    }
+    
+    .product-card.unavailable {
+        opacity: 0.7;
+    }
+
+    .categories {
+        gap: 6px;
+    }
+
+    .category-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    .product-card img { 
+        height: 120px; 
+    } 
+    .cart-item-left img { 
+        width: 64px; 
+        height: 64px; 
+    } 
+    
+    /* Адаптация страницы заказов */
+    .orders-container { 
+        padding: 16px;
+    }
+    .order-card { 
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+    .order-header { 
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .order-status { 
+        align-self: flex-start;
+    }
+    .order-item { 
+        padding: 10px 0;
+    }
+    .order-item-image { 
+        width: 50px;
+        height: 50px;
+        margin-right: 12px;
+    }
+    .order-item-name { 
+        font-size: 15px;
+    }
+    .order-item-meta { 
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .order-total { 
+        font-size: 16px;
+    }
+    .orders-history-btn { 
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+    .page-header { 
+        padding: 0;
+        margin-bottom: 16px;
+    }
+    
+    /* Адаптация диалога подтверждения */
+    .confirm-dialog-overlay { 
+        padding: 16px;
+    }
+    .confirm-dialog-header { 
+        padding: 16px 20px 0;
+    }
+    .confirm-dialog-content { 
+        padding: 0 20px;
+    }
+    .confirm-dialog-actions { 
+        padding: 16px 20px 20px;
+    }
+}
+
+/* Wide Format: 4 фиксированные колонки */
+@media (min-width: 1200px) {
+    .products-grid {
+        grid-template-columns: repeat(4, 1fr); /* FIX: 4 фиксированных столбца на ПК */
+        gap: 24px;
+    }
+    .main {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .cart-total {
+        margin-top: 20px;
+    }
 }
