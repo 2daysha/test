@@ -757,8 +757,9 @@ setupNavigation() {
         `;
     }
 
-    async processOrder() {
+        async processOrder() {
         try {
+            // Считаем общую сумму корзины
             const totalAmount = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
             if (this.participant?.balance < totalAmount) {
@@ -766,6 +767,7 @@ setupNavigation() {
                 return;
             }
 
+            // Формируем данные заказа для отправки на сервер
             const orderData = {
                 commentary: this.commentaryInputValue || "",
                 items: this.cart.map(item => ({
@@ -775,6 +777,7 @@ setupNavigation() {
                 }))
             };
 
+            // Отправка запроса на создание заказа
             const response = await fetch(`${this.baseURL}/api/telegram/create-order/`, {
                 method: 'POST',
                 headers: this.getAuthHeaders(),
@@ -782,16 +785,25 @@ setupNavigation() {
             });
 
             if (response.status === 201) {
-                const result = await response.json();
-                
+                const createdOrder = await response.json();
+
+                // Очистка корзины
                 this.cart = [];
                 localStorage.removeItem('cart');
 
+                // Сбрасываем поле комментария
+                this.commentaryInputValue = "";
+
+                // Показываем уведомление об успешном создании заказа
                 this.showSuccessOverlay('Успешно!', 'Заказ создан и оплачен!');
-                this.commentaryInputValue = ""; 
-                
-                await this.checkTelegramLink();
+
+                // Обновляем историю заказов с данными от сервера
+                if (!this.orders) this.orders = [];
+                this.orders.unshift(createdOrder); // добавляем новый заказ в начало истории
+
+                // Если используешь функцию загрузки корзины
                 this.loadCart();
+
             } else {
                 const errorData = await response.json();
                 const errorMessage = errorData.detail || 'Ошибка при создании заказа';
@@ -803,42 +815,43 @@ setupNavigation() {
         }
     }
 
-    openProductModal(productGuid) {
-    const product = this.products.find(p => p.guid === productGuid);
-    if (!product) return;
 
-    const modal = document.getElementById('product-modal');
-    if (!modal) return;
+        openProductModal(productGuid) {
+        const product = this.products.find(p => p.guid === productGuid);
+        if (!product) return;
 
-    document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
-    document.getElementById('modal-product-image').alt = product.name;
-    document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
-    document.getElementById('modal-product-name').textContent = product.name;
-    document.getElementById('modal-product-stock').textContent = product.stock || '';
-    document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
-    document.getElementById('modal-product-price').textContent = `${product.price}`;
+        const modal = document.getElementById('product-modal');
+        if (!modal) return;
 
-    const addToCartBtn = document.getElementById('modal-add-to-cart');
-    
-    if (!product.is_available) {
-        addToCartBtn.textContent = 'Недоступно';
-        addToCartBtn.disabled = true;
-        addToCartBtn.style.background = '#ccc';
-        addToCartBtn.style.cursor = 'not-allowed';
-    } else {
-        addToCartBtn.textContent = 'Добавить в корзину';
-        addToCartBtn.disabled = false;
-        addToCartBtn.style.background = '#3F75FB';
-        addToCartBtn.style.cursor = 'pointer';
-        addToCartBtn.onclick = () => {
-            this.addToCart(product.guid);
-            this.closeProductModal();
-        };
+        document.getElementById('modal-product-image').src = product.image_url || 'placeholder.png';
+        document.getElementById('modal-product-image').alt = product.name;
+        document.getElementById('modal-product-category').textContent = product.category?.name || 'Без категории';
+        document.getElementById('modal-product-name').textContent = product.name;
+        document.getElementById('modal-product-stock').textContent = product.stock || '';
+        document.getElementById('modal-product-description-text').textContent = product.description || 'Описание отсутствует';
+        document.getElementById('modal-product-price').textContent = `${product.price} бонусов`;
+
+        const addToCartBtn = document.getElementById('modal-add-to-cart');
+
+        if (!product.is_available) {
+            addToCartBtn.textContent = 'Недоступно';
+            addToCartBtn.disabled = true;
+            addToCartBtn.style.background = '#ccc';
+            addToCartBtn.style.cursor = 'not-allowed';
+        } else {
+            addToCartBtn.textContent = 'Добавить в корзину';
+            addToCartBtn.disabled = false;
+            addToCartBtn.style.background = '#3F75FB';
+            addToCartBtn.style.cursor = 'pointer';
+            addToCartBtn.onclick = () => {
+                this.addToCart(product.guid);
+                this.closeProductModal();
+            };
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
-
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
 
     closeProductModal() {
         const modal = document.getElementById('product-modal');
@@ -1050,54 +1063,54 @@ setupNavigation() {
         }
 
        renderOrders() {
-            const container = document.getElementById('orders-list');
-            if (!container) return;
+            const ordersContainer = document.getElementById('orders-container');
+            if (!ordersContainer) return;
+
+            ordersContainer.innerHTML = '';
 
             if (!this.orders || this.orders.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-orders">
-                        <div class="empty-orders-icon">📦</div>
-                        <h2>Заказов пока нет</h2>
-                        <p>Совершите свой первый заказ в каталоге</p>
-                    </div>
-                `;
+                ordersContainer.innerHTML = '<p>История заказов пуста</p>';
                 return;
             }
 
-            const sortedOrders = [...this.orders].sort((a, b) => 
-                new Date(b.created_at) - new Date(a.created_at)
-            );
+            this.orders.forEach(order => {
+                const orderEl = document.createElement('div');
+                orderEl.classList.add('order-item');
 
-            container.innerHTML = sortedOrders.map(order => `
-                <div class="order-card">
-                    <div class="order-header">
-                        <div class="order-info">
-                            <h3>Заказ #${order.id || (order.guid ? order.guid.slice(-8) : 'N/A')}</h3>
-                            <div class="order-date">${this.formatOrderDate(order.created_at)}</div>
+                const date = new Date(order.created_at).toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const itemsHtml = order.items.map(i => `
+                    <div class="order-product">
+                        <img src="${i.product.image_url || 'placeholder.png'}" alt="${i.product.name}" class="order-product-image"/>
+                        <div class="order-product-info">
+                            <strong>${i.product.name}</strong>
+                            <p>${i.product.description || ''}</p>
+                            <p>Категория: ${i.product.category?.name || 'Без категории'}</p>
+                            <p>Количество: ${i.quantity}</p>
+                            <p>Цена: ${i.price} бонусов</p>
                         </div>
-                        <div class="order-status status-${order.status || 'pending'}">
-                            ${this.getStatusText(order.status)}
-                        </div>
                     </div>
-                    
-                    <div class="order-items">
-                        ${order.items ? order.items.map(item => `
-                            <div class="order-item">
-                                <span class="item-name">${item.product_name || item.name || 'Товар'}</span>
-                                <span class="item-quantity">${item.quantity} шт.</span>
-                                <span class="item-price">${(item.price * item.quantity)} бонусов</span>
-                            </div>
-                        `).join('') : '<div class="order-item">Информация о товарах недоступна</div>'}
-                    </div>
-                    
-                    <div class="order-footer">
-                        <div class="order-total">Итого: ${order.total_amount || this.calculateOrderTotal(order)} бонусов</div>
-                        ${order.commentary ? `<div class="order-commentary"><strong>Комментарий:</strong> ${order.commentary}</div>` : ''}
-                        <div class="order-id">ID: ${order.id || order.guid || 'N/A'}</div>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+
+                orderEl.innerHTML = `
+                    <h3>Заказ #${order.order_number || 'N/A'}</h3>
+                    <p>Дата: ${date}</p>
+                    <p>Статус: ${order.order_status || 'Неизвестно'}</p>
+                    <div class="order-items">${itemsHtml}</div>
+                    <p><strong>Итого: ${order.items.reduce((sum, i) => sum + i.price, 0)} бонусов</strong></p>
+                    ${order.commentary ? `<p>Комментарий: ${order.commentary}</p>` : ''}
+                `;
+
+                ordersContainer.appendChild(orderEl);
+            });
         }
+
 
         // Вспомогательные методы
         formatOrderDate(dateString) {
