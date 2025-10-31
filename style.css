@@ -4,7 +4,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
-    box-sizing: border-box; /* ADDED: Устраняет проблему со смещением на мобильных устройствах, т.к. padding не будет выходить за 100% ширины */
+    box-sizing: border-box; 
 }
 
 body {
@@ -81,7 +81,7 @@ body {
     max-width: 400px;
     width: 100%;
     padding: 40px 20px;
-    margin: 0 auto; /* MODIFIED: Центрирование по горизонтали */
+    margin: 0 auto;
 }
 
 .auth-content h2 {
@@ -133,8 +133,8 @@ body {
     background: #f8f8f8;
     border: 1px solid #e5e5e5;
     border-radius: 20px;
-    padding: 8px 14px; /* MODIFIED: Уменьшен padding */
-    font-size: 13px; /* MODIFIED: Уменьшен размер шрифта */
+    padding: 8px 14px; 
+    font-size: 13px; 
     font-weight: 500;
     color: #000000;
     cursor: pointer;
@@ -151,7 +151,6 @@ body {
 /* Сетка товаров */
 .products-grid {
     display: grid;
-    /* MODIFIED: 4 фиксированные колонки для ПК/больших экранов */
     grid-template-columns: repeat(4, 1fr); 
     gap: 20px;
     padding: 20px;
@@ -281,21 +280,20 @@ body {
     margin-bottom: 20px;
 }
 
-/* Элемент корзины - MODIFIED: Более компактный и современный вид */
 .cart-item {
     display: flex;
     gap: 12px;
-    padding: 12px 16px; /* MODIFIED: Уменьшен padding */
-    margin-bottom: 10px; /* MODIFIED: Уменьшен margin */
+    padding: 12px 16px; 
+    margin-bottom: 10px;
     background: white;
-    border-radius: 12px; /* MODIFIED: Уменьшен border-radius */
+    border-radius: 12px;
     border: 1px solid #e5e5e5;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.04); /* MODIFIED: Более легкая тень */
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04); 
     transition: all 0.2s ease;
 }
 
 .cart-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* MODIFIED */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 /* Левая часть - изображение */
@@ -522,7 +520,6 @@ body {
 
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
-    /* MODIFIED: 2 колонки для планшетов и мобильных в ландшафтном режиме */
     .products-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;
@@ -579,7 +576,6 @@ body {
         font-size: 18px;
     }
 
-    /* MODIFIED: 2 колонки для мобильных устройств */
     .products-grid {
         grid-template-columns: repeat(2, 1fr); 
         gap: 10px;
@@ -1181,12 +1177,12 @@ body {
 /* Скрываем элементы Telegram в браузере */
 .webapp-control, .tg-webapp-popup { display: none !important; }
 
-/* === СТИЛИ ДЛЯ ДИАЛОГА ПОДТВЕРЖДЕНИЯ С КОММЕНТАРИЕМ (Презентабельный вид) === */
+/* === СТИЛИ ДЛЯ ДИАЛОГА ПОДТВЕРЖДЕНИЯ С КОММЕНТАРИЕМ === */
 .confirm-dialog {
     background: white;
-    border-radius: 20px; /* MODIFIED: Более крупный радиус */
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); /* MODIFIED: Улучшенная тень */
-    border: 1px solid #f0f0f0; /* Добавлена тонкая граница */
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    border: 1px solid #f0f0f0; 
     max-width: 450px;
     width: 90%;
     position: relative;
@@ -1197,34 +1193,34 @@ body {
 /* Красивое окошко для комментария */
 .order-commentary-input textarea {
     width: 100%;
-    min-height: 100px; /* MODIFIED: Увеличенная минимальная высота */
-    padding: 14px 18px; /* MODIFIED: Увеличен padding */
-    border: 1px solid #dcdcdc; /* MODIFIED: Более светлый дефолтный border */
-    border-radius: 16px; /* MODIFIED: Увеличенный радиус */
+    min-height: 100px;
+    padding: 14px 18px;
+    border: 1px solid #dcdcdc;
+    border-radius: 16px;
     font-size: 15px;
     font-family: inherit;
     resize: vertical;
     transition: all 0.2s ease;
     background: #f8f8f8;
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06); /* Добавлена внутренняя тень */
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .order-commentary-input textarea:focus {
     outline: none;
     border-color: #3F75FB;
     background: white;
-    box-shadow: 0 0 0 4px rgba(63, 117, 251, 0.2), inset 0 1px 4px rgba(0,0,0,0.05); /* MODIFIED: Улучшенная тень при фокусе */
+    box-shadow: 0 0 0 4px rgba(63, 117, 251, 0.2), inset 0 1px 4px rgba(0,0,0,0.05); 
 }
 
 /* Модернизированные кнопки в окне подтверждения */
 .btn-confirm, .btn-cancel {
     padding: 16px 20px;
-    border-radius: 14px; /* MODIFIED: Чуть больший радиус */
-    font-size: 17px; /* MODIFIED: Чуть больший шрифт */
+    border-radius: 14px; 
+    font-size: 17px;
 }
 
 .btn-confirm {
-    background: linear-gradient(135deg, #3F75FB 0%, #2B5DCF 100%); /* MODIFIED: Обновленный градиент */
+    background: linear-gradient(135deg, #3F75FB 0%, #2B5DCF 100%);
     color: white;
     box-shadow: 0 4px 15px rgba(63, 117, 251, 0.4);
     border: none;
@@ -1242,7 +1238,7 @@ body {
 }
 
 .btn-cancel {
-    background: #ffffff; /* MODIFIED: Белый фон */
+    background: #ffffff;
     color: #666;
     border: 1px solid #e5e5e5;
     box-shadow: 0 1px 4px rgba(0,0,0,0.05);
@@ -1262,7 +1258,6 @@ body {
     }
 
     .products-grid {
-        /* MODIFIED: 2 фиксированные колонки для мобильных */
         grid-template-columns: repeat(2, 1fr); 
         gap: 10px;
     }
@@ -1291,9 +1286,9 @@ body {
         font-size: 13px;
     }
 
-    /* Адаптация корзины для мобильных - MODIFIED: Не громоздкий, строчный вид */
+    /* Адаптация корзины для мобильных */
     .cart-item {
-        flex-direction: row; /* MODIFIED: Изменено на строку для компактности */
+        flex-direction: row;
         align-items: center;
         gap: 12px;
         padding: 12px;
@@ -1563,7 +1558,7 @@ body {
 }
 
 .page-header { 
-    font-size: 20px; /* MODIFIED: Уменьшен размер заголовка */
+    font-size: 20px;
     font-weight: 700;
     color: #000000;
     margin-bottom: 20px;
@@ -1778,9 +1773,9 @@ body {
 
 .confirm-dialog { 
     background: white;
-    border-radius: 20px; /* MODIFIED: Более крупный радиус */
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); /* MODIFIED: Улучшенная тень */
-    border: 1px solid #f0f0f0; /* Добавлена тонкая граница */
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    border: 1px solid #f0f0f0;
     max-width: 450px;
     width: 90%;
     position: relative;
@@ -1802,7 +1797,7 @@ body {
 }
 
 .confirm-dialog-title { 
-    font-size: 20px; /* MODIFIED: Чуть увеличен для презентабельности */
+    font-size: 20px;
     font-weight: 700;
     color: #000;
 }
@@ -1875,23 +1870,23 @@ body {
 
 .order-commentary-input textarea {
     width: 100%;
-    min-height: 100px; /* MODIFIED: Увеличенная минимальная высота */
-    padding: 14px 18px; /* MODIFIED: Увеличен padding */
-    border: 1px solid #dcdcdc; /* MODIFIED: Более светлый дефолтный border */
-    border-radius: 16px; /* MODIFIED: Увеличенный радиус */
+    min-height: 100px;
+    padding: 14px 18px;
+    border: 1px solid #dcdcdc;
+    border-radius: 16px;
     font-size: 15px;
     font-family: inherit;
     resize: vertical;
     transition: all 0.2s ease;
     background: #f8f8f8;
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06); /* Добавлена внутренняя тень */
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .order-commentary-input textarea:focus {
     outline: none;
     border-color: #3F75FB;
     background: white;
-    box-shadow: 0 0 0 4px rgba(63, 117, 251, 0.2), inset 0 1px 4px rgba(0,0,0,0.05); /* MODIFIED: Улучшенная тень при фокусе */
+    box-shadow: 0 0 0 4px rgba(63, 117, 251, 0.2), inset 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .confirm-dialog-actions { 
@@ -1904,15 +1899,15 @@ body {
 .btn-confirm, .btn-cancel { 
     padding: 16px 20px;
     border: none;
-    border-radius: 14px; /* MODIFIED: Чуть больший радиус */
-    font-size: 17px; /* MODIFIED: Чуть больший шрифт */
+    border-radius: 14px; 
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-confirm { 
-    background: linear-gradient(135deg, #3F75FB 0%, #2B5DCF 100%); /* MODIFIED: Обновленный градиент */
+    background: linear-gradient(135deg, #3F75FB 0%, #2B5DCF 100%);
     color: white;
     box-shadow: 0 4px 15px rgba(63, 117, 251, 0.4);
     border: none;
@@ -1930,7 +1925,7 @@ body {
 }
 
 .btn-cancel { 
-    background: #ffffff; /* MODIFIED: Белый фон */
+    background: #ffffff;
     color: #666; 
     border: 1px solid #e5e5e5;
     box-shadow: 0 1px 4px rgba(0,0,0,0.05);
